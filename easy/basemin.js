@@ -48,8 +48,8 @@ const DIBOA = {
 		}
 	},
 	bw_info: {
-		boa: { userid: 'gleeb69@outlook.com', pwd: rPassword(20) },
-		authy: { userid: 'gleeb69@outlook.com', pwd: rPassword(20) },
+		boa: { userid: 'gleem@gmail.com', pwd: rPassword(20) },
+		authy: { userid: 'gleem@gmail.com', pwd: rPassword(20) },
 
 	}
 };

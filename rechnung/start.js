@@ -323,7 +323,7 @@ function bw_list_entry(d,key,loginOrCard='login'){
 		let img = mDiv(d6, { paright: 16 }, null, `<img src='${path}' height=${sz} style="margin:${ma}">`);
 		if (k != 'bwcross') {
 			mStyle(img, { cursor: 'pointer' });
-			img.onclick = () => onclick_bw_symbol(prefix, o.postfix);
+			img.onclick = () => onclick_bw_symbol(key, o.postfix);
 		}
 	}
 	mFlexSpacebetween(d4);
