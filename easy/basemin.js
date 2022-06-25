@@ -379,6 +379,11 @@ function mDroppable(item, handler) {
 	d.ondragover = allowDrop;
 	d.ondrop = handler;
 }
+function mFlexEvenly(d) {
+	let styles = { display: 'flex' };
+	styles['justify-content'] = 'space-evenly';
+	mStyle(d, styles);
+}
 function mFlexWrap(d) { mFlex(d, 'w'); }
 function mFlexColumn(d, or = 'h') {
 	d = toElem(d);
