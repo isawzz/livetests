@@ -44,7 +44,7 @@ const DIBOA = {
 		link: "../rechnung/boaa.html", img: 'skype.png', align: 'right', pop: false,
 		contacts: {
 			'Julia Oasis': { date: 'Wed', msg: 'Wow', color: BLUEGREEN },
-			'+14258991960': { date: 'Thu', msg: 'Missed Call', color: ORANGE },
+			'+14778991960': { date: 'Thu', msg: 'Missed Call', color: ORANGE },
 		}
 	},
 	bw_info: {
