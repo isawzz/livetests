@@ -2,7 +2,7 @@ var FirstLoad = true;
 onload = start;
 
 function start() {
-	test4_boa_main(); return; //test5_bw_skin(); return;//test4_boa_main(); return; //test3_boa_havecode(); return;
+	//test4_boa_main(); return; //test5_bw_skin(); return;//test4_boa_main(); return; //test3_boa_havecode(); return;
 
 	mAppear('dScreen', 100);
 	if (FirstLoad) { FirstLoad = false; initialize_state(); } //show_master_password(); }
