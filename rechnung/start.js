@@ -7,7 +7,8 @@ function start() {
 	mAppear('dScreen', 100);
 	if (FirstLoad) { FirstLoad = false; initialize_state(); } //show_master_password(); }
 	get_toolbar();
-	start_challenge2();
+	//show_eval_message(false);
+	//start_challenge2();
 	//onclick_location('skype');	S.skype_contact = DIBOA.skype.contacts[DIBOA.skype.contacts.length - 1];	show_skype_contact(DIBOA.skype.divRight)
 	//S.bw_state = 'loggedin'; bw_widget_popup();
 	// onclick_popup('bw');
@@ -39,7 +40,7 @@ function start_challenge2() {
 	DA.challenge = 2;
 	boamain_start();
 	show_bill_button();
-	onclick_bill();
+	//onclick_bill();
 }
 
 function add_verify_content(dParent) {
@@ -208,9 +209,10 @@ function boamain_start() {
 		TO.boa = setTimeout(() => {
 			S.boa_state = null;
 			let msg = DA.challenge == 1 ? 'CONGRATULATIONS!!!! YOU SUCCEEDED IN LOGGING IN TO BOA' : 'Session timed out!';
-			alert(msg);
+			show_eval_message(true);
+			//alert(msg);
 			boa_start();
-		}, 3000);
+		}, 2000);
 	}
 
 	show_correct_location('boa');  //das ist um alle anderen screens zu loeschen!
@@ -243,13 +245,14 @@ function boamain_start() {
 
 	mDiv(dl, { bg: '#857363', fg: 'white', fz: 15 }, null, '&nbsp;&nbsp;<i class="fa fa-caret-down"></i>&nbsp;&nbsp;Default Group<div style="float:right;">Sort&nbsp;&nbsp;</div>');
 
-	let boadata = get_fake_boa_data();
+	let boadata = get_fake_boa_data_list();
 	let color_alt = '#F9F7F4';
 	let i = 0;
-	for (const k in boadata) {
-		let o = boadata[k];
-		boadata[k].index = i;
-		console.log('o', o);
+	//let sortedkeys = get_keys(boadata);	sortedkeys.sort();
+	for (const o of boadata) {
+		let k = o.key;
+		o.index = i;
+		//console.log('key',k,'index',i);
 		let logo = valf(o.logo, 'defaultacct.jpg');
 		let path = `${logo}`;
 		let [sz, bg] = [25, i % 2 ? 'white' : color_alt];
@@ -288,6 +291,7 @@ function boamain_start() {
 
 		i++;
 	}
+
 
 	//mDiv(dl, { hmin: 400, bg: 'orange' });
 	//for (let j = 0; j < i; j++) { let inp = document.getElementById(`inp${j}`); inp.addEventListener('keyup', unfocusOnEnter); }
@@ -416,7 +420,8 @@ function bw_widget_popup(key = 'boa') {
 
 
 }
-function get_fake_boa_data() { return DIBOA.boa_data; }
+function get_fake_boa_data() { if (nundef(DA.boadata)) DA.boadata = DIBOA.boa_data; return DA.boadata; }
+function get_fake_boa_data_list() { if (nundef(DA.boadata)) DA.boadata =  dict2list(DIBOA.boa_data,'key'); return DA.boadata; }
 function get_fake_bw_cards() {
 	const cards = {
 		'amazon': { sub: '*5555', logo: 'visa.png' },
@@ -997,11 +1002,13 @@ function onclick_submit_boa_login() {
 		console.log('FAIL!!!!!!! onclick_submit_boa_login', userid, pwd);
 	}
 }
-function show_correct_location(k) {
-	hide('dPopup');
-	for (const k1 in DIBOA) { hide(`d${capitalize(k1)}`); }
-	S.location = k; // muss ich nicht saven
-	show(`d${capitalize(k)}`);
+function onclick_home(){ 
+	let b=mBy('tbbill'); if (isdef(b)) b.remove();
+	scrollToTop(); 
+	S.boa_state = null; 
+	onclick_location('home');
+	let dband=mBy('dBandMessage');
+	mStyle(dband,{display:'none',h:0,hmin:0});
 }
 function onclick_location(k) {
 	//console.log('_onclick_location', k);
@@ -1039,16 +1046,50 @@ function onclick_boa_submit_code() {
 
 	let success_code = list1 == S.boa_authorization_code;
 
-	if (!success_code) { alert("The code you entered was not correct! " + S.boa_authorization_code); return; }
+	if (!success_code) { 
+		show_eval_message(false);
+		//alert("The code you entered was not correct! " + S.boa_authorization_code); 
+		return; 
+	}
 
 	//SUCCESS! now open next form!
 	//console.log('Finally, open account list!!!!!');
 	boamain_start();
 
 }
+function scrollToTop() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
 function show_master_password() {
 	let score = localStorage.getItem('score');
 	show_special_message('the bitwarden master password is ' + S.master_password, false, 5000, 2000, { bg: 'dodgerblue', classname: '', top: 400 });
+}
+function show_eval_message(correct){
+	let msg = correct ? 'Congratulations!!! You passed the Pay Bill challenge!' : 'Wrong solution - Try Again!';
+	//show_special_message(msg, false, 5000, 2000, { bg: 'dodgerblue', position:'sticky', classname: 'special_message' },onclick_home);
+	let d = valf(mBy('dBandMessage'),mDiv(document.body, {}, 'dBandMessage'));
+	//console.log('dParent',dParent)
+	show(d);
+	clearElement(d);
+
+	//addKeys({ position: 'fixed', top: 200, classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' }, styles);
+	//if (!isEmpty(styles.classname)) { mClass(dParent, styles.classname); }
+	//delete styles.classname;
+	//mStyle(dParent, styles);
+	d.innerHTML = msg; //'blablablablabllllllllllllllllllllllllllllllaaaaaaaaaaaaaaaaaaaaaaa'; //msg;
+	mStyle(d,{position:'fixed',top:100,left:0,bg:'red',fg:'white',w:'100%',h:40,hmin:40,hmax:40,fz:24,align:'center',vpadding:10,classname:'slow_gradient_blink'});
+	//mClass(d,'slow_gradient_blink')
+	let [ms,delay,callback]=[5000,0,correct?onclick_home:null];
+	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(d, ms, callback); }, delay);
+	else mFadeClear(d, ms, callback);
+
+}
+function show_correct_location(k) {
+	hide('dPopup');
+	for (const k1 in DIBOA) { hide(`d${capitalize(k1)}`); }
+	S.location = k; // muss ich nicht saven
+	show(`d${capitalize(k)}`);
 }
 function set_new_password() {
 	let len = Math.min(20, S.master_password.length + 1);

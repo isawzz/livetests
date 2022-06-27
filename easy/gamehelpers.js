@@ -360,8 +360,8 @@ function show_settings(dParent) {
 function status_message_new(msg, dParent, styles = {}) {
 }
 function show_special_message(msg,stay=false) {
-	let dParent = mBy('divTest'); 
-	if (nundef(dParent)) mDiv(document.body,{},'divTest');
+	let dParent = mBy('dBandMessage'); 
+	if (nundef(dParent)) mDiv(document.body,{},'dBandMessage');
 	//console.log('dParent',dParent)
 	show(dParent); 
 	clearElement(dParent);

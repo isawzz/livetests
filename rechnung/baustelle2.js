@@ -34,17 +34,21 @@ function add_make_payments_button(ev){
 }
 function make_payments_challenge_eval(inp){
 	let val=inp.value;
-	console.log('mit was muss ich das jetzt vergleichen',val);
+	//console.log('mit was muss ich das jetzt vergleichen',val);
 
 	let solution = {amount:DA.bill.nums.balance,index:DA.bill.acc.index};
 	let answer = {amount:Number(val.substring(1).trim()),index:Number(inp.id.substring(3))};
 
-	console.log('solution',solution,'answer',answer);
-	if (solution.amount == answer.amount && solution.index == answer.index){
+
+	//console.log('solution',solution,'answer',answer);
+	let correct = solution.amount.toFixed(2) == answer.amount.toFixed(2) && solution.index == answer.index;
+	if (correct){
 		console.log('CORRECT!!!!!!!!!');
+
 	}else {
-		console.log('WRONG!!!!!!!!!');
+		console.log('WRONG!!!!!!!!!','solution',solution,'answer',answer);
 	}
+	show_eval_message(correct);
 }
 
 

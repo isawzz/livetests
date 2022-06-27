@@ -79,8 +79,8 @@ const DIBOA = {
 		'Citi Costco gu': { sub: '*0890', 'Last Payment': '6-6 $228.92', logo: 'citi.png', brand: 'citibank' },
 		'CITI DIVIDENT Platinum': { sub: '*3454', logo: 'citi.png' },
 		'CITIBANK VISA NV': { sub: '*7566', logo: 'citi.png' },
-		'City of Remadina': { sub: '*2887', 'Last Payment': '5-17 $214.94', brand: 'redmond' },
-		'City of Merino': { sub: '*4998' },
+		'City of Redmond': { sub: '*4998' },
+		'City of Redmond WA': { sub: '*2887', 'Last Payment': '5-17 $214.94', brand: 'redmond' },
 		'Comcast': { sub: '*7676', logo: 'comcast.png' },
 		'Comcast Perrigo': { sub: '*1324', 'Last Payment': '6-21 $89.44', logo: 'comcast.png', brand: 'comcast' },
 		'ComCast WA': { sub: '*6456', logo: 'comcast.png' },
@@ -3899,19 +3899,19 @@ function hide(elem) {
 		elem.style.display = 'none';
 	}
 }
-function show_special_message(msg, stay = false, ms = 3000, delay = 0, styles = {}) { //divTestStyles={}) {
-	let dParent = mBy('divTest');
-	if (nundef(dParent)) dParent = mDiv(document.body, {}, 'divTest');
+function show_special_message(msg, stay = false, ms = 3000, delay = 0, styles = {}, callback=null) { //divTestStyles={}) {
+	let dParent = mBy('dBandMessage');
+	if (nundef(dParent)) dParent = mDiv(document.body, {}, 'dBandMessage');
 	//console.log('dParent',dParent)
 	show(dParent);
 	clearElement(dParent);
-	addKeys({ position: 'absolute', top: 200, classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' }, styles);
+	addKeys({ position: 'fixed', top: 200, classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' }, styles);
 	if (!isEmpty(styles.classname)) { mClass(dParent, styles.classname); }
 	delete styles.classname;
 	mStyle(dParent, styles);
 	dParent.innerHTML = msg;
-	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(dParent, ms); }, delay);
-	else mFadeClear(dParent, ms);
+	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(dParent, ms, callback); }, delay);
+	else mFadeClear(dParent, ms, callback);
 }
 function selectText(el) {
 	var sel, range;

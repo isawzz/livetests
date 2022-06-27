@@ -1,23 +1,24 @@
 
 function show_bill_button() {
+	if (isdef(mBy('tbbill'))) return;
 	let tb = mBy('dTopRight');
 	let b = mDiv(tb, {}, `tbbill`, `<a href="javascript:onclick_bill()"><img src="../rechnung/images/bill.png" height="30"/></a>`);
 	mInsert(tb, b);
 }
 function onclick_bill() {
-	console.log('clicked bill');
+	//console.log('clicked bill');
 	let dParent = mBy('dBoaMain');
 	if (dParent.children.length > 1) dParent.lastChild.remove();
 
-	let accs = get_fake_boa_data();
-	acclist = dict2list(accs).filter(x => isdef(x['Last Payment']));
-	console.log('accs', acclist);
+	//let accs = get_fake_boa_data();	let acclist = dict2list(accs).filter(x => isdef(x['Last Payment']));
+	let acclist = get_fake_boa_data_list().filter(x => isdef(x['Last Payment']));
+	//console.log('accs', acclist);
 	let boacc = rChoose(acclist);
 
 	let item = generate_statement(dParent, boacc, boacc.brand);
 	DA.bill = item;
 	lookupAddIfToList(DA,['challengedata'],item);
-	console.log('item', item, DA);
+	//console.log('item', item, DA);
 	//item.boacc.sub
 }
 function addMonthToDate(date, months) {
