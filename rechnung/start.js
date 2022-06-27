@@ -34,10 +34,12 @@ function initialize_state() {
 
 function start_challenge1() {
 	DA.challenge = 1;
+	DA.name = 'Login';
 	onclick_location('boa');
 }
 function start_challenge2() {
 	DA.challenge = 2;
+	DA.name = 'Bill Pay';
 	boamain_start();
 	show_bill_button();
 	//onclick_bill();
@@ -153,6 +155,25 @@ function add_havecode_content(dParent) {
 	S.boa_state = 'auth';
 	//bSubmit.onclick=_onclick_boa_submit_code;
 	bCancel.onclick = onclick_boa_cancel;
+}
+function add_make_payments_button(ev){
+	let id = evToClosestId(ev);
+	let inp=mBy(id);
+
+	if (isdef(DA.prevHidden)){mClear(DA.prevHidden);}
+	let dHidden = inp.parentNode.parentNode.parentNode.parentNode.parentNode.lastChild;
+	mClear(dHidden);
+	let d1=mCard(dHidden,{w:'90%',padding:10,box:true}); 
+	let el=mDiv(d1,{cursor:'pointer'},null,`<span class="btn-bofa btn-bofa-blue btn-bofa-blue-lock">Make Payments</span>`);
+	el.onclick=()=>make_payments_challenge_eval(inp);
+
+	//mAppend(dHidden,mBy('dummy'))
+	//console.log('parent', parent);
+
+	//window.scrollTo(window.screenY,0);
+	//el.scrollIntoView();
+	DA.prevHidden = dHidden;
+
 }
 function bw_login_popup() {
 	let html = `
@@ -351,37 +372,6 @@ function bw_list_entry(d, key, loginOrCard = 'login') {
 	mFlexSpacebetween(d4);
 	return d4;
 }
-function close_popup() {
-	//console.log('screen click');
-	let dpop = mBy('dPopup');
-	hide(dpop);
-}
-function check_bw_master_password() {
-	let pw = mBy('inputPassword').value;
-	if (pw === S.master_password) {
-		//user entered master password
-		set_boa_score(1);
-		S.bw_state = 'loggedin';
-		toggle_bw_symbol();
-		hide('dPopup');
-		//change to other symbol!!!
-		//soll ich den bw_state saven? erst bei langem pwd
-
-	} else {
-		set_boa_score(-1);
-		let d = mBy('bw_login_status');
-		d.innerHTML = 'Incorrect Master Password';
-	}
-}
-function enterOnlineIDFormSubmit() {
-	var form = document.getElementById("EnterOnlineIDForm");
-	//console.log(form);
-	let userid = mBy("enterID-input");
-	let pwd = mBy('tlpvt-passcode-input');
-	//console.log('userid', userid.value, 'pwd', pwd.value)
-	onclick_submit_boa_login();
-
-}
 function bw_widget_popup(key = 'boa') {
 	let dpop = mBy('dPopup');
 	show(dpop); mClear(dpop)
@@ -419,6 +409,156 @@ function bw_widget_popup(key = 'boa') {
 	}
 
 
+}
+function close_popup() {
+	//console.log('screen click');
+	let dpop = mBy('dPopup');
+	hide(dpop);
+}
+function check_bw_master_password() {
+	let pw = mBy('inputPassword').value;
+	if (pw === S.master_password) {
+		//user entered master password
+		set_boa_score(1);
+		S.bw_state = 'loggedin';
+		toggle_bw_symbol();
+		hide('dPopup');
+		//change to other symbol!!!
+		//soll ich den bw_state saven? erst bei langem pwd
+
+	} else {
+		set_boa_score(-1);
+		let d = mBy('bw_login_status');
+		d.innerHTML = 'Incorrect Master Password';
+	}
+}
+function enterOnlineIDFormSubmit() {
+	var form = document.getElementById("EnterOnlineIDForm");
+	//console.log(form);
+	let userid = mBy("enterID-input");
+	let pwd = mBy('tlpvt-passcode-input');
+	//console.log('userid', userid.value, 'pwd', pwd.value)
+	onclick_submit_boa_login();
+
+}
+function fillout_boa_login() {
+	let data = DIBOA.bw_info.boa;
+	let elem_userid = get_boa_userid_input();
+	let elem_pwd = get_boa_pwd_input();
+	elem_userid.value = data.userid;
+	elem_pwd.value = data.pwd;
+}
+function generate_statement(dParent, boacc, brand) {
+
+	let brand_colors = {
+		usbank: 'navy', prime: 'skyblue', citibank: 'silver', wellsfargo: RED, BofA_rgb: 'navy', chase_bank: BLUE,
+		comcast: 'orange', oasis: GREEN, PSE: 'gold', redmond:'grey'
+	};
+
+	let date = new Date();
+	
+	let acc = { index:boacc.index, creditline: rNumber(0, 10) * 100, holder: 'Gunter Yang Lee', num: 242948572348, due: rDate(addWeekToDate(date, 4), addWeekToDate(date, 2)) }
+	let nums = { prevbalance: rNumber(0, 100), payments: rNumber(100, 1000) + rNumber(0, 100) / 100, fees: rNumber(0, 100) };
+	nums.balance = nums.prevbalance + nums.payments + nums.fees;
+	acc.cashadvance = acc.creditline / 4;
+
+	//acc.num should be a 12 digit number where the last 4 digits correspond to boacc.sub.substring(1)
+	acc.num = acc.num.toString();
+	acc.num = acc.num.substring(0, acc.num.length - 4) + boacc.sub.substring(1);
+	acc.num = parseInt(acc.num);
+
+
+	let [color, fromdate, todate] = [valf(brand_colors[brand], 'random'), addWeekToDate(date, -5), addWeekToDate(date, -1)];
+
+	//#region header
+	let d;
+	if (nundef(dParent)) {
+		let dpop = mBy('dPopup'); show(dpop); mClear(dpop); mStyle(dpop, { top: 50, right: 10 });
+		d = mDiv(dpop, { padding: 10, border: '1px solid #ddd', bg: 'white', fg: 'black' });
+	} else {
+		mStyle(dParent, { 'justify-content': 'start' });
+		d = mDiv(dParent);
+	}
+	mStyle(d, { bg: 'white', position: 'fixed', top: 50, right: 0, padding: 10 });
+
+	let d1 = mDiv(d, { bg: color, h: 5, w: '100%' }); //horizontal line
+	let dheader = mDiv(d, { fz: 12 }); //header part
+	let [dl, dr] = mColFlex(dheader, [1, 3]); //, [BLUE, GREEN]);
+	//mDiv(dl1, { weight: 'bold' }, null, `- your partner in business -`);
+	let logo = createImage(`${brand}.png`,{ hmax: 90, wmax: 300});
+
+	let dl1 = mDiv(dl, { hmax: 90, wmax: 400 });  mAppend(dl1,logo); //, null, img_html(`${brand}.png`));
+	let dr1 = mDiv(dr, { align: 'right', paright: 10 });
+	mDiv(dr1, {}, null, `Account Holder: ${acc.holder}`);
+	mDiv(dr1, {}, null, `Account Number: ${acc.num}`);
+	mDiv(dr1, {}, null, `Statement Period: ${date2locale(fromdate)} - ${date2locale(todate)}`);
+	mDiv(dr1, {}, null, `Due Date: ${date2locale(acc.due)}`);
+	mDiv(d, {}, null, '<br>');
+	//#endregion
+	let dmain = mDiv(d, { wmax: 600 }); //main part
+	let [dlm, drm] = mColFlex(dmain, [1, 1.25]); //, [BLUE, GREEN]);
+	let dlm1 = mDiv(dlm, { hmargin: 10, }, null, `ACCOUNT SUMMARY`);
+	let dsum = mDiv(dlm, { hmargin: 10, rounding: 12, padding: 10, border: '1px solid #ccc', bg: 'white', fg: 'black' });
+	mDivLR(dsum, { w: '100%' }, null, [`Previous Balance:`, `${format_currency(nums.prevbalance)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Payments and Credits:`, `${format_currency(nums.payments)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Purchases:`, `${format_currency(nums.payments)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Balance Transfers:`, `${format_currency(0)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Cash Advances:`, `${format_currency(0)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Fees Charged:`, `${format_currency(nums.fees)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Interest Charged:`, `${format_currency(0)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`New Balance:`, `${format_currency(nums.balance)}`]);
+	mDiv(dsum, { fz: 9, align: 'center' }, null, 'see interest charge calculation section following the Transactions section for detailed APR information');
+	mLine(dsum, { fz: 10, align: 'center' });
+	mDivLR(dsum, { w: '100%' }, null, [`Credit Line:`, `${format_currency(acc.creditline)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Credit Line Available:`, `${format_currency(acc.creditline)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Cash Advance Credit Line:`, `${format_currency(acc.cashadvance)}`]);
+	mDivLR(dsum, { w: '100%' }, null, [`Cash Advance Credit Line Available:`, `${format_currency(acc.cashadvance)}`]);
+	mDiv(dsum, {}, null, 'You may be able to avoid interest on purchases. See reverse for details');
+
+	// mDiv(dsum,{},null,`Account Number: ${acc.num}`);
+	// mDiv(dsum,{},null,`Statement Period: ${date2locale(fromdate)} - ${date2locale(todate)}`);
+	// mDiv(dsum,{},null,`Due Date: ${date2locale(acc.due)}`);
+
+	let drm1 = mDiv(drm, { hmargin: 10, }, null, `PAYMENT INFORMATION`);
+	let dpay = mDiv(drm, { hmargin: 10, rounding: 12, padding: 10, border: '1px solid #ccc', bg: 'white', fg: 'black' });
+	mDivLR(dpay, { w: '100%', weight: 'bold' }, null, [`New Balance:`, `${format_currency(nums.balance)}`]);
+	mLine(dpay, { fz: 10, align: 'center' });
+	mDivLR(dpay, { w: '100%' }, null, [`Minimum Payment Due:`, `${format_currency(nums.balance / 10)}`]);
+	mDivLR(dpay, { w: '100%', weight: 'bold' }, null, [`Payment Due Date:`, `${date2locale(acc.due)}`]);
+	mDiv(dpay, { fz: 9, matop: 10 }, null, '<b>Late Payment Warning:</b> If we do not receive your minimum payment by the date listed above, you may have to pay a fee of up to $10.00.');
+
+	let drm2 = mDiv(drm, { matop: 10, hmargin: 10, }, null, `REWARDS`);
+	let drewards = mDiv(drm, { hmargin: 10, rounding: 12, padding: 10, border: '1px solid #ccc', bg: 'white', fg: 'black' });
+	mDivLR(drewards, { w: '100%', weight: 'bold' }, null, [`Cashback Bonus*:`, `Anniversary Month`]);
+	mDivLR(drewards, { w: '100%' }, null, [`Opening Balance:`, `${format_currency(0)}`]);
+	mDivLR(drewards, { w: '100%' }, null, [`New Cashback Bonus this Period:`, `${format_currency(4.98)}`]);
+	mDivLR(drewards, { w: '100%' }, null, [`Redeemed this Period:`, `${format_currency(0)}`]);
+	mLine(drewards, { fz: 10, align: 'center' });
+	mDivLR(drewards, { w: '100%', weight: 'bold' }, null, [`Cashback Bonus Balance:`, `${format_currency(4.98)}`]);
+	mDiv(drewards, { fz: 10 }, null, `<b>to learn more log in to www.${brand}.com</b>`);
+
+	mDiv(d, { matop: 25, maleft: 6 }, null, img_html('statement2.jpg'));
+	mDiv(d, {}, null, '<br>');
+	let dbla1 = mDiv(d, { hmargin: 10, rounding: 12, padding: 10, border: '1px solid #ccc', bg: 'white', fg: 'black' });
+	mAppend(dbla1, createImage('statement1.jpg', {}));
+	mAppend(d, createImage('statementfooter.jpg', {}));
+
+
+	return { div: d, nums: nums, acc: acc, topay: nums.balance, brand:brand, boacc:boacc };
+
+}
+function generate_skype_contacts(n) {
+	let date = new Date();
+	let res = [{ num: `+${rNumber(11111, 99999)}`, date: date, color: rChoose([ORANGE, PURPLE, 'deepskyblue', 'hotpink']), msg: `<#>'BofA': DO NOT share this S...` }];
+	for (let i = 1; i < n; i++) {
+		date = rDate(date, new Date(2022, 1, 1));
+		let istext = coin();
+		let [num, msg] = istext ? [`+${rNumber(11111, 99999)}`, `<#>${rChoose(['BofA', 'Prudential'])}: DO NOT share this S...`]
+			: [`+1425${rNumber(1111111, 9999999)}`, `Missed Call`];
+		let c = { num: num, date: date, color: rChoose([ORANGE, PURPLE, 'deepskyblue', 'hotpink']), msg: msg };
+		res.push(c);
+	}
+	return res;
 }
 function get_fake_boa_data() { if (nundef(DA.boadata)) DA.boadata = DIBOA.boa_data; return DA.boadata; }
 function get_fake_boa_data_list() { if (nundef(DA.boadata)) DA.boadata =  dict2list(DIBOA.boa_data,'key'); return DA.boadata; }
@@ -921,6 +1061,78 @@ function get_boa_start_content() {
 	let img = `<img src='../rechnung/images/boa_start_pic.JPG' width='100%'>`;
 	return mCreateFrom(img);
 }
+function get_make_payments_button(){
+	let html = `
+		<a
+			href="javascript:void(0);"
+			onclick="make_payments();"
+			class="btn-bofa btn-bofa-blue btn-bofa-small behbio btn-bofa-noRight"
+			name="make-payments-submit"
+			>
+			<span class="btn-bofa  btn-bofa-blue-lock">Make Payments</span>
+		</a>
+
+	`;
+}
+function get_skype_expanded_message(msg) {
+	if (msg[0] == 'M') { return msg; }
+	return msg.slice(0, msg.length - 4) + `ign In code. We will NEVER call you or text you for it. Code ${rNumber(111111, 999999)}. Reply HELP if you didn't request it. `;
+}
+function get_skype_phone_icon(color) {
+	let html = `
+	<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0090B8" gradientcolor1="#0090B8" gradientcolor2="#0090B8"><path d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"></path><path d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"></path></svg>
+	`;
+
+	html = `
+		<div role="none" style="position: relative; display: flex; flex-direction: row; flex-grow: 0; flex-shrink: 0; overflow: hidden; align-items: center; background: linear-gradient(135deg, rgb(240, 252, 255), rgb(199, 238, 255)) rgb(0, 120, 212); width: 40px; height: 40px; border-radius: 20px; justify-content: center;"><div role="none" aria-hidden="true" style="position: relative; display: flex; flex-direction: column; flex-grow: 0; flex-shrink: 0; overflow: hidden; align-items: stretch; background-color: rgba(0, 0, 0, 0);"><svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0090B8" gradientcolor1="#0090B8" gradientcolor2="#0090B8"><path d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"></path><path d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"></path></svg></div></div>	
+	`;
+
+	html = `
+		<div
+			role="none"
+			style="
+				position: relative;
+				display: flex;
+				flex-direction: row;
+				flex-grow: 0;
+				flex-shrink: 0;
+				overflow: hidden;
+				align-items: center;
+				background: linear-gradient(135deg, white, ${colorLight(color, .5)}, ${colorLight(color, .25)});
+				width: 40px;
+				height: 40px;
+				border-radius: 20px;
+				justify-content: center;
+			"
+		>
+			<div
+				role="none"
+				aria-hidden="true"
+				style="
+					position: relative;
+					display: flex;
+					flex-direction: column;
+					flex-grow: 0;
+					flex-shrink: 0;
+					overflow: hidden;
+					align-items: stretch;
+					background-color: rgba(0, 0, 0, 0);
+				"
+			>
+				<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" gradientcolor1="${color}" gradientcolor2="${color}">
+					<path
+						d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"
+					></path>
+					<path
+						d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"
+					></path>
+				</svg>
+			</div>
+		</div>
+
+	`;
+	return mCreateFrom(html);
+}
 function get_toolbar(list) {
 	//console.log('hallo')
 	if (nundef(list)) list = ['home', 'boa', 'bw', 'authenticator', 'authy', 'onedrive', 'skype'];
@@ -956,10 +1168,44 @@ function keyhandler(ev) {
 	if (ev.key == 'Enter') { } //console.log('KEY:ENTER!');}
 	else if (ev.key == 'Escape') { close_popup(); } //console.log('KEY:ESCAPE!');}
 }
+function make_payments_challenge_eval(inp){
+	let val=inp.value;
+	//console.log('mit was muss ich das jetzt vergleichen',val);
+
+	let solution = {amount:DA.bill.nums.balance,index:DA.bill.acc.index};
+	let answer = {amount:Number(val.substring(1).trim()),index:Number(inp.id.substring(3))};
+
+
+	//console.log('solution',solution,'answer',answer);
+	let correct = solution.amount.toFixed(2) == answer.amount.toFixed(2) && solution.index == answer.index;
+	if (correct){
+		console.log('CORRECT!!!!!!!!!');
+
+	}else {
+		console.log('WRONG!!!!!!!!!','solution',solution,'answer',answer);
+	}
+	show_eval_message(correct);
+}
+function onclick_bill() {
+	//console.log('clicked bill');
+	let dParent = mBy('dBoaMain');
+	if (dParent.children.length > 1) dParent.lastChild.remove();
+
+	//let accs = get_fake_boa_data();	let acclist = dict2list(accs).filter(x => isdef(x['Last Payment']));
+	let acclist = get_fake_boa_data_list().filter(x => isdef(x['Last Payment']));
+	//console.log('accs', acclist);
+	let boacc = rChoose(acclist);
+
+	let item = generate_statement(dParent, boacc, boacc.brand);
+	DA.bill = item;
+	lookupAddIfToList(DA,['challengedata'],item);
+	//console.log('item', item, DA);
+	//item.boacc.sub
+}
 function onclick_bw_symbol(app, key) {
 	if (nundef(key)) key = S.current_label;
 	let s = lookup(DIBOA, ['bw_info', app, key]);
-	console.log('app', app, 'key', key, 's', s, '\nS', S);
+	//console.log('app', app, 'key', key, 's', s, '\nS', S);
 	if (s && isdef(S.current_input)) {
 		//hier brauch ich jetzt das field in dem ich war bevor bw opened!
 		S.current_input.value = s;
@@ -1061,12 +1307,18 @@ function scrollToTop() {
   document.body.scrollTop = 0; // For Safari
   document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
+function show_bill_button() {
+	if (isdef(mBy('tbbill'))) return;
+	let tb = mBy('dTopRight');
+	let b = mDiv(tb, {}, `tbbill`, `<a href="javascript:onclick_bill()"><img src="../rechnung/images/bill.png" height="30"/></a>`);
+	mInsert(tb, b);
+}
 function show_master_password() {
 	let score = localStorage.getItem('score');
 	show_special_message('the bitwarden master password is ' + S.master_password, false, 5000, 2000, { bg: 'dodgerblue', classname: '', top: 400 });
 }
 function show_eval_message(correct){
-	let msg = correct ? 'Congratulations!!! You passed the Pay Bill challenge!' : 'Wrong solution - Try Again!';
+	let msg = correct ? `Congratulations!!! You passed the ${DA.name} challenge!` : 'Wrong solution - Try Again!';
 	//show_special_message(msg, false, 5000, 2000, { bg: 'dodgerblue', position:'sticky', classname: 'special_message' },onclick_home);
 	let d = valf(mBy('dBandMessage'),mDiv(document.body, {}, 'dBandMessage'));
 	//console.log('dParent',dParent)
@@ -1078,7 +1330,7 @@ function show_eval_message(correct){
 	//delete styles.classname;
 	//mStyle(dParent, styles);
 	d.innerHTML = msg; //'blablablablabllllllllllllllllllllllllllllllaaaaaaaaaaaaaaaaaaaaaaa'; //msg;
-	mStyle(d,{position:'fixed',top:100,left:0,bg:'red',fg:'white',w:'100%',h:40,hmin:40,hmax:40,fz:24,align:'center',vpadding:10,classname:'slow_gradient_blink'});
+	mStyle(d,{position:'fixed',top:127,left:0,bg:'red',fg:'white',w:'100%',h:40,hmin:40,hmax:40,fz:24,align:'center',vpadding:10,classname:'slow_gradient_blink'});
 	//mClass(d,'slow_gradient_blink')
 	let [ms,delay,callback]=[5000,0,correct?onclick_home:null];
 	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(d, ms, callback); }, delay);
@@ -1090,181 +1342,6 @@ function show_correct_location(k) {
 	for (const k1 in DIBOA) { hide(`d${capitalize(k1)}`); }
 	S.location = k; // muss ich nicht saven
 	show(`d${capitalize(k)}`);
-}
-function set_new_password() {
-	let len = Math.min(20, S.master_password.length + 1);
-	let pnew = rPassword(len);
-	console.log('new password: ', pnew);
-	S.master_password = pnew;
-	S.score = 0;
-	boa_save();
-}
-function set_boa_score(inc) { S.score += inc; if (S.score < 0) S.score = 0; boa_save(); }
-function toggle_bw_symbol(d) {
-	if (nundef(d)) d = document.getElementById('tbbw');
-	d = d.getElementsByTagName('i')[0];
-	console.log('d', d);
-	if (isdef(d)) {
-		if (d.classList.contains('fa-car')) {
-			d.classList.remove('fa-car');
-			d.classList.add('fa-star');
-			mStyle(d, { fg: 'silver' });
-		} else {
-			d.classList.remove('fa-star');
-			d.classList.add('fa-car');
-			mStyle(d, { fg: 'transparent' });
-		}
-	}
-}
-
-//#region ui helpers
-function get_input_value(id) {
-	let inp = mBy(id);
-	let val = inp.value;
-	return val;
-}
-function createImage(filename, styles) {
-	let img = mCreateFrom(`<img src='../rechnung/images/${filename}'>`);
-	if (isdef(styles.w)) { img.setAttribute('width', styles.w); }
-	if (isdef(styles.h)) { img.setAttribute('height', styles.h); }
-	mStyle(img, styles);
-	return img;
-}
-function img_html(filename, fulldim = 'height') {
-	return `<img ${fulldim}='100%' src='../rechnung/images/${filename}'>`;
-}
-
-//TO SORT!!!
-function generate_random_date(before, after) {
-	let after_date = new Date(after);
-	let before_date = new Date(before);
-	let random_date = new Date(Math.random() * (before_date.getTime() - after_date.getTime()) + after_date.getTime());
-	return random_date;
-}
-function format_date(date) {
-	let d = new Date(date);
-	let month = '' + (d.getMonth() + 1);
-	let day = '' + d.getDate();
-	let year = d.getFullYear();
-	if (month.length < 2) month = '0' + month;
-	if (day.length < 2) day = '0' + day;
-	return [month, day, year].join('/');
-}
-function get_weekday(date) {
-	let d = new Date(date);
-	return d.getDay();
-}
-function get_skype_expanded_message(msg) {
-	if (msg[0] == 'M') { return msg; }
-	return msg.slice(0, msg.length - 4) + `ign In code. We will NEVER call you or text you for it. Code ${rNumber(111111, 999999)}. Reply HELP if you didn't request it. `;
-}
-function generate_skype_contacts(n) {
-	let date = new Date();
-	let res = [{ num: `+${rNumber(11111, 99999)}`, date: date, color: rChoose([ORANGE, PURPLE, 'deepskyblue', 'hotpink']), msg: `<#>'BofA': DO NOT share this S...` }];
-	for (let i = 1; i < n; i++) {
-		date = generate_random_date(date, new Date(2022, 1, 1));
-		let istext = coin();
-		let [num, msg] = istext ? [`+${rNumber(11111, 99999)}`, `<#>${rChoose(['BofA', 'Prudential'])}: DO NOT share this S...`]
-			: [`+1425${rNumber(1111111, 9999999)}`, `Missed Call`];
-		let c = { num: num, date: date, color: rChoose([ORANGE, PURPLE, 'deepskyblue', 'hotpink']), msg: msg };
-		res.push(c);
-	}
-	return res;
-}
-function get_skype_phone_icon(color) {
-	let html = `
-	<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0090B8" gradientcolor1="#0090B8" gradientcolor2="#0090B8"><path d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"></path><path d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"></path></svg>
-	`;
-
-	html = `
-		<div role="none" style="position: relative; display: flex; flex-direction: row; flex-grow: 0; flex-shrink: 0; overflow: hidden; align-items: center; background: linear-gradient(135deg, rgb(240, 252, 255), rgb(199, 238, 255)) rgb(0, 120, 212); width: 40px; height: 40px; border-radius: 20px; justify-content: center;"><div role="none" aria-hidden="true" style="position: relative; display: flex; flex-direction: column; flex-grow: 0; flex-shrink: 0; overflow: hidden; align-items: stretch; background-color: rgba(0, 0, 0, 0);"><svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0090B8" gradientcolor1="#0090B8" gradientcolor2="#0090B8"><path d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"></path><path d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"></path></svg></div></div>	
-	`;
-
-	html = `
-		<div
-			role="none"
-			style="
-				position: relative;
-				display: flex;
-				flex-direction: row;
-				flex-grow: 0;
-				flex-shrink: 0;
-				overflow: hidden;
-				align-items: center;
-				background: linear-gradient(135deg, white, ${colorLight(color, .5)}, ${colorLight(color, .25)});
-				width: 40px;
-				height: 40px;
-				border-radius: 20px;
-				justify-content: center;
-			"
-		>
-			<div
-				role="none"
-				aria-hidden="true"
-				style="
-					position: relative;
-					display: flex;
-					flex-direction: column;
-					flex-grow: 0;
-					flex-shrink: 0;
-					overflow: hidden;
-					align-items: stretch;
-					background-color: rgba(0, 0, 0, 0);
-				"
-			>
-				<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" gradientcolor1="${color}" gradientcolor2="${color}">
-					<path
-						d="M14.75 13.666a2.75 2.75 0 00-2.745-2.745 2.75 2.75 0 00-2.744 2.745 2.75 2.75 0 002.744 2.744 2.75 2.75 0 002.744-2.744zm-4.117 0c0-.761.622-1.373 1.372-1.373.75 0 1.372.612 1.372 1.373 0 .75-.621 1.372-1.372 1.372-.75 0-1.372-.622-1.372-1.372zm7.547-.466a.69.69 0 00-.686.686v4.121a.69.69 0 01-.686.686H7.203a.69.69 0 01-.686-.686v-4.121a.69.69 0 00-.686-.686.69.69 0 00-.686.686v4.121c0 1.136.922 2.058 2.058 2.058h9.605a2.059 2.059 0 002.058-2.058v-4.121a.69.69 0 00-.686-.686z"
-					></path>
-					<path
-						d="M12 3.6c3.998-.005 6.703 1.53 8.585 3.192.792.699 1.154 1.75.966 2.736l-.19.995c-.177.932-1.048 1.558-2.036 1.463l-1.965-.19c-.856-.082-1.491-.708-1.76-1.596-.365-1.206-.6-2.1-.6-2.1-.897-.368-1.784-.6-3-.6s-2.085.258-3 .6c0 0-.245.895-.6 2.1-.237.805-.605 1.508-1.444 1.592l-1.953.197c-.975.098-1.91-.522-2.187-1.45l-.297-.996c-.296-.99-.032-2.033.693-2.736C4.922 5.147 8.008 3.605 12 3.6zm4.17 4.232l.03.114.119.43c.103.367.25.884.43 1.476.163.541.466.725.726.75l1.965.19c.415.04.69-.213.743-.493l.19-.995c.105-.557-.097-1.185-.582-1.613C18.08 6.182 15.648 4.795 12 4.8c-3.69.005-6.474 1.43-7.953 2.868-.395.383-.55.957-.38 1.532l.298.995c.11.368.505.641.917.6l1.954-.197a.156.156 0 00.064-.015.231.231 0 00.06-.06c.084-.106.183-.307.288-.662a138.653 138.653 0 00.55-1.923l.033-.116c.123-.44.55-.747.748-.846.983-.368 2.003-.676 3.42-.676 1.398 0 2.44.273 3.455.69.182.075.579.341.706.805l.002.009.007.028z"
-					></path>
-				</svg>
-			</div>
-		</div>
-
-	`;
-	return mCreateFrom(html);
-}
-function fillout_boa_login() {
-	let data = DIBOA.bw_info.boa;
-	let elem_userid = get_boa_userid_input();
-	let elem_pwd = get_boa_pwd_input();
-	elem_userid.value = data.userid;
-	elem_pwd.value = data.pwd;
-}
-function skype_start() {
-
-	let d = mBy('dSkype'); mClear(d); mStyle(document.body, { h: 'calc( 100vh - 56px )', 'overflow-y': 'hidden' });
-
-	let d0 = mDiv(d);
-	let [dl, dr] = mColFlex(d, [1, 3]); //, [BLUE, GREEN]);
-	mStyle(dl, { border: '1px dotted silver' }); mStyle(dr, { border: '1px dotted silver' });
-
-	mDiv(dl, {}, null, img_html('skypeTopLeft.jpg'));
-	let d1 = mDiv(dl);
-	DIBOA.skype.divRight = dr;
-	DIBOA.skype.divLeft = dl;
-
-	let contacts = DIBOA.skype.contacts = generate_skype_contacts(25); console.log(contacts)
-	for (const o of contacts) {
-		let dc = mDiv(d1, { rounding: 12, hpadding: 6, vpadding: 6, margin: 4, gap: 12, overflow: 'hidden' }, null, null, 'skypecontact');
-		mFlex(dc);
-		o.div = dc;
-		dc.onclick = () => { S.skype_contact = toggleSelection(o, S.skype_contact, 'skypecontact_active'); show_skype_contact(dr) };
-
-		let [sz] = [40];
-
-		let dimg = get_skype_phone_icon(o.color); //mDiv(dc,{w:sz,h:sz,margin:10},null,);
-		mAppend(dc, dimg);
-
-		let dmiddle = mDiv(dc, { flex: 8 });
-		let dnum = mDiv(dmiddle, { fz: 14, fg: 'black' }, null, `<div>${o.num}</div>`);
-		let dmsg = mDiv(dmiddle, { fz: 11, fg: 'grey' }, null, `<div>${o.msg}</div>`);
-
-		let ddate = mDiv(dc, { flex: 1, fz: 11, fg: 'grey' }, null, `<div>${format_date(o.date)}</div>`);
-	}
-
 }
 function show_one_skype_message(dParent, o) {
 	let d = mDiv(dParent, { rounding: 12, hpadding: 6, vpadding: 6, margin: 4, gap: 12 }); mFlex(d);
@@ -1302,6 +1379,15 @@ function show_skype_contact(dParent) {
 
 	console.log('auth code is', S.boa_authorization_code);
 }
+function set_new_password() {
+	let len = Math.min(20, S.master_password.length + 1);
+	let pnew = rPassword(len);
+	console.log('new password: ', pnew);
+	S.master_password = pnew;
+	S.score = 0;
+	boa_save();
+}
+function set_boa_score(inc) { S.score += inc; if (S.score < 0) S.score = 0; boa_save(); }
 function skype_go_button() {
 	let html = `
 		<button
@@ -1366,6 +1452,72 @@ function skype_go_button() {
 	`;
 
 	return mCreateFrom(html);
+}
+function skype_start() {
+
+	let d = mBy('dSkype'); mClear(d); mStyle(document.body, { h: 'calc( 100vh - 56px )', 'overflow-y': 'hidden' });
+
+	let d0 = mDiv(d);
+	let [dl, dr] = mColFlex(d, [1, 3]); //, [BLUE, GREEN]);
+	mStyle(dl, { border: '1px dotted silver' }); mStyle(dr, { border: '1px dotted silver' });
+
+	mDiv(dl, {}, null, img_html('skypeTopLeft.jpg'));
+	let d1 = mDiv(dl);
+	DIBOA.skype.divRight = dr;
+	DIBOA.skype.divLeft = dl;
+
+	let contacts = DIBOA.skype.contacts = generate_skype_contacts(25); console.log(contacts)
+	for (const o of contacts) {
+		let dc = mDiv(d1, { rounding: 12, hpadding: 6, vpadding: 6, margin: 4, gap: 12, overflow: 'hidden' }, null, null, 'skypecontact');
+		mFlex(dc);
+		o.div = dc;
+		dc.onclick = () => { S.skype_contact = toggleSelection(o, S.skype_contact, 'skypecontact_active'); show_skype_contact(dr) };
+
+		let [sz] = [40];
+
+		let dimg = get_skype_phone_icon(o.color); //mDiv(dc,{w:sz,h:sz,margin:10},null,);
+		mAppend(dc, dimg);
+
+		let dmiddle = mDiv(dc, { flex: 8 });
+		let dnum = mDiv(dmiddle, { fz: 14, fg: 'black' }, null, `<div>${o.num}</div>`);
+		let dmsg = mDiv(dmiddle, { fz: 11, fg: 'grey' }, null, `<div>${o.msg}</div>`);
+
+		let ddate = mDiv(dc, { flex: 1, fz: 11, fg: 'grey' }, null, `<div>${format_date(o.date)}</div>`);
+	}
+
+}
+function toggle_bw_symbol(d) {
+	if (nundef(d)) d = document.getElementById('tbbw');
+	d = d.getElementsByTagName('i')[0];
+	console.log('d', d);
+	if (isdef(d)) {
+		if (d.classList.contains('fa-car')) {
+			d.classList.remove('fa-car');
+			d.classList.add('fa-star');
+			mStyle(d, { fg: 'silver' });
+		} else {
+			d.classList.remove('fa-star');
+			d.classList.add('fa-car');
+			mStyle(d, { fg: 'transparent' });
+		}
+	}
+}
+
+//#region ui helpers
+function get_input_value(id) {
+	let inp = mBy(id);
+	let val = inp.value;
+	return val;
+}
+function createImage(filename, styles) {
+	let img = mCreateFrom(`<img src='../rechnung/images/${filename}'>`);
+	if (isdef(styles.w)) { img.setAttribute('width', styles.w); }
+	if (isdef(styles.h)) { img.setAttribute('height', styles.h); }
+	mStyle(img, styles);
+	return img;
+}
+function img_html(filename, fulldim = 'height') {
+	return `<img ${fulldim}='100%' src='../rechnung/images/${filename}'>`;
 }
 
 //#region boa tests

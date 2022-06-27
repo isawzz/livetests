@@ -52,7 +52,7 @@ const DIBOA = {
 		authy: { userid: 'gleem@gmail.com', pwd: rPassword(20) },
 
 	},
-	boa_data:{
+	boa_data: {
 		'AAA-MBNA 5464 3332 3333 5555': { sub: '*5555', logo: 'boa.png' },
 		'AMERICAN EXPRESS': { sub: '*4554', logo: 'amex.png' },
 		'AT&T Mobility': { sub: '*1331', logo: 'att.png' },
@@ -2964,6 +2964,33 @@ function pSBC(p, c0, c1, l) {
 
 //#endregion
 
+//#region date
+function addMonthToDate(date, months) {
+	let d = new Date(date);
+	d.setMonth(d.getMonth() + months);
+	return d;
+}
+function addWeekToDate(date, weeks) {
+	let d = new Date(date);
+	d.setDate(d.getDate() + (weeks * 7));
+	return d;
+}
+function date2locale(date) { return date.toLocaleDateString(); }
+function format_date(date) {
+	let d = new Date(date);
+	let month = '' + (d.getMonth() + 1);
+	let day = '' + d.getDate();
+	let year = d.getFullYear();
+	if (month.length < 2) month = '0' + month;
+	if (day.length < 2) day = '0' + day;
+	return [month, day, year].join('/');
+}
+function get_weekday(date) {
+	let d = new Date(date);
+	return d.getDay();
+}
+//#endregion
+
 //#region fleetingMessage
 var TOFleetingMessage, dFleetingMessage, Animation1;
 function clearFleetingMessage() {
@@ -3255,6 +3282,12 @@ function rColor(brightness) {
 		s += rChoose(['f', 'c', '9', '6', '3', '0']);
 	}
 	return s;
+}
+function rDate(before, after) {
+	let after_date = new Date(after);
+	let before_date = new Date(before);
+	let random_date = new Date(Math.random() * (before_date.getTime() - after_date.getTime()) + after_date.getTime());
+	return random_date;
 }
 function rDigits(n) { return rChoose(toLetters('0123456789'), n); }
 function randomColor() { return rColor(); }
@@ -3632,16 +3665,6 @@ function findDescendantOfType(type, parent) {
 	}
 	return null;
 }
-function lastDescendantOfType(type, parent) {
-	if (getTypeOf(parent) == type) return parent;
-	let children = arrChildren(parent);
-	if (isEmpty(children)) return null;
-	for (const ch of children.reverse()) {
-		let res = lastDescendantOfType(type, ch);
-		if (res) return res;
-	}
-	return null;
-}
 function findChildrenOfType(type, parentElem) {
 	let children = arrChildren(parentElem);
 	let res = [];
@@ -3651,6 +3674,10 @@ function findChildrenOfType(type, parentElem) {
 	return res;
 }
 function findKeys(s) { return SymKeys.filter(x => contains(x, s) || contains(Syms[x].E) || contains(Syms[x].D), s); }
+function format_currency(num) {
+	//num should be presented with 2 decimals and a $ sign in front
+	return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 function get_checked_radios(rg) {
 	let inputs = rg.getElementsByTagName('INPUT');
 	let list = [];
@@ -3783,6 +3810,16 @@ function isWhiteSpaceString(s) { return isEmptyOrWhiteSpace(s); }
 function isOverflown(element) {
 	return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
+function lastDescendantOfType(type, parent) {
+	if (getTypeOf(parent) == type) return parent;
+	let children = arrChildren(parent);
+	if (isEmpty(children)) return null;
+	for (const ch of children.reverse()) {
+		let res = lastDescendantOfType(type, ch);
+		if (res) return res;
+	}
+	return null;
+}
 async function load_assets_fetch(basepath, baseminpath) {
 	let path = basepath + 'assets/';
 	Config = await route_path_yaml_dict(baseminpath + 'config.yaml');
@@ -3899,7 +3936,7 @@ function hide(elem) {
 		elem.style.display = 'none';
 	}
 }
-function show_special_message(msg, stay = false, ms = 3000, delay = 0, styles = {}, callback=null) { //divTestStyles={}) {
+function show_special_message(msg, stay = false, ms = 3000, delay = 0, styles = {}, callback = null) { //divTestStyles={}) {
 	let dParent = mBy('dBandMessage');
 	if (nundef(dParent)) dParent = mDiv(document.body, {}, 'dBandMessage');
 	//console.log('dParent',dParent)
