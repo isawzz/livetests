@@ -3,10 +3,10 @@ onload = start;
 
 function start() {
 	//test6_generate_statement(); return;//test4_boa_main(); return; //test5_bw_skin(); return;//test4_boa_main(); return; //test3_boa_havecode(); return;
-
 	mAppear('dScreen', 100);
 	if (FirstLoad) { FirstLoad = false; initialize_state(); } //show_master_password(); }
 	get_toolbar();
+	//#region test
 	//show_eval_message(false);
 	//start_challenge2();
 	//onclick_location('skype');	S.skype_contact = DIBOA.skype.contacts[DIBOA.skype.contacts.length - 1];	show_skype_contact(DIBOA.skype.divRight)
@@ -15,7 +15,7 @@ function start() {
 	//onclick_location('boa');
 	//onclick_bigredloginbutton();
 	//fillout_boa_login();
-	//boamain_start();
+	//#endregion
 }
 function initialize_state() {
 	//var S = { location: null, boa_state: null, bw_state: null, master_password: 'Ab33', score: 0, };
@@ -35,14 +35,21 @@ function initialize_state() {
 function start_challenge1() {
 	DA.challenge = 1;
 	DA.name = 'Login';
+	scrollToTop();
 	onclick_location('boa');
 }
 function start_challenge2() {
 	DA.challenge = 2;
 	DA.name = 'Bill Pay';
+	scrollToTop();
 	boamain_start();
 	show_bill_button();
-	//onclick_bill();
+}
+function start_challenge3() {
+	DA.challenge = 3;
+	DA.name = 'Full Bill Pay';
+	scrollToTop();
+	onclick_location('boa');
 }
 
 function add_verify_content(dParent) {
@@ -152,20 +159,18 @@ function add_havecode_content(dParent) {
 	mStyle(bSubmit, bStyle);
 	mStyle(bCancel, bStyle); mStyle(bCancel, { fg: 'grey', border: 'grey' })
 	mClass(bSubmit, 'btn-bofa-blue');
-	S.boa_state = 'auth';
-	//bSubmit.onclick=_onclick_boa_submit_code;
 	bCancel.onclick = onclick_boa_cancel;
 }
-function add_make_payments_button(ev){
+function add_make_payments_button(ev) {
 	let id = evToClosestId(ev);
-	let inp=mBy(id);
+	let inp = mBy(id);
 
-	if (isdef(DA.prevHidden)){mClear(DA.prevHidden);}
+	if (isdef(DA.prevHidden)) { mClear(DA.prevHidden); }
 	let dHidden = inp.parentNode.parentNode.parentNode.parentNode.parentNode.lastChild;
 	mClear(dHidden);
-	let d1=mCard(dHidden,{w:'90%',padding:10,box:true}); 
-	let el=mDiv(d1,{cursor:'pointer'},null,`<span class="btn-bofa btn-bofa-blue btn-bofa-blue-lock">Make Payments</span>`);
-	el.onclick=()=>make_payments_challenge_eval(inp);
+	let d1 = mCard(dHidden, { w: '90%', padding: 10, box: true });
+	let el = mDiv(d1, { cursor: 'pointer' }, null, `<span class="btn-bofa btn-bofa-blue btn-bofa-blue-lock">Make Payments</span>`);
+	el.onclick = () => make_payments_challenge_eval(inp);
 
 	//mAppend(dHidden,mBy('dummy'))
 	//console.log('parent', parent);
@@ -231,49 +236,25 @@ function boamain_start() {
 			S.boa_state = null;
 			let msg = DA.challenge == 1 ? 'CONGRATULATIONS!!!! YOU SUCCEEDED IN LOGGING IN TO BOA' : 'Session timed out!';
 			show_eval_message(true);
-			//alert(msg);
-			boa_start();
-		}, 2000);
-	}
-
+		}, 3000);
+	} else if (DA.challenge == 3) show_bill_button(); 
 	show_correct_location('boa');  //das ist um alle anderen screens zu loeschen!
 	let dParent = mBy('dBoa'); mClear(dParent);
-
 	let d0 = mDiv(dParent, { align: 'center' }, 'dBoaMain'); mCenterFlex(d0);
-	// let d0 = mDiv(d, { align:'center', display: 'grid', 'grid-template-columns': '2', gap:20 }, 'dBoaMain');
-	//let d0 = mDiv(d, { display: 'flex', 'justify-content': 'center', gap:20 }, 'dBoaMain');
-
 	let [wtotal, wleft, wright] = [972, 972 - 298, 292];
-
 	let d = mDiv(d0, { w: wtotal, hmin: 500 }); mAppend(d, createImage('boamain_header.png', { h: 111 }));
-	//return;
-
-	// let d0 = mDiv(d);
-	//let d1 = mDiv(d0, { align: 'center' });
-
-	// let d2 = mDiv(d);
-	// let d3 = mDiv(d2, { display: 'flex', 'justify-content': 'center' }, 'dBoaMain');
-
-	// d = mDiv(d3, { w: wtotal, hmin: 500 });
 	let dl = mDiv(d, { float: 'left', w: wleft, hmin: 400 });
 	let dr = mDiv(d, { float: 'right', hmin: 400, w: wright });
-
 	mDiv(dr, { h: 100 });
 	mAppend(dr, createImage('boamain_rechts.png', { w: 292 }));
-
 	mAppend(dl, createImage('boamain_left_top.jpg', { matop: 50, maleft: -20 }));
-	//mDiv(dl, { family:'connectionsregular,Verdana,Geneva,Arial,Helvetica,sans-serif', fz: 18, weight: 500, 'line-height':70, fg:'#524940' }, null, 'Payment Center');
-
 	mDiv(dl, { bg: '#857363', fg: 'white', fz: 15 }, null, '&nbsp;&nbsp;<i class="fa fa-caret-down"></i>&nbsp;&nbsp;Default Group<div style="float:right;">Sort&nbsp;&nbsp;</div>');
-
 	let boadata = get_fake_boa_data_list();
 	let color_alt = '#F9F7F4';
 	let i = 0;
-	//let sortedkeys = get_keys(boadata);	sortedkeys.sort();
 	for (const o of boadata) {
 		let k = o.key;
 		o.index = i;
-		//console.log('key',k,'index',i);
 		let logo = valf(o.logo, 'defaultacct.jpg');
 		let path = `${logo}`;
 		let [sz, bg] = [25, i % 2 ? 'white' : color_alt];
@@ -300,7 +281,6 @@ function boamain_start() {
 		mDiv(da22, { fg: 'black', fz: 12, weight: 'bold' }, null, 'Deliver By');
 		mDiv(da22, {}, null, `<input style="color:dimgray;font-size:12px;border:1px dotted silver;padding:${padinput}px" id="inpAuthocode" name="authocode" value="" type="date" />`);
 
-		// mDiv(dall,{fz:12,fg:'blue',maleft:400,mabottom:25},null,'hallo');
 		let dabot = mDiv(dall);
 		mFlexLR(dabot);
 		let lastpayment = isdef(o['Last Payment']) ? `Last Payment: ${o['Last Payment']}` : ' ';
@@ -308,15 +288,9 @@ function boamain_start() {
 		mDiv(dabot, { fz: 12, fg: 'blue', maright: 90, mabottom: 25 }, null, `<a>Activity</a>&nbsp;&nbsp;&nbsp;<a>Reminders</a>&nbsp;&nbsp;&nbsp;<a>AutoPay</a>`);
 
 		mDiv(dall);
-		//let dadummy = mDiv(dall, {margin:500 },null,`<a>Activity</a><a>Reminders</a><a>AutoPay</a>`); //;'border-bottom':'1px solid black'});
 
 		i++;
 	}
-
-
-	//mDiv(dl, { hmin: 400, bg: 'orange' });
-	//for (let j = 0; j < i; j++) { let inp = document.getElementById(`inp${j}`); inp.addEventListener('keyup', unfocusOnEnter); }
-
 }
 function boaverify_start() {
 	let d = mBy('dBoa');
@@ -452,12 +426,12 @@ function generate_statement(dParent, boacc, brand) {
 
 	let brand_colors = {
 		usbank: 'navy', prime: 'skyblue', citibank: 'silver', wellsfargo: RED, BofA_rgb: 'navy', chase_bank: BLUE,
-		comcast: 'orange', oasis: GREEN, PSE: 'gold', redmond:'grey'
+		comcast: 'orange', oasis: GREEN, PSE: 'gold', redmond: 'grey'
 	};
 
 	let date = new Date();
-	
-	let acc = { index:boacc.index, creditline: rNumber(0, 10) * 100, holder: 'Gunter Yang Lee', num: 242948572348, due: rDate(addWeekToDate(date, 4), addWeekToDate(date, 2)) }
+
+	let acc = { index: boacc.index, creditline: rNumber(0, 10) * 100, holder: 'Gunter Yang Lee', num: 242948572348, due: rDate(addWeekToDate(date, 4), addWeekToDate(date, 2)) }
 	let nums = { prevbalance: rNumber(0, 100), payments: rNumber(100, 1000) + rNumber(0, 100) / 100, fees: rNumber(0, 100) };
 	nums.balance = nums.prevbalance + nums.payments + nums.fees;
 	acc.cashadvance = acc.creditline / 4;
@@ -485,9 +459,9 @@ function generate_statement(dParent, boacc, brand) {
 	let dheader = mDiv(d, { fz: 12 }); //header part
 	let [dl, dr] = mColFlex(dheader, [1, 3]); //, [BLUE, GREEN]);
 	//mDiv(dl1, { weight: 'bold' }, null, `- your partner in business -`);
-	let logo = createImage(`${brand}.png`,{ hmax: 90, wmax: 300});
+	let logo = createImage(`${brand}.png`, { hmax: 90, wmax: 300 });
 
-	let dl1 = mDiv(dl, { hmax: 90, wmax: 400 });  mAppend(dl1,logo); //, null, img_html(`${brand}.png`));
+	let dl1 = mDiv(dl, { hmax: 90, wmax: 400 }); mAppend(dl1, logo); //, null, img_html(`${brand}.png`));
 	let dr1 = mDiv(dr, { align: 'right', paright: 10 });
 	mDiv(dr1, {}, null, `Account Holder: ${acc.holder}`);
 	mDiv(dr1, {}, null, `Account Number: ${acc.num}`);
@@ -544,7 +518,7 @@ function generate_statement(dParent, boacc, brand) {
 	mAppend(d, createImage('statementfooter.jpg', {}));
 
 
-	return { div: d, nums: nums, acc: acc, topay: nums.balance, brand:brand, boacc:boacc };
+	return { div: d, nums: nums, acc: acc, topay: nums.balance, brand: brand, boacc: boacc };
 
 }
 function generate_skype_contacts(n) {
@@ -561,7 +535,7 @@ function generate_skype_contacts(n) {
 	return res;
 }
 function get_fake_boa_data() { if (nundef(DA.boadata)) DA.boadata = DIBOA.boa_data; return DA.boadata; }
-function get_fake_boa_data_list() { if (nundef(DA.boadata)) DA.boadata =  dict2list(DIBOA.boa_data,'key'); return DA.boadata; }
+function get_fake_boa_data_list() { if (nundef(DA.boadata)) DA.boadata = dict2list(DIBOA.boa_data, 'key'); return DA.boadata; }
 function get_fake_bw_cards() {
 	const cards = {
 		'amazon': { sub: '*5555', logo: 'visa.png' },
@@ -1061,7 +1035,7 @@ function get_boa_start_content() {
 	let img = `<img src='../rechnung/images/boa_start_pic.JPG' width='100%'>`;
 	return mCreateFrom(img);
 }
-function get_make_payments_button(){
+function get_make_payments_button() {
 	let html = `
 		<a
 			href="javascript:void(0);"
@@ -1168,22 +1142,17 @@ function keyhandler(ev) {
 	if (ev.key == 'Enter') { } //console.log('KEY:ENTER!');}
 	else if (ev.key == 'Escape') { close_popup(); } //console.log('KEY:ESCAPE!');}
 }
-function make_payments_challenge_eval(inp){
-	let val=inp.value;
+function make_payments_challenge_eval(inp) {
+	let val = inp.value;
 	//console.log('mit was muss ich das jetzt vergleichen',val);
 
-	let solution = {amount:DA.bill.nums.balance,index:DA.bill.acc.index};
-	let answer = {amount:Number(val.substring(1).trim()),index:Number(inp.id.substring(3))};
+	let solution = { amount: DA.bill.nums.balance, index: DA.bill.acc.index };
+	let answer = { amount: Number(val.substring(1).trim()), index: Number(inp.id.substring(3)) };
 
 
 	//console.log('solution',solution,'answer',answer);
 	let correct = solution.amount.toFixed(2) == answer.amount.toFixed(2) && solution.index == answer.index;
-	if (correct){
-		console.log('CORRECT!!!!!!!!!');
-
-	}else {
-		console.log('WRONG!!!!!!!!!','solution',solution,'answer',answer);
-	}
+	//if (correct) { console.log('CORRECT!!!!!!!!!'); } else { console.log('WRONG!!!!!!!!!', 'solution', solution, 'answer', answer); }
 	show_eval_message(correct);
 }
 function onclick_bill() {
@@ -1198,7 +1167,7 @@ function onclick_bill() {
 
 	let item = generate_statement(dParent, boacc, boacc.brand);
 	DA.bill = item;
-	lookupAddIfToList(DA,['challengedata'],item);
+	lookupAddIfToList(DA, ['challengedata'], item);
 	//console.log('item', item, DA);
 	//item.boacc.sub
 }
@@ -1239,7 +1208,7 @@ function onclick_submit_boa_login() {
 	let pwd = get_boa_pwd_input().value;
 	let TESTSUCCESS = false; //true;
 	if (TESTSUCCESS || userid == DIBOA.bw_info.boa.userid && pwd == DIBOA.bw_info.boa.pwd) {
-		console.log('SUCCESS!!!!!!! onclick_submit_boa_login', userid, pwd);
+		//console.log('SUCCESS!!!!!!! onclick_submit_boa_login', userid, pwd);
 
 		//open next form
 		boaverify_start();
@@ -1248,23 +1217,25 @@ function onclick_submit_boa_login() {
 		console.log('FAIL!!!!!!! onclick_submit_boa_login', userid, pwd);
 	}
 }
-function onclick_home(){ 
-	let b=mBy('tbbill'); if (isdef(b)) b.remove();
-	scrollToTop(); 
-	S.boa_state = null; 
+function onclick_home() {
 	onclick_location('home');
-	let dband=mBy('dBandMessage');
-	mStyle(dband,{display:'none',h:0,hmin:0});
 }
 function onclick_location(k) {
 	//console.log('_onclick_location', k);
 	show_correct_location(k);
 	if (k == 'boa') {
-		if (S.boa_state == 'authorized') boamain_start();
+		console.log('boa_state', S.boa_state);
+		if (S.boa_state == 'authorized') { boamain_start(); }
 		else if (S.boa_state == 'authorization_pending') boahavecode_start();
 		else { S.boa_state = 'start'; boa_start(); }
 	} else if (k == 'skype') {
 		skype_start();
+	} else if (k == 'home') {
+		let b = mBy('tbbill'); if (isdef(b)) b.remove();
+		scrollToTop();
+		S.boa_state = null;
+		let dband = mBy('dBandMessage');
+		if (isdef(dband)) mStyle(dband, { display: 'none', h: 0, hmin: 0 });
 	}
 }
 function onclick_userid() {
@@ -1292,10 +1263,10 @@ function onclick_boa_submit_code() {
 
 	let success_code = list1 == S.boa_authorization_code;
 
-	if (!success_code) { 
+	if (!success_code) {
 		show_eval_message(false);
 		//alert("The code you entered was not correct! " + S.boa_authorization_code); 
-		return; 
+		return;
 	}
 
 	//SUCCESS! now open next form!
@@ -1304,8 +1275,8 @@ function onclick_boa_submit_code() {
 
 }
 function scrollToTop() {
-  document.body.scrollTop = 0; // For Safari
-  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+	document.body.scrollTop = 0; // For Safari
+	document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
 function show_bill_button() {
 	if (isdef(mBy('tbbill'))) return;
@@ -1317,10 +1288,10 @@ function show_master_password() {
 	let score = localStorage.getItem('score');
 	show_special_message('the bitwarden master password is ' + S.master_password, false, 5000, 2000, { bg: 'dodgerblue', classname: '', top: 400 });
 }
-function show_eval_message(correct){
+function show_eval_message(correct) {
 	let msg = correct ? `Congratulations!!! You passed the ${DA.name} challenge!` : 'Wrong solution - Try Again!';
 	//show_special_message(msg, false, 5000, 2000, { bg: 'dodgerblue', position:'sticky', classname: 'special_message' },onclick_home);
-	let d = valf(mBy('dBandMessage'),mDiv(document.body, {}, 'dBandMessage'));
+	let d = valf(mBy('dBandMessage'), mDiv(document.body, {}, 'dBandMessage'));
 	//console.log('dParent',dParent)
 	show(d);
 	clearElement(d);
@@ -1330,9 +1301,9 @@ function show_eval_message(correct){
 	//delete styles.classname;
 	//mStyle(dParent, styles);
 	d.innerHTML = msg; //'blablablablabllllllllllllllllllllllllllllllaaaaaaaaaaaaaaaaaaaaaaa'; //msg;
-	mStyle(d,{position:'fixed',top:127,left:0,bg:'red',fg:'white',w:'100%',h:40,hmin:40,hmax:40,fz:24,align:'center',vpadding:10,classname:'slow_gradient_blink'});
+	mStyle(d, { position: 'fixed', top: 127, left: 0, bg: 'red', fg: 'white', w: '100%', h: 40, hmin: 40, hmax: 40, fz: 24, align: 'center', vpadding: 10, classname: 'slow_gradient_blink' });
 	//mClass(d,'slow_gradient_blink')
-	let [ms,delay,callback]=[5000,0,correct?onclick_home:null];
+	let [ms, delay, callback] = [5000, 0, correct ? onclick_home : null];
 	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(d, ms, callback); }, delay);
 	else mFadeClear(d, ms, callback);
 
@@ -1455,7 +1426,8 @@ function skype_go_button() {
 }
 function skype_start() {
 
-	let d = mBy('dSkype'); mClear(d); mStyle(document.body, { h: 'calc( 100vh - 56px )', 'overflow-y': 'hidden' });
+	let d = mBy('dSkype'); mClear(d); //mStyle(document.body, { h: 'calc( 100vh - 56px )'});
+	mStyle(d, { h: 'calc( 100vh - 56px )', 'overflow-y': 'hidden' });
 
 	let d0 = mDiv(d);
 	let [dl, dr] = mColFlex(d, [1, 3]); //, [BLUE, GREEN]);
