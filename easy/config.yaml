@@ -53,12 +53,15 @@ games:
     options:
       #mode: 'solo,multi,hotseat'
       mode: 'solo,hotseat,multi'
-      handsize: '7,9,11,13,10,7,3,1'
-      cycles: '3,1,2'
+      handsize: '7,9,11,13,10'
+      cycles: '3,2,1'
       #jokers: '0,2,3,1'
       #per_move: '60,50,40'
-      seconds_per_game: '60,180,120,10,200'
+      seconds_per_game: '60,180,120'
+      seconds_per_move: '3,4,5'
       #timing: 'game,adaptive,move'
+      jokers: '3,2,1,0'
+      overlapping: 'no,yes'
       jokers_per_group: '3,2,1'
   ferro:
     friendly: Ferrocarril

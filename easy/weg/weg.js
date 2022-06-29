@@ -1,3 +1,72 @@
+//#region fritz
+function end_of_round_fritz(plname) {
+	//console.log('fritz_round_over', plname);
+	let [A, fen, uplayer, plorder] = [Z.A, Z.fen, Z.uplayer, Z.plorder];
+	let pl = fen.players[uplayer];
+
+	calc_fritz_score();
+	ari_history_list([`${plname} wins the round`], 'action');
+
+	fen.round_winner = plname;
+	plorder = fen.plorder = jsCopy(fen.roundorder); //restore fen.plorder to contain all players
+	if (fen.starter == arrLast(plorder)) {
+		//cycle plorder by 1 and start next round with plorder[0]
+		fen.plorder = arrCycle(fen.plorder, 1);
+		let newStarter = fen.starter = fen.plorder[0];
+		fen.roundorder = jsCopy(fen.plorder);
+		fen.cycles += 1;
+		if (fen.cycles >= Z.options.cycles) {
+			fen.winners = find_players_with_min_score();
+			ari_history_list([`game over: ${fen.winners.join(', ')} win${fen.winners.length == 1 ? 's' : ''}`], 'action');
+			Z.stage = 'game_over';
+			console.log('end of game: stage', Z.stage, '\nplorder', fen.plorder, '\nturn', Z.turn);
+		} else {
+			fen.turn = Z.turn = [newStarter];
+			console.log('end of cycle: stage', Z.stage, '\nplorder', fen.plorder, '\nturn', Z.turn);
+		}
+	} else {
+		Z.turn = [get_next_player(Z, fen.starter)];
+		console.log('end of round: stage', Z.stage, '\nplorder', fen.plorder, '\nturn', Z.turn);
+	}
+
+	//dann muss noch deal new deck
+	if (isdef(fen.winners)) return;
+
+	Z.round += 1;
+	fritz_new_table(fen, Z.options);
+	fritz_new_player_hands(fen, Z.turn[0], Z.options);
+}
+
+//#endregion
+
+//#region fritz: user timer
+function select_timer(ms, callback) {
+	let d = mBy('dSelections0');
+	let dtimer = mDiv(d, { w: 80, maleft: 10, fg: 'red', weight: 'bold' }, 'dTimer');
+	//start_simple_timer(dtimer, 1000, null, ms, callback);
+	start_user_timer(dtimer, 1000, null, ms, callback);
+	return dtimer;
+}
+function start_user_timer(dtimer, msInterval, onTick, msTotal, onElapsed) {
+	let [fen, uplayer] = [Z.fen, Z.uplayer];
+	msTotal = fen.players[uplayer].time_left;
+	//console.log('msTotal', msTotal);
+	if (isdef(DA.timer)) { DA.timer.clear(); DA.timer = null; }
+	let timer = DA.timer = new SimpleTimer(dtimer, msInterval, onTick, msTotal, onElapsed);
+	timer.start();
+}
+function check_user_time_left() { if (isdef(DA.timer)) { return DA.timer.msLeft; }  else { return 0; } }
+function stop_timer() {
+	if (isdef(DA.timer)) {
+		let res = DA.timer.clear();
+		DA.timer = null;
+		//console.log('time left in stop timer', res)
+		return isNumber(res)?res:0;
+	}
+	return 0;
+}
+
+
 //#region ack OLD
 function ferro_update_ack() {
 	//should return true if need to resend!
@@ -108,7 +177,7 @@ function ferro_ack_uplayer() {
 }
 //#endregion
 
-
+//#region bluff
 
 function ui_get_bluff_inputs(strings) {
 	let uplayer = Z.uplayer;
@@ -117,7 +186,9 @@ function ui_get_bluff_inputs(strings) {
 	return items;
 	//hier koennt ich die ergebnis inputs dazugeben!
 }
+//#endregion
 
+//#region ferro
 
 function ui_get_ferro_action_items(){
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
@@ -248,15 +319,6 @@ function ferro_pre_action_() {
 		default: console.log('stage is', stage); break;
 	}
 }
-
-
-
-
-
-
-
-
-
 function hahaha(){
 
 	//make sure player has selected a card
@@ -343,3 +405,9 @@ function MUELL() {
 		}
 	}
 }
+//#endregion
+
+
+
+
+

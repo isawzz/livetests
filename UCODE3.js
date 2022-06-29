@@ -1,3 +1,202 @@
+//#region fritz
+
+function _show_special_message(msg,stay=false) {
+	let dParent = mBy('dBandMessage'); 
+	console.log('dBandMessage',mBy('dBandMessage'))
+	if (nundef(dParent)) dParent = mDiv(document.body,{},'dBandMessage');
+	console.log('dParent',dParent)
+	show(dParent); 
+	clearElement(dParent);
+	mStyle(dParent, { position: 'absolute', top: 200, bg: 'green', wmin: '100vw'}); 
+	let d = mDiv(dParent, { margin: 0 });
+	let styles = { classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' };
+	let dContent = mDiv(d, styles, null, msg);
+	mFadeClear(dParent, 3000 );
+}
+
+
+function end_of_turn_fritz() {
+	//console.log('A', Z.A)
+	//console.log('time is up!!!', getFunctionsNameThatCalledThisFunction());
+	let [A, fen, uplayer, plorder] = [Z.A, Z.fen, Z.uplayer, Z.plorder];
+	let pl = fen.players[uplayer];
+	//console.log('__________________________');
+
+	clear_quick_buttons();
+
+	//all TJ groups must be checked and loose cards placed in loosecards
+	let ploose = {};
+	fen.journeys = [];
+	fen.loosecards = [];
+	for (const plname in fen.players) { fen.players[plname].loosecards = []; }
+	for (const group of DA.TJ) {
+		let ch = arrChildren(iDiv(group));
+		let cards = ch.map(x => Items[x.id]);
+		//find out if is a set
+		//console.log('cards', cards);
+		let set = ferro_is_set(cards, Z.options.jokers_per_group, 3);
+		//console.log('set', set);
+		if (!set) {
+			//dann kommen die Karten in die Loosecards
+			for (const card of cards) {
+				if (is_joker(card)) {
+					//console.log('pushing joker', card.key);
+					fen.loosecards.push(card.key);
+					continue;
+				}
+				let owner = valf(card.owner, uplayer);
+				lookupAddToList(ploose, [owner], card.key);
+				//console.log('add card', card.key, 'to', owner);
+			}
+			//console.log('NOT A SET', cards);
+		} else {
+			let j = set; //[];
+			//for (const card of cards) { delete card.owner; j.push(card.key); }
+			fen.journeys.push(j);
+			//console.log('YES!!!', 'adding journey', j);
+		}
+	}
+	for (const plname in ploose) {
+		fen.players[plname].loosecards = ploose[plname];
+	}
+
+	//console.log('_____\npublic loosecards', fen.loosecards);
+	//console.log('journeys:', fen.journeys);
+	//for (const plname in fen.players) { console.log('loosecards', plname, fen.players[plname].loosecards); }
+
+	//discard pile must be reduced by all cards that do not have source = 'discard'
+	let discard = UI.deck_discard.items.filter(x => x.source == 'discard');
+	fen.deck_discard = discard.map(x => x.key);
+
+	if (!isEmpty(A.selected)) {
+		//console.log('selected', A.selected);
+		let ui_discarded_card = A.selected.map(x => A.items[x].o)[0];
+
+		removeInPlace(UI.players[uplayer].hand.items, ui_discarded_card);
+		ckey = ui_discarded_card.key;
+		//console.log('discard', discard);
+		elem_from_to(ckey, fen.players[uplayer].hand, fen.deck_discard);
+		//ari_history_list([`${uplayer} discards ${c}`], 'discard');
+
+	}
+
+	//all UI.hand cards that do NOT have source=hand must be removed from player hands
+
+	let uihand = UI.players[uplayer].hand.items; //.filter(x => x.source == 'hand');
+	let fenhand_vorher = fen.players[uplayer].hand;
+	let fenhand = fen.players[uplayer].hand = uihand.filter(x => x.source == 'hand').map(x => x.key);
+	//console.log('hand', uihand, 'fenhand vorher:', fenhand_vorher, 'fenhand', fenhand);
+
+	//check gameover!!!!
+	if (isEmpty(fenhand) && isEmpty(fen.players[uplayer].loosecards)) {
+		end_of_round_fritz(uplayer);
+
+	} else {
+		Z.turn = [get_next_player(Z, uplayer)];
+		deck_deal_safe_fritz(fen, Z.turn[0]);
+	}
+	//console.log('==>fen.loosecards', fen.loosecards); //, fen.players[uplayer].loosecards); //, fen.players);
+	let ms = fen.players[uplayer].time_left = stop_user_timer();
+
+	//console.log('fritz_turn_ends', 'ms', ms);
+	if (ms <= 0) {
+		console.log('time is up!!!');
+		//this player needs to be removed!
+		if (Z.turn[0] == uplayer) Z.turn = [get_next_player(Z, uplayer)];
+		//if only 1 player in plorder, that player wins
+		remove_player(fen, uplayer);
+		if (plorder.length == 1) { end_of_round_fritz(plorder[0]); }
+	}
+
+	turn_send_move_update();
+
+}
+
+
+function fritz_present_new(z, dParent, uplayer) {
+
+	let [fen, ui, stage] = [z.fen, UI, z.stage];
+	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1); mFlexWrap(dOpenTable)
+	Config.ui.card.h = 130;
+	Config.ui.container.h = Config.ui.card.h + 30;
+
+	//let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', fritz_get_card);
+	if (isEmpty(fen.deck_discard)) {
+		mText('discard empty', dOpenTable);
+		ui.deck_discard = { items: [] }
+	} else {
+		let deck_discard = ui.deck_discard = ui_type_hand(fen.deck_discard, dOpenTable, { maright: 25 }, 'deck_discard', 'discard', fritz_get_card, true);
+		let i = 0; deck_discard.items.map(x => { x.source = 'discard'; x.index = i++ });
+	}
+	mLinebreak(dOpenTable);
+
+
+	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, wmin:245, padding: '5px 50px 5px 5px', margin: 5 });
+	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
+	mFlexWrap(ddarea)
+
+	fritz_stats_new(z, dRechts);
+
+	show_history(fen, dRechts);
+
+	DA.TJ = [];
+	//journeys become groups
+	//fen.journeys = [['QHn', 'KHn', 'AHn'], ['QCn', 'QHn', 'QDn']];
+	for (const j of fen.journeys) {
+		let cards = j.map(x => fritz_get_card(x));
+		frnew(cards[0], { target: 'hallo' });
+		for (let i = 1; i < cards.length; i++) { fradd(cards[i], Items[cards[0].groupid]); }
+
+	}
+	//loose cards of fen and other players become groups. own loose cards will ALSO go to player area
+	let loosecards = ui.loosecards = jsCopy(fen.loosecards).map(c => fritz_get_card(c));
+	for (const plname of fen.plorder) {
+		let cards = fen.players[plname].loosecards.map(c => fritz_get_card(c));
+		cards.map(x => x.owner = plname);
+		// if (plname == uplayer) { ui.ploosecards = cards; } else { loosecards = loosecards.concat(cards); }
+		if (plname != uplayer) { loosecards = loosecards.concat(cards); }
+		//loosecards = loosecards.concat(cards);
+	}
+	for (const looseui of loosecards) {
+		//console.log('looseui', looseui);
+		let card = looseui;
+		frnew(card, { target: 'hallo' });
+	}
+
+	//all cards in drop area are droppable
+	for (const group of DA.TJ) {
+		let d = iDiv(group);
+		//console.log('d',d);
+		let ch = arrChildren(iDiv(group));
+		let cards = ch.map(x => Items[x.id]);
+		//console.log('cards', cards);
+		cards.map(x => mDroppable(iDiv(x), drop_card_fritz));
+	}
+
+	//if ddarea is empty, write drag and drop hint
+	if (arrChildren(ddarea).length == 0) {
+		let d = mDiv(ddarea, {'pointer-events': 'none',maleft:45,align:'center',hmin:40,w:'100%',fz:12,fg:'dimgray'},'ddhint','drag and drop cards here');
+		//setRect(ddarea)
+		//mPlace(d,'cc')
+
+	} 
+
+	ui.players = {};
+	let uname_plays = fen.plorder.includes(Z.uname);
+	let plmain = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
+	fritz_present_player(plmain, dMiddle);
+
+	if (TESTING) {
+		for (const plname of arrMinus(fen.plorder, plmain)) {
+			fritz_present_player(plname, dMiddle);
+		}
+	}
+
+
+}
+
+
+
 //#region rechnung
 function boamain_start() {
 	//console.log('haaaaaaaaaaaaaaaaa');
@@ -288,7 +487,7 @@ function _bw_widget_popup() {
 
 }
 
-
+//#endregion
 
 
 
