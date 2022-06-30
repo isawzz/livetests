@@ -458,11 +458,20 @@ function mDraggable(item) {
 	d.draggable = true;
 	d.ondragstart = drag;
 }
-function mDroppable(item, handler) {
+function mDroppable(item, handler,dragoverhandler) {
 	let d = iDiv(item);
-	d.ondragover = allowDrop;
+	//console.log('item', item);
+	d.ondragover = isdef(dragoverhandler)?dragoverhandler:allowDrop;
+	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
 	d.ondrop = handler;
 }
+// function mDroppableGroup(item,handler,dragoverhandler) {
+// 	let d = iDiv(item);
+// 	console.log('item', item, 'group',group);
+// 	d.ondragover = isdef(dragoverhandler)?()=>dragoverhandler(item):allowDrop;
+// 	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
+// 	d.ondrop = handler;
+// }
 function mFlexEvenly(d) {
 	let styles = { display: 'flex' };
 	styles['justify-content'] = 'space-evenly';
@@ -538,7 +547,10 @@ function mInput(dParent, styles, id, placeholder, classtr = 'input', tabindex = 
 function mInsertAt(dParent, el, index = 0) { mInsert(dParent, el, index); }
 function mInsertFirst(dParent, el) { mInsert(dParent, el, 0); }
 function mInsert(dParent, el, index = 0) { dParent.insertBefore(el, dParent.childNodes[index]); }
-function mInsertAfter(dParent, el, index = 0) { dParent.insertAfter(el, dParent.childNodes[index]); }
+function mInsertAfter(dParent, el, index = 0) { 
+	if (dParent.childNodes.length == index) mAppend(dParent, el);
+	else mInsert(dParent, el, index+1); 
+}
 function mItem(id, diDOM, di = {}, addSizing = false) {
 	let item = di;
 	id = isdef(id) ? id : isdef(diDOM) && isdef(diDOM.div) && !isEmpty(diDOM.div.id) ? diDOM.div.id : getUID();
@@ -3695,7 +3707,7 @@ function get_checked_radios(rg) {
 function get_mouse_pos(ev) { 
 	let x = ev.pageX - document.body.scrollLeft; // - ev.target.offsetY;
 	let y = ev.pageY - document.body.scrollTop; // - ev.target.offsetY;
-	console.log('y calc:',y,'y returned:',ev.clientY);
+	//console.log('y calc:',y,'y returned:',ev.clientY);
 	// return ({ x: ev.clientX, y: ev.clientY }); 
 	return ({ x: x, y: y }); 
 

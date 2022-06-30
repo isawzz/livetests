@@ -495,7 +495,7 @@ function ensure_buttons_visible_ferro() {
 	}
 
 }
-function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7) {
+function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = true) {
 	//let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 
 	if (cards.length < 3) return false;
@@ -505,7 +505,14 @@ function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7) {
 	cards = sortCardItemsByRank(cards.map(x => x), rankstr = '23456789TJQKA*');
 
 	let rank = cards[0].rank;
-	if (cards.every(x => x.rank == rank || is_joker(x))) return cards.map(x => x.key);
+	let isgroup = cards.every(x => x.rank == rank || is_joker(x));
+
+	//check if all cards have either different suit or are jolly
+	//check for duplicate suits in cards
+	let suits = cards.filter(x=>!is_joker(x)).map(x => x.suit);
+	let num_duplicate_suits = suits.filter(x => suits.filter(y => y == x).length > 1).length;
+	if (isgroup && !group_same_suit_allowed && num_duplicate_suits > 0) return false;
+	else if (isgroup) return cards.map(x => x.key);
 
 	let suit = cards[0].suit;
 	if (!cards.every(x => is_jolly(x.key) || x.suit == suit)) return false;

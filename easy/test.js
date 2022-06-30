@@ -10,17 +10,49 @@ function start_tests() {
 	//ltest43_fritz_discard_pile();
 	//ltest52_aristo_church_empty(); //ltest23_aristo_building_downgrade(); //ltest50_aristo_church();
 	//#endregion
-	ltest45_fritz(); //ltest54_fritz_outoftime();
+	//ltest55_fritz_set_with_same_suits(); //ltest54_fritz_outoftime();
+
+	ltest55_fritz_set_with_same_suits();
 }
 
 
 //#region live server tests
-function make_both_run_out_of_time(o) {
-	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	for (const plname in fen.players) {
-		let pl = fen.players[plname];
-		pl.time_left = 100;
-	}
+function ltest56_algo_overlapping_sets(){
+	// let cards = ['2Hn','3Hn','4Hn','5Hn','6Hn','7Hn','7Cn','7Dn','7Hn'].map(x=>({key:x,suit:x[0],rank:x[1]}));
+	let cards = ['2Hn','3Hn','4Hn','5Hn','6Hn','7Hn','7Cn','7Dn','7Hn'].map(x=>fritz_get_card(x));
+	let res = is_overlapping_set(cards,1,3,false); //ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','3Hn','4Hn','3Hn','2Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','3Hn','4Hn','3Hn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','3Hn','3Hn','3Cn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','3Hn','4Hn','5Hn','5Cn','5Dn','5Cn','5Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','3Hn','4Hn','5Hn','5Cn','5Cn','5Cn','5Hn','6Hn','7Hn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','*Hn','2Cn','3Hn','4Cn'].map(x=>fritz_get_card(x)),1,3,false); 
+	console.log('res:',res);
+
+	res = is_overlapping_set(['2Hn','*Hn','2Cn','3Cn','4Cn'].map(x=>fritz_get_card(x)),1,3,false); 
+	console.log('res:',res);
+}
+function ltest55_fritz_set_with_same_suits() {
+	DA.magnify_on_select = true;
+	TESTING = true; DA.testing = true; DA.test = {
+		mods: [give_player_hand_groups], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0]
+	};
+	DA.test.end = () => { };
+	DA.auto_moves = [];
+	startgame('fritz', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+
 }
 function ltest54_fritz_outoftime() {
 	DA.magnify_on_select = true;
@@ -32,7 +64,6 @@ function ltest54_fritz_outoftime() {
 	startgame('fritz', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
 
 }
-
 function ltest53_fritz_endround() {
 	DA.magnify_on_select = true;
 	TESTING = true; DA.testing = true; DA.test = {
@@ -919,6 +950,12 @@ function ensure_stallSelected(fen) { if (nundef(fen.stallSelected)) fen.stallSel
 //#endregion
 
 //#region mods
+function give_player_hand_groups(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let pl = fen.players[uplayer];
+	pl.hand = ['2Hn', '2Hn', '2Sn', '2Cn', '3Sn', '3Hn', '4Hn', '4Sn', '*Hn'];
+
+}
 function make_deck_discard(o) {
 	let fen = o.fen;
 	let uplayer = o.uplayer;
@@ -1045,6 +1082,13 @@ function give_players_stalls(o) {
 		let pl = fen.players[plname];
 		for (let i = 0; i < n; i++)	top_elem_from_to(pl.hand, pl.stall);
 		pl.stall_value = calc_stall_value(fen, plname);
+	}
+}
+function make_both_run_out_of_time(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	for (const plname in fen.players) {
+		let pl = fen.players[plname];
+		pl.time_left = 100;
 	}
 }
 function make_church(o) {
