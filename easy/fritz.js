@@ -37,7 +37,7 @@ function fritz() {
 }
 
 function fritz_present_new(z, dParent, uplayer) {
-
+	console.log('present')
 	DA.hovergroup = null;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1); mFlexWrap(dOpenTable)
