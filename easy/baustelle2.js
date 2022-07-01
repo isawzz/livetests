@@ -1,36 +1,49 @@
 
-function spread_cards_wider(x, group) {
+function add_card_to_group(card, oldgroup, oldindex, targetcard, targetgroup) {
+	card.groupid = targetgroup.id;
 
-	if (nundef(DA.hovergroup)){
-		DA.hovergroup = group;
-		resplay_container(DA.hovergroup, .75);
-		group.is_wider = true;
-		return;	
+	//hier muss card von UI hand entfernen wenn source == 'hand'
+	if (card.source == 'hand') {
+		let hand = UI.players[Z.uplayer].hand;
+		removeInPlace(hand.items, card);
 	}
 
-	//if card x comes from group do nothing
-	if (group.ids.includes(x.id)) return;
+	card.source = 'group';
+	mDroppable(iDiv(card), drop_card_fritz); 
 
-	//DA.hovergroupu is already defined so it has an id! if it is same id, dont do any spreading
-	if (DA.hovergroup.id == group.id) return;
+	if (nundef(targetcard)){ //} || targetcard.id == arrLast(targetgroup.ids)) {
+		targetgroup.ids.push(card.id);
+		mAppend(iDiv(targetgroup), iDiv(card));
+	} else {
 
-	console.log('HAVE TO ACT!!!!!!!!!',DA.hovergroup.id,group.id,x.id);
-	// //DA.hovergroup is different from group, but it could still be that hovergroup is already wide
-	// //jetzt brauch ich ein: group last dropped!
-	// if (nundef(oldgroup)) {DA.}
+		//targetcard canNOT be null here!!!!!!
+		//oldgroup can be undefined
+		// aber die card wurde ja schon untied?!!!!!!!!
+		// if (oldgroup == group){
+		// 	//in this case have oldindex
+		// 	//if oldindex < index of targetcard, insert
+		// 	console.log('oldindex', oldindex, 'index of targetcard', group.ids.indexOf(targetcard.id));
+		// }
 
-	// let oldid = lookup(DA, ['hovergroup', 'id']);
-	// if (oldid == group.id) return; //already expanded
+		let index = targetgroup.ids.indexOf(targetcard.id)+1;
 
-	// if (isdef(DA.hovergroup)) { resplay_container(DA.hovergroup); }
-	// console.log('DA.hovergroup', oldid, 'group', group.id);
-	DA.hovergroup = group;
-	resplay_container(DA.hovergroup, .75);
-	// if (isdef(DA.hovergroup) && DA.hovergroup != group) { console.log('other hovergroup is', DA.hovergroup); resplay_container(DA.hovergroup); }
-	// else if (DA.hovergroup == group) { return; }
-	// else { DA.hovergroup = group; resplay_container(group, .75); console.log('need to spread group wider'); }
+		//how do I get the old group?
+		//console.log('inserting card at index', index);
+		console.log('ids', jsCopy(targetgroup.ids));
+		console.log('targetcard index', index);
+		targetgroup.ids.splice(index, 0, card.id);
+		console.log('ids', jsCopy(targetgroup.ids));
+		mClear(iDiv(targetgroup));
+		for (let i = 0; i < targetgroup.ids.length; i++) {
+			let c = Items[targetgroup.ids[i]];
+			mAppend(iDiv(targetgroup), iDiv(c));
+		}
+		//mInsert(iDiv(targetgroup), iDiv(card), index);
+	}
 
+	resplay_container(targetgroup);
 }
+
 
 
 

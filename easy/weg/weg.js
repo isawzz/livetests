@@ -1,4 +1,114 @@
 //#region fritz
+function spread_cards_wider(x, group) {
+
+	if (nundef(DA.hovergroup)) {
+		DA.hovergroup = group;
+		resplay_container(DA.hovergroup, .75);
+		group.is_wider = true;
+		return;
+	}
+
+	//if card x comes from group do nothing
+	if (group.ids.includes(x.id)) return;
+
+	//DA.hovergroupu is already defined so it has an id! if it is same id, dont do any spreading
+	if (DA.hovergroup.id == group.id) return;
+
+	console.log('HAVE TO ACT!!!!!!!!!', DA.hovergroup.id, group.id, x.id);
+	// //DA.hovergroup is different from group, but it could still be that hovergroup is already wide
+	// //jetzt brauch ich ein: group last dropped!
+	// if (nundef(oldgroup)) {DA.}
+
+	// let oldid = lookup(DA, ['hovergroup', 'id']);
+	// if (oldid == group.id) return; //already expanded
+
+	// if (isdef(DA.hovergroup)) { resplay_container(DA.hovergroup); }
+	// console.log('DA.hovergroup', oldid, 'group', group.id);
+	DA.hovergroup = group;
+	resplay_container(DA.hovergroup, .75);
+	// if (isdef(DA.hovergroup) && DA.hovergroup != group) { console.log('other hovergroup is', DA.hovergroup); resplay_container(DA.hovergroup); }
+	// else if (DA.hovergroup == group) { return; }
+	// else { DA.hovergroup = group; resplay_container(group, .75); console.log('need to spread group wider'); }
+
+}
+
+function add_card_to_group(card, oldgroup, oldindex, targetcard, targetgroup) {
+	card.groupid = targetgroup.id;
+
+	//hier muss card von UI hand entfernen wenn source == 'hand'
+	if (card.source == 'hand') {
+		let hand = UI.players[Z.uplayer].hand;
+		removeInPlace(hand.items, card);
+	}
+
+	card.source = 'group';
+	mDroppable(iDiv(card), drop_card_fritz); //, () => spread_cards_wider(card, group));
+
+	if (nundef(targetcard)) { //} || targetcard.id == arrLast(targetgroup.ids)) {
+		targetgroup.ids.push(card.id);
+		mAppend(iDiv(targetgroup), iDiv(card));
+	} else {
+
+		//targetcard canNOT be null here!!!!!!
+		//oldgroup can be undefined
+		// aber die card wurde ja schon untied?!!!!!!!!
+		// if (oldgroup == group){
+		// 	//in this case have oldindex
+		// 	//if oldindex < index of targetcard, insert
+		// 	console.log('oldindex', oldindex, 'index of targetcard', group.ids.indexOf(targetcard.id));
+		// }
+
+		let index = targetgroup.ids.indexOf(targetcard.id);
+
+		//how do I get the old group?
+		//console.log('inserting card at index', index);
+		console.log('ids', jsCopy(targetgroup.ids));
+		console.log('targetcard index', index);
+		targetgroup.ids.splice(index, 0, card.id);
+		console.log('ids', jsCopy(targetgroup.ids));
+		mClear(iDiv(targetgroup));
+		for (let i = 0; i < targetgroup.ids.length; i++) {
+			let c = Items[targetgroup.ids[i]];
+			mAppend(iDiv(targetgroup), iDiv(c));
+		}
+		//mInsert(iDiv(targetgroup), iDiv(card), index);
+	}
+
+	resplay_container(targetgroup, .75);
+}
+
+
+function _add_card_to_group(card, group, targetcard) {
+	let origid = card.groupid;
+	card.groupid = group.id;
+
+	//hier muss card von UI hand entfernen wenn source == 'hand'
+	if (card.source == 'hand') {
+		let hand = UI.players[Z.uplayer].hand;
+		removeInPlace(hand.items, card);
+	}
+
+	card.source = 'group';
+	mDroppable(iDiv(card), drop_card_fritz); //, () => spread_cards_wider(card, group));
+
+	if (nundef(targetcard)) { //} || targetcard.id == arrLast(group.ids)) {
+		group.ids.push(card.id);
+		mAppend(iDiv(group), iDiv(card));
+
+	} else {
+		let index = group.ids.indexOf(targetcard.id) + 1;
+
+		//how do I get the old group?
+
+		console.log('index', index);
+		//console.log('inserting card before', targetcard, 'at index', index + 1);
+		group.ids.splice(index, 0, card.id);
+		mInsert(iDiv(group), iDiv(card), index + 1);
+	}
+
+	resplay_container(group, .75);
+}
+
 function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = false) {
 	//let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 
@@ -84,13 +194,13 @@ function start_user_timer(dtimer, msInterval, onTick, msTotal, onElapsed) {
 	let timer = DA.timer = new SimpleTimer(dtimer, msInterval, onTick, msTotal, onElapsed);
 	timer.start();
 }
-function check_user_time_left() { if (isdef(DA.timer)) { return DA.timer.msLeft; }  else { return 0; } }
+function check_user_time_left() { if (isdef(DA.timer)) { return DA.timer.msLeft; } else { return 0; } }
 function stop_timer() {
 	if (isdef(DA.timer)) {
 		let res = DA.timer.clear();
 		DA.timer = null;
 		//console.log('time left in stop timer', res)
-		return isNumber(res)?res:0;
+		return isNumber(res) ? res : 0;
 	}
 	return 0;
 }
@@ -219,7 +329,7 @@ function ui_get_bluff_inputs(strings) {
 
 //#region ferro
 
-function ui_get_ferro_action_items(){
+function ui_get_ferro_action_items() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	let items = ui_get_hand_items(uplayer);
@@ -228,21 +338,21 @@ function ui_get_ferro_action_items(){
 	reindex_items(items);
 	return items;
 }
-function ferro_process_action(){
+function ferro_process_action() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	let selitems = A.selected.map(x => A.items[x]);
 	console.log('selitems:', selitems);
 	let cards = selitems.filter(x => x.itemtype == 'card');
 	let actions = selitems.filter(x => x.itemtype == 'string');
-	if (actions.length == 0) { select_error('select an action!'); selitems.map(x=>ari_make_unselected(x)); A.selected=[];return; }
-	let cmd=actions[0].a;
-	switch(cmd){
+	if (actions.length == 0) { select_error('select an action!'); selitems.map(x => ari_make_unselected(x)); A.selected = []; return; }
+	let cmd = actions[0].a;
+	switch (cmd) {
 		case 'discard': ferro_process_discard(); break;
 		case 'auflegen': ferro_process_group(); break;
 		case 'anlegen': ferro_process_anlegen(); break;
 		case 'jolly': ferro_process_jolly(); break;
-		default: console.log('unknown command: '+cmd);
+		default: console.log('unknown command: ' + cmd);
 	}
 }
 function ferro_process_action_() {
@@ -256,19 +366,19 @@ function ferro_process_action_() {
 	Z.stage = 'commands';
 	ferro_pre_action();
 }
-function ferro_process_command_(){
+function ferro_process_command_() {
 
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	//player has selected 1 card
 	let cmd = A.items[A.selected[0]].a;
-	switch(cmd){
+	switch (cmd) {
 		case 'discard': ferro_process_discard(); break;
 		case 'group': ferro_prep_group(); break;
-		default: console.log('unknown command: '+cmd);
+		default: console.log('unknown command: ' + cmd);
 	}
 }
-function ferro_prep_group(){
+function ferro_prep_group() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 
 	A.command = 'group';
@@ -306,19 +416,19 @@ function ferro_check_action_available(a, fen, uplayer) {
 		let wildcard = hand.find(x => x[0] == '*');
 		//console.log('wildcard', wildcard?'yes':'no');
 		let n = group.length + (isdef(wildcard) ? 1 : 0);
-		console.log('can build group of',n)
+		console.log('can build group of', n)
 		return n >= 3;
 
 	} else return false;
 }
-function ui_get_group_items(){
+function ui_get_group_items() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	let rank = A.initialItem.o.rank;
 	let items = ui_get_hand_items(uplayer);
-	console.log('items',items,'rank',rank);
-	
-	items = items.filter(x=>x.key[0] == rank || x.key[0] == '*');
-	console.log('items',items);
+	console.log('items', items, 'rank', rank);
+
+	items = items.filter(x => x.key[0] == rank || x.key[0] == '*');
+	console.log('items', items);
 	reindex_items(items);
 	return items;
 }
@@ -348,7 +458,7 @@ function ferro_pre_action_() {
 		default: console.log('stage is', stage); break;
 	}
 }
-function hahaha(){
+function hahaha() {
 
 	//make sure player has selected a card
 	if (A.selected.length < 1) { select_error('select 1 or more cards!'); return; }
@@ -358,22 +468,22 @@ function hahaha(){
 
 	//check if keys form a valid group or sequence
 	let is_set = ferro_is_set(cards);
-	let keys = cards.map(x=>x.key)
-	if (is_set){ferro_process_set(keys);return;}
+	let keys = cards.map(x => x.key)
+	if (is_set) { ferro_process_set(keys); return; }
 
 	//its not a set
 	//check if uplayer has a journey
 	let has_journey = pl.journeys.length > 0;
-	if (has_journey) { 
+	if (has_journey) {
 		//check if cards can be added to other journeys
-		for(const plname of plorder){
+		for (const plname of plorder) {
 			let pl1 = fen.players[plname];
 			if (plname == uplayer) continue;
-			for(const j of pl1.journeys){}
+			for (const j of pl1.journeys) { }
 
 		}
 
-		select_error('you have no journey!'); return; 
+		select_error('you have no journey!'); return;
 	}
 
 }
@@ -389,19 +499,19 @@ function MUELL() {
 		//koennte auch zum anlegen sein!!!
 		//check ob irgendeine journey existiert wo die card angelegt werden koennte
 		//kann die karte irgendwo angelegt werden?
-		if (!isEmpty(pl.journeys)){
+		if (!isEmpty(pl.journeys)) {
 			//check if 
-			let journeys_per_player={};
-			for(const plname of plorder){
+			let journeys_per_player = {};
+			for (const plname of plorder) {
 				if (plname == uplayer) continue;
-				let pl1=fen.players[plname];
-				for(const j of pl1.journeys){
+				let pl1 = fen.players[plname];
+				for (const j of pl1.journeys) {
 
 				}
-				if (!isEmpty(pl1.journeys)) journeys_per_player=pl1.journeys;
+				if (!isEmpty(pl1.journeys)) journeys_per_player = pl1.journeys;
 
 			}
-			for(const j of journeys_per_player){
+			for (const j of journeys_per_player) {
 
 			}
 		}
@@ -421,7 +531,7 @@ function MUELL() {
 		let set = ferro_is_set(selected);
 		if (set) {
 			//set ist ein set
-			let j=[];
+			let j = [];
 			selected.map(x => elem_from_to(x.key, fen.players[uplayer].hand, j));
 			fen.players[uplayer].journeys.push(j);
 
@@ -429,7 +539,7 @@ function MUELL() {
 
 			turn_send_move_update();
 
-		}else{
+		} else {
 			select_error('you must select 3 or more cards that all have the same rank or 7 consecutive ranks!');
 		}
 	}

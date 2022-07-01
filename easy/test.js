@@ -12,9 +12,9 @@ function start_tests() {
 	//#endregion
 	//ltest55_fritz_set_with_same_suits(); //ltest54_fritz_outoftime();
 
+	//ltest56_algo_overlapping_sets(); //
 	ltest55_fritz_set_with_same_suits();
 }
-
 
 //#region live server tests
 function ltest56_algo_overlapping_sets(){
@@ -43,6 +43,10 @@ function ltest56_algo_overlapping_sets(){
 
 	res = is_overlapping_set(['2Hn','*Hn','2Cn','3Cn','4Cn'].map(x=>fritz_get_card(x)),1,3,false); 
 	console.log('res:',res);
+
+	res = is_overlapping_set(['4Hn','3Hn','2Hn','2Cn','2Sn','3Sn','4Sn'].map(x=>fritz_get_card(x)),1,3,false); //ok
+	console.log('res:',res);
+
 }
 function ltest55_fritz_set_with_same_suits() {
 	DA.magnify_on_select = true;
