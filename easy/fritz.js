@@ -37,7 +37,7 @@ function fritz() {
 }
 
 function fritz_present_new(z, dParent, uplayer) {
-	console.log('present')
+	//console.log('present')
 	DA.hovergroup = null;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1); mFlexWrap(dOpenTable)
@@ -202,6 +202,50 @@ function fritz_activate_ui() {
 
 // #region fritz helpers
 
+function add_card_to_group(card, oldgroup, oldindex, targetcard, targetgroup) {
+	card.groupid = targetgroup.id;
+
+	//hier muss card von UI hand entfernen wenn source == 'hand'
+	if (card.source == 'hand') {
+		let hand = UI.players[Z.uplayer].hand;
+		removeInPlace(hand.items, card);
+	}
+
+	card.source = 'group';
+	mDroppable(iDiv(card), drop_card_fritz); 
+
+	if (nundef(targetcard)){ //} || targetcard.id == arrLast(targetgroup.ids)) {
+		targetgroup.ids.push(card.id);
+		mAppend(iDiv(targetgroup), iDiv(card));
+	} else {
+
+		//targetcard canNOT be null here!!!!!!
+		//oldgroup can be undefined
+		// aber die card wurde ja schon untied?!!!!!!!!
+		// if (oldgroup == group){
+		// 	//in this case have oldindex
+		// 	//if oldindex < index of targetcard, insert
+		// 	console.log('oldindex', oldindex, 'index of targetcard', group.ids.indexOf(targetcard.id));
+		// }
+
+		let index = targetgroup.ids.indexOf(targetcard.id)+1;
+
+		//how do I get the old group?
+		//console.log('inserting card at index', index);
+		//console.log('ids', jsCopy(targetgroup.ids));
+		//console.log('targetcard index', index);
+		targetgroup.ids.splice(index, 0, card.id);
+		//console.log('ids', jsCopy(targetgroup.ids));
+		mClear(iDiv(targetgroup));
+		for (let i = 0; i < targetgroup.ids.length; i++) {
+			let c = Items[targetgroup.ids[i]];
+			mAppend(iDiv(targetgroup), iDiv(c));
+		}
+		//mInsert(iDiv(targetgroup), iDiv(card), index);
+	}
+
+	resplay_container(targetgroup);
+}
 function allowDrop(ev) { ev.preventDefault(); }
 function calc_fritz_score() {
 	let [round, plorder, stage, A, fen, uplayer] = [Z.round, Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
@@ -286,9 +330,8 @@ function end_of_round_fritz(plname) {
 	fen.round_winner = plname;
 
 	plorder = fen.plorder = jsCopy(fen.roundorder); //restore fen.plorder to contain all players
-	Z.round += 1;
 
-	if (Z.round > fen.maxrounds) {
+	if (Z.round >= fen.maxrounds) {
 		//game end!
 		fen.winners = find_players_with_min_score();
 		ari_history_list([`game over: ${fen.winners.join(', ')} win${fen.winners.length == 1 ? 's' : ''}`], 'action');
@@ -299,106 +342,10 @@ function end_of_round_fritz(plname) {
 		let starter = fen.starter = get_next_in_list(fen.starter, plorder);
 		console.log('starter', starter);
 		Z.turn = [starter];
+		Z.round += 1;
 		fritz_new_table(fen, Z.options);
 		fritz_new_player_hands(fen, Z.turn[0], Z.options);
 	}
-}
-function end_of_turn_fritz() {
-
-	//#region prelim
-	let [A, fen, uplayer, plorder] = [Z.A, Z.fen, Z.uplayer, Z.plorder];
-	let pl = fen.players[uplayer];
-	//console.log('__________________________');
-
-	clear_quick_buttons();
-	let ms = fen.players[uplayer].time_left = stop_timer();
-
-	//#endregion
-
-	//#region TJ group processing
-
-	//all TJ groups must be checked and loose cards placed in loosecards
-	let ploose = {};
-	fen.journeys = [];
-	fen.loosecards = [];
-	for (const plname in fen.players) { fen.players[plname].loosecards = []; }
-	for (const group of DA.TJ) {
-		let ch = arrChildren(iDiv(group));
-		let cards = ch.map(x => Items[x.id]);
-		//find out if is a set
-		//console.log('cards', cards);
-		// let set = ferro_is_set(cards, Z.options.jokers_per_group, 3, false);
-		// let set = is_overlapping_set(cards, Z.options.jokers_per_group, 3, false);
-		let set = Z.options.overlapping == 'yes' ? is_overlapping_set(cards, Z.options.jokers_per_group, 3, false)
-			: ferro_is_set(cards, Z.options.jokers_per_group, 3, false);
-		//console.log('set', set);
-		if (!set) {
-			//dann kommen die Karten in die Loosecards
-			for (const card of cards) {
-				if (is_joker(card)) {
-					//console.log('pushing joker', card.key);
-					fen.loosecards.push(card.key);
-					continue;
-				}
-				let owner = valf(card.owner, uplayer);
-				lookupAddToList(ploose, [owner], card.key);
-				//console.log('add card', card.key, 'to', owner);
-			}
-			//console.log('NOT A SET', cards);
-		} else {
-			let j = set; //[];
-			//for (const card of cards) { delete card.owner; j.push(card.key); }
-			fen.journeys.push(j);
-			//console.log('YES!!!', 'adding journey', j);
-		}
-	}
-	for (const plname in ploose) {
-		fen.players[plname].loosecards = ploose[plname];
-	}
-
-	//console.log('_____\npublic loosecards', fen.loosecards);
-	//console.log('journeys:', fen.journeys);
-	//for (const plname in fen.players) { console.log('loosecards', plname, fen.players[plname].loosecards); }
-
-	//discard pile must be reduced by all cards that do not have source = 'discard'
-	let discard = UI.deck_discard.items.filter(x => x.source == 'discard');
-	fen.deck_discard = discard.map(x => x.key);
-
-	if (!isEmpty(A.selected)) {
-		//console.log('selected', A.selected);
-		let ui_discarded_card = A.selected.map(x => A.items[x].o)[0];
-
-		removeInPlace(UI.players[uplayer].hand.items, ui_discarded_card);
-		ckey = ui_discarded_card.key;
-		//console.log('discard', discard);
-		elem_from_to(ckey, fen.players[uplayer].hand, fen.deck_discard);
-		//ari_history_list([`${uplayer} discards ${c}`], 'discard');
-
-	}
-
-	//all UI.hand cards that do NOT have source=hand must be removed from player hands
-	let uihand = UI.players[uplayer].hand.items; //.filter(x => x.source == 'hand');
-	let fenhand_vorher = fen.players[uplayer].hand;
-	let fenhand = fen.players[uplayer].hand = uihand.filter(x => x.source == 'hand').map(x => x.key);
-	//console.log('hand', uihand, 'fenhand vorher:', fenhand_vorher, 'fenhand', fenhand);
-
-	//#endregion
-
-	//console.log('________ plorder', fen.plorder, 'turn', Z.turn);
-
-	//check round end
-	if (isEmpty(fenhand) && isEmpty(fen.players[uplayer].loosecards)) {
-		end_of_round_fritz(uplayer);
-	} else if (ms <= 100) {
-		console.log(`time is up for ${uplayer}!!!`);
-		ari_history_list([`${uplayer} runs out of time`], 'action');
-		if (fen.plorder.length <= 1) { end_of_round_fritz(uplayer); }
-		else { Z.turn = [get_next_player(Z, uplayer)]; deck_deal_safe_fritz(fen, Z.turn[0]); removeInPlace(fen.plorder, uplayer); }
-	} else { Z.turn = [get_next_player(Z, uplayer)]; deck_deal_safe_fritz(fen, Z.turn[0]); }
-
-	//console.log('...plorder', fen.plorder, 'turn', Z.turn); output_scores();
-	turn_send_move_update();
-
 }
 function frnew(card, ev) {
 	let [oldgroup, oldindex] = untie_card(card);
@@ -485,9 +432,12 @@ function is_overlapping_set(cards, max_jollies_allowed = 1, seqlen = 7, group_sa
 	let inextstart = 0;
 	let lmin = 3;
 	let legal = true;
+
+	if (cards.length < lmin) return false;
+
 	while (legal && istart<=cards.length-lmin) {
 		let cl = cards.slice(istart, istart + lmin);
-		console.log('istart',istart,'looking at',cl.map(x=>x.key).join(','));
+		//console.log('istart',istart,'looking at',cl.map(x=>x.key).join(','));
 		//check that cl is a ferro set
 		let set = ferro_is_set(cl, max_jollies_allowed, seqlen, group_same_suit_allowed);
 
@@ -510,7 +460,7 @@ function resplay_container(targetgroup, ovpercent) {
 	let d = iDiv(targetgroup);
 	let card = Items[targetgroup.ids[0]];
 	let ov = valf(targetgroup.ov, .1222)
-	console.log('resplay ov', ov);
+	//console.log('resplay ov', ov);
 	mContainerSplay(d, 2, card.w, card.h, arrChildren(d).length, ov * card.w);
 	let items = arrChildren(d).map(x => Items[x.id]);
 	ui_add_cards_to_hand_container(d, items);
