@@ -23,11 +23,11 @@ games:
     color: indigo
     game_type: turn
     options:
-      mode: 'solo,hotseat,multi'
-      # mode: 'solo,multi,hotseat'
+      #mode: 'solo,hotseat,multi'
+      mode: 'solo,multi,hotseat'
       church: 'no,yes'
       journey: 'no,yes'
-      commission: 'no,yes'
+      commission: 'yes,no'
       rumors: 'no,yes'
     def_startlevel: 4
     achieve_inc: 0

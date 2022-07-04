@@ -1,3 +1,144 @@
+//#region aristo rumors
+function post_rumor() {
+
+	let [fen, A, uplayer, building, obuilding, owner] = [Z.fen, Z.A, Z.uplayer, Z.A.building, Z.A.obuilding, Z.A.buildingowner];
+	let buildingtype = Z.A.building.o.type;
+	//console.log('====>buildingtype',buildingtype);
+	let res = A.selected[0] == 0; //confirm('destroy the building?'); //TODO das muss besser werden!!!!!!!
+	if (!res) {
+		if (fen.players[owner].coins > 0) {
+			//console.log('player', owner, 'pays to', uplayer, fen.players[owner].coins, fen.players[uplayer].coins);
+			fen.players[owner].coins -= 1;
+			fen.players[uplayer].coins += 1;
+			//console.log('after payment:', fen.players[owner].coins, fen.players[uplayer].coins)
+		}
+	} else {
+		let list = obuilding.list;
+		//console.log('!!!!!!!!!!!!!building', obuilding, 'DESTROY!!!!!!!!!!!!!!!!', '\nlist', list);
+		let correct_key = list[0];
+		let rank = correct_key[0];
+		//console.log('rank is', rank);
+		//console.log('building destruction: ', correct_key);
+		while (list.length > 0) {
+			let ckey = list[0];
+			//console.log('card rank is', ckey[0])
+			if (ckey[0] != rank) {
+				elem_from_to_top(ckey, list, fen.deck_discard);
+				//console.log('discard',otree.deck_discard);
+			} else {
+				elem_from_to(ckey, list, fen.players[owner].hand);
+			}
+		}
+		//console.log('building after removing cards', list, obuilding)
+		if (isdef(obuilding.harvest)) {
+			fen.deck_discard.unshift(obuilding.harvest);
+		}
+		ari_reorg_discard(fen);
+
+
+		let blist = lookup(fen, stringBeforeLast(building.path, '.').split('.')); //building.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));, stringBeforeLast(building.path, '.').split('.'));
+
+		//console.log('===>remove',obuilding,'from',blist);
+		removeInPlace(blist, obuilding);
+
+		//console.log('player', owner, 'after building destruction', otree[owner])
+	}
+	ari_history_list([`${uplayer} rumored ${buildingtype} of ${owner} resulting in ${res ? 'destruction' : 'payoff'}`,], 'rumor');
+
+	ari_next_action(fen, uplayer);
+
+
+}
+function rest(){
+
+	if (isdef(obuilding.schwein)) {
+
+		Z.stage = 46;
+		A.building = item;
+		A.obuilding = obuilding;
+		A.buildingowner = owner;
+		ari_pre_action();
+		return;
+
+	} else {
+
+		//this building is revealed
+		let cards = item.o.items;
+		let key = cards[0].rank;
+		let schweine = false;
+		let schwein = null;
+		for (const c of cards) {
+			if (c.rank != key) { schweine = true; schwein = c.key; face_up(c); break; }
+		}
+		if (schweine) {
+			if (fen.players[owner].coins > 0) {
+				fen.players[owner].coins--;
+				fen.players[uplayer].coins++;
+			}
+			let b = lookup(fen, item.path.split('.'));
+			b.schwein = schwein;
+		}
+
+		ari_history_list([
+			`${uplayer} rumored ${ari_get_building_type(obuilding)} of ${owner} resulting in ${schweine ? 'schweine' : 'ok'} ${ari_get_building_type(obuilding)}`,
+		], 'rumor');
+
+		ari_next_action(fen, uplayer);
+	}
+
+
+}
+
+function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card) {
+
+	let cont = ui_make_container(dParent, get_container_styles(styles));
+	let cardcont = mDiv(cont);
+
+	let list = b.list;
+	//console.log('list', list)
+	//let n = list.length;
+	let d = mDiv(dParent);
+	let items = list.map(x => get_card_func(x));
+	// let cont = ui_make_hand_container(items, d, { maleft: 12, padding: 4 });
+
+	let schwein = null;
+	for (let i = 1; i < items.length; i++) {
+		let item = items[i];
+		if (b.schwein != item.key) face_down(item); else schwein = item;
+	}
+
+	let d_harvest = null;
+	if (isdef(b.h)) {
+		let keycard = items[0];
+		let d = iDiv(keycard);
+		mStyle(d, { position: 'relative' });
+		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
+	}
+
+	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
+	//console.log('card',card)
+	mContainerSplay(cardcont, 2, card.w, card.h, items.length, card.ov * card.w);
+	ui_add_cards_to_hand_container(cardcont, items, list);
+
+	ui_add_container_title(title, cont, items);
+
+	// if (isdef(title) && !isEmpty(items)) { mText(title, d); }
+
+	return {
+		ctype: 'hand',
+		list: list,
+		path: path,
+		container: cont,
+		cardcontainer: cardcont,
+		items: items,
+		schwein: schwein,
+		harvest: d_harvest,
+		keycard: items[0],
+
+	};
+}
+
+
 //#region fritz
 
 function _show_special_message(msg,stay=false) {

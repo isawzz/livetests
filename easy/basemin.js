@@ -31,7 +31,7 @@ const YELLOW = '#ffe119';
 const YELLOW2 = '#fff620'; //?pink???
 const YELLOW3 = '#ffed01';
 //#endregion
-//#region card globals
+//#region game globals
 const DIBOA = {
 	home: { link: "../rechnung/index.html", img: 'home.png', align: 'left', pop: false },
 	bill: { link: "../rechnung/index.html", img: 'bill.png', align: 'left', pop: false },
@@ -214,6 +214,13 @@ const ARI = {
 		20: 'payment action',
 		21: 'church_minplayer_tide_add',
 		22: 'church_minplayer_tide_downgrade',
+		23: 'comm_weitergeben',
+		24: 'rumors_weitergeben',
+		25: 'rumor',
+		26: 'blackmail',
+		27: 'inspect',
+		rumor: 25,
+		28: 'buy rumor',
 
 		30: 'pick luxury or journey cards',
 		31: 'add new journey',
@@ -458,10 +465,10 @@ function mDraggable(item) {
 	d.draggable = true;
 	d.ondragstart = drag;
 }
-function mDroppable(item, handler,dragoverhandler) {
+function mDroppable(item, handler, dragoverhandler) {
 	let d = iDiv(item);
 	//console.log('item', item);
-	d.ondragover = isdef(dragoverhandler)?dragoverhandler:allowDrop;
+	d.ondragover = isdef(dragoverhandler) ? dragoverhandler : allowDrop;
 	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
 	d.ondrop = handler;
 }
@@ -547,9 +554,9 @@ function mInput(dParent, styles, id, placeholder, classtr = 'input', tabindex = 
 function mInsertAt(dParent, el, index = 0) { mInsert(dParent, el, index); }
 function mInsertFirst(dParent, el) { mInsert(dParent, el, 0); }
 function mInsert(dParent, el, index = 0) { dParent.insertBefore(el, dParent.childNodes[index]); }
-function mInsertAfter(dParent, el, index = 0) { 
+function mInsertAfter(dParent, el, index = 0) {
 	if (dParent.childNodes.length == index) mAppend(dParent, el);
-	else mInsert(dParent, el, index+1); 
+	else mInsert(dParent, el, index + 1);
 }
 function mItem(id, diDOM, di = {}, addSizing = false) {
 	let item = di;
@@ -597,9 +604,9 @@ function mLinebreak(dParent, gap) {
 function mMagnifyOnHoverControlPopup(elem) {
 	elem.onmouseenter = ev => {
 		if (ev.ctrlKey) {
-			console.log('hallo!!!!');
+			//console.log('hallo!!!!');
 			let r = getRect(elem, document.body);
-			console.log('r', r);
+			//console.log('r', r);
 
 			let popup = mDiv(document.body, { rounding: 4, position: 'absolute', top: r.y, left: r.x }, 'popup');
 			let clone = elem.cloneNode(true);
@@ -1181,7 +1188,7 @@ function mFadeRemove(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 0,
 function mFadeClear(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 0, () => { mClear(d); if (callback) callback(); }, ms); }
 function mFadeClearShow(d, ms = 800, callback = null) { mAnimate(d, 'opacity', [1, 0], () => { mClear(d); if (callback) callback(); }, ms); }
 function mFall(d, ms = 800) { toElem(d).animate([{ opacity: 0, transform: 'translateY(-50px)' }, { opacity: 1, transform: 'translateY(0px)' },], { fill: 'both', duration: ms, easing: 'ease' }); }
-function mPulse(d, ms, callback = null) { mClass(d, 'onPulse'); TO[getUID()]=setTimeout(() => { mClassRemove(d, 'onPulse'); if (callback) callback(); }, ms); }
+function mPulse(d, ms, callback = null) { mClass(d, 'onPulse'); TO[getUID()] = setTimeout(() => { mClassRemove(d, 'onPulse'); if (callback) callback(); }, ms); }
 function mPulse1(d, callback) { mPulse(d, 1000); }
 function mPulse2(d, callback) { mPulse(d, 2000); }
 function mPulse3(d, callback) { mPulse(d, 3000); }
@@ -1480,6 +1487,7 @@ function bottom_elem_from_to_top(arr1, arr2) { arr2.unshift(arr1.pop()); }
 function elem_from_to(el, arr1, arr2) { removeInPlace(arr1, el); arr2.push(el); }
 function elem_from_to_top(el, arr1, arr2) { removeInPlace(arr1, el); arr2.unshift(el); }
 function arrFromTo(arr, iFrom, iTo) { return takeFromTo(arr, iFrom, iTo); }
+function arrFunc(n,func){ let res = []; for (let i = 0; i < n; i++) res.push(func()); return res; }
 function arrIndices(arr, func) {
 	let indices = [];
 	for (let i = 0; i < arr.length; i++) { if (func(arr[i])) indices.push(i); }
@@ -1541,7 +1549,7 @@ function arrRemove(arr, listweg) {
 	arrReplace(arr, listweg, []);
 }
 function arrRemoveLast(arr) { arr.length -= 1; }
-function arrRepeat(n,el){	let res = [];	for (let i = 0; i < n; i++) res.push(el);	return res;}
+function arrRepeat(n, el) { let res = []; for (let i = 0; i < n; i++) res.push(el); return res; }
 function arrReplace(arr, listweg, listdazu) {
 	//ACHTUNG!!!! geht nur wenn array elements unique sind! removes FIRST OCCURRENCE of el in arr!!!!!!!!!!!!!
 	arrExtend(arr, listdazu);
@@ -3242,6 +3250,9 @@ function choose(arr, n, excepti) { return rChoose(arr, n, null, excepti); }
 function chooseRandom(arr) { return rChoose(arr); }
 function coin(percent = 50) { let r = Math.random(); r *= 100; return r < percent; }
 function rAlphanums(n) { return rChoose(toLetters('0123456789abcdefghijklmnopq'), n); }
+function rCard(postfix='n',ranks='A23456789TJQK',suits='HSDC'){return rChoose(ranks)+rChoose(suits)+postfix;}
+function rRank(ranks='A23456789TJQK'){return rChoose(ranks);}
+function rSuit(suit='HSDC'){return rChoose(suit);}
 function rCoin(percent = 50) {
 	let r = Math.random();
 	//r ist jetzt zahl zwischen 0 und 1
@@ -3249,7 +3260,7 @@ function rCoin(percent = 50) {
 	return r < percent;
 }
 function rChoose(arr, n = 1, func = null, exceptIndices = null) {
-	//this does NOT work with an array of objects that contain DOM objects!!! =>use rChooseX instead
+	//this does NOT work with an array of objects that contain DOM objects!!! =>use rChoose below instead
 	let arr1 = jsCopy(arr);
 	if (isdef(exceptIndices)) {
 		for (const i of exceptIndices) removeInPlace(arr1, arr[i]);
@@ -3265,6 +3276,7 @@ function rChoose(arr, n = 1, func = null, exceptIndices = null) {
 
 }
 function rChoose(arr, n = 1, func = null, exceptIndices = null) {
+	//geht auch mit arr is string!
 	let indices = arrRange(0, arr.length - 1);
 	if (isdef(exceptIndices)) {
 		for (const i of exceptIndices) removeInPlace(indices, i);
@@ -3704,12 +3716,12 @@ function get_checked_radios(rg) {
 	//console.log('list',list)
 	return list;
 }
-function get_mouse_pos(ev) { 
+function get_mouse_pos(ev) {
 	let x = ev.pageX - document.body.scrollLeft; // - ev.target.offsetY;
 	let y = ev.pageY - document.body.scrollTop; // - ev.target.offsetY;
 	//console.log('y calc:',y,'y returned:',ev.clientY);
 	// return ({ x: ev.clientX, y: ev.clientY }); 
-	return ({ x: x, y: y }); 
+	return ({ x: x, y: y });
 
 }
 function getTypeOf(param) {

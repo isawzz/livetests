@@ -9,49 +9,92 @@ function start_tests() {
 	//test_ferro_is_set(); //
 	//ltest43_fritz_discard_pile();
 	//ltest52_aristo_church_empty(); //ltest23_aristo_building_downgrade(); //ltest50_aristo_church();
-	//#endregion
 	//ltest55_fritz_set_with_same_suits(); //ltest54_fritz_outoftime();
-
 	//ltest56_algo_overlapping_sets(); //
-	ltest55_fritz_set_with_same_suits();
+	//ltest55_fritz_set_with_same_suits();
+	//#endregion
+
+	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
+	ltest58_aristo_building_rumor_harvest();
 }
 
 //#region live server tests
-function ltest56_algo_overlapping_sets(){
+function add_rumors_to_buildings(o) {
+	//console.log('deck', jsCopy(otree.deck));
+	fen = o.fen;
+	for (const plname of fen.plorder) {
+		let buildings = fen.players[plname].buildings;
+		for (const type in buildings) {
+			for (const b of buildings[type]) {
+				if (type == 'farm') b.h = rCard('n');
+				b.rumors = arrFunc(2,() => rCard('r'));
+			}
+		}
+	}
+}
+function give_player_queen(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	fen.players[uplayer].hand.push('QHn');
+}
+function give_players_buildings_plus(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let di = {};
+	for (const plname of fen.plorder) { di[plname] = { estate: 1, farm: 1, chateau: 1 }; }
+	stage_correct_buildings(fen, di);
+	ari_add_harvest_cards(fen);
+
+	fen.stage = o.stage = 5;
+	fen.phase = 'king';
+}
+function ltest58_aristo_building_rumor_harvest() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings_plus, add_rumors_to_buildings,give_player_queen], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
+function ltest57_aristo() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest56_algo_overlapping_sets() {
 	// let cards = ['2Hn','3Hn','4Hn','5Hn','6Hn','7Hn','7Cn','7Dn','7Hn'].map(x=>({key:x,suit:x[0],rank:x[1]}));
-	let cards = ['2Hn','3Hn','4Hn','5Hn','6Hn','7Hn','7Cn','7Dn','7Hn'].map(x=>fritz_get_card(x));
-	let res = is_overlapping_set(cards,1,3,false); //ok
-	console.log('res:',res);
+	let cards = ['2Hn', '3Hn', '4Hn', '5Hn', '6Hn', '7Hn', '7Cn', '7Dn', '7Hn'].map(x => fritz_get_card(x));
+	let res = is_overlapping_set(cards, 1, 3, false); //ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','3Hn','4Hn','3Hn','2Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '3Hn', '4Hn', '3Hn', '2Hn'].map(x => fritz_get_card(x)), 1, 3, false); //ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','3Hn','4Hn','3Hn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '3Hn', '4Hn', '3Hn'].map(x => fritz_get_card(x)), 1, 3, false); //false ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','3Hn','3Hn','3Cn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '3Hn', '3Hn', '3Cn'].map(x => fritz_get_card(x)), 1, 3, false); //false ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','3Hn','4Hn','5Hn','5Cn','5Dn','5Cn','5Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '3Hn', '4Hn', '5Hn', '5Cn', '5Dn', '5Cn', '5Hn'].map(x => fritz_get_card(x)), 1, 3, false); //ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','3Hn','4Hn','5Hn','5Cn','5Cn','5Cn','5Hn','6Hn','7Hn'].map(x=>fritz_get_card(x)),1,3,false); //false ok
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '3Hn', '4Hn', '5Hn', '5Cn', '5Cn', '5Cn', '5Hn', '6Hn', '7Hn'].map(x => fritz_get_card(x)), 1, 3, false); //false ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','*Hn','2Cn','3Hn','4Cn'].map(x=>fritz_get_card(x)),1,3,false); 
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '*Hn', '2Cn', '3Hn', '4Cn'].map(x => fritz_get_card(x)), 1, 3, false);
+	console.log('res:', res);
 
-	res = is_overlapping_set(['2Hn','*Hn','2Cn','3Cn','4Cn'].map(x=>fritz_get_card(x)),1,3,false); 
-	console.log('res:',res);
+	res = is_overlapping_set(['2Hn', '*Hn', '2Cn', '3Cn', '4Cn'].map(x => fritz_get_card(x)), 1, 3, false);
+	console.log('res:', res);
 
-	res = is_overlapping_set(['4Hn','3Hn','2Hn','2Cn','2Sn','3Sn','4Sn'].map(x=>fritz_get_card(x)),1,3,false); //ok
-	console.log('res:',res);
+	res = is_overlapping_set(['4Hn', '3Hn', '2Hn', '2Cn', '2Sn', '3Sn', '4Sn'].map(x => fritz_get_card(x)), 1, 3, false); //ok
+	console.log('res:', res);
 
-	res = is_overlapping_set(['4Hn','3Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok FEHLER!!!
-	console.log('res:',res);
+	res = is_overlapping_set(['4Hn', '3Hn'].map(x => fritz_get_card(x)), 1, 3, false); //ok FEHLER!!!
+	console.log('res:', res);
 
-	res = is_overlapping_set(['4Hn'].map(x=>fritz_get_card(x)),1,3,false); //ok FEHLER!!!
-	console.log('res:',res);
+	res = is_overlapping_set(['4Hn'].map(x => fritz_get_card(x)), 1, 3, false); //ok FEHLER!!!
+	console.log('res:', res);
 }
 function ltest55_fritz_set_with_same_suits() {
 	DA.magnify_on_select = true;
