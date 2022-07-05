@@ -10,7 +10,8 @@ function ari_pre_action() {
 		case 'rumors_weitergeben': select_add_items(ui_get_rumors_and_players_items(uplayer), process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); break;
 		case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
 		case 'buy rumor': select_add_items(ui_get_top_rumors(), post_buy_rumor, 'must select one of the cards', 1, 1); break;
-		case 'rumor discard': console.log('hhhhhhhhhhhhhhhhhhhhhh'); select_add_items(ui_get_rumors_items(uplayer), process_rumor_discard, 'must select a rumor card to discard', 1, 1); break;
+		case 'rumor discard': select_add_items(ui_get_rumors_items(uplayer), process_rumor_discard, 'must select a rumor card to discard', 1, 1); break;
+		case 'rumor_both': select_add_items(ui_get_top_rumors(), post_rumor_both, 'must select one of the cards', 1, 1); break;
 		case 'journey': select_add_items(ui_get_hand_and_journey_items(uplayer), process_journey, 'may form new journey or add cards to existing one'); break;
 		case 'add new journey': post_new_journey(); break;
 		case 'auto market': ari_open_market(fen, phase, deck, market); break;

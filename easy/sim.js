@@ -1383,7 +1383,7 @@ function stage_building(fen, i_pl, type) {
 	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
 	type += 's';
 	let plname = fen.plorder[i_pl];
-	console.log('fen',fen, plname)
+	//console.log('fen',fen, plname)
 	lookupSet(fen.players[plname],['buildings',type],[]);
 	let building = { list: deck_deal(fen.deck, n), h: null };
 	fen.players[plname].buildings[type].push(building);
