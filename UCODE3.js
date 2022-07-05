@@ -1,4 +1,19 @@
 //#region aristo rumors
+function ui_get_top_rumors() {
+	//let cards = ari_open_rumors();
+	return ui_get_card_items(cards);
+	let items = [], i = 0;
+	let comm = UI.deck_rumors;
+	for (const o of comm.items) {
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i };
+		i++;
+		items.push(item);
+	}
+	let topdeck = UI.deck_commission.get_topcard();
+	items.push({ o: topdeck, a: topdeck.key, key: topdeck.key, friendly: topdeck.short, path: 'deck_commission', index: i });
+	//console.log('choose among:', items)
+	return items;
+}
 function post_rumor() {
 
 	let [fen, A, uplayer, building, obuilding, owner] = [Z.fen, Z.A, Z.uplayer, Z.A.building, Z.A.obuilding, Z.A.buildingowner];

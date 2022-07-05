@@ -1382,8 +1382,12 @@ function ari_test_hand_to_discard(fen, uname, keep = 0) {
 function stage_building(fen, i_pl, type) {
 	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
 	type += 's';
-	let uname = fen.plorder[i_pl];
-	fen.players[uname].buildings[type].push({ list: deck_deal(fen.deck, n), h: null });
+	let plname = fen.plorder[i_pl];
+	console.log('fen',fen, plname)
+	lookupSet(fen.players[plname],['buildings',type],[]);
+	let building = { list: deck_deal(fen.deck, n), h: null };
+	fen.players[plname].buildings[type].push(building);
+	return building;
 }
 function stage_correct_buildings(fen, o) { //unames, types, ranks) {
 	//eg. o={mimi:{farm:2,estate:2,chateau:1},leo:{farm:3}};

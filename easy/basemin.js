@@ -221,6 +221,8 @@ const ARI = {
 		27: 'inspect',
 		rumor: 25,
 		28: 'buy rumor',
+		'buy rumor': 28,
+		29: 'rumor discard',
 
 		30: 'pick luxury or journey cards',
 		31: 'add new journey',
@@ -1487,7 +1489,7 @@ function bottom_elem_from_to_top(arr1, arr2) { arr2.unshift(arr1.pop()); }
 function elem_from_to(el, arr1, arr2) { removeInPlace(arr1, el); arr2.push(el); }
 function elem_from_to_top(el, arr1, arr2) { removeInPlace(arr1, el); arr2.unshift(el); }
 function arrFromTo(arr, iFrom, iTo) { return takeFromTo(arr, iFrom, iTo); }
-function arrFunc(n,func){ let res = []; for (let i = 0; i < n; i++) res.push(func()); return res; }
+function arrFunc(n, func) { let res = []; for (let i = 0; i < n; i++) res.push(func()); return res; }
 function arrIndices(arr, func) {
 	let indices = [];
 	for (let i = 0; i < arr.length; i++) { if (func(arr[i])) indices.push(i); }
@@ -1600,6 +1602,23 @@ function arrTake(arr, n, from = 0) {
 		let keys = Object.keys(arr);
 		return keys.slice(from, from + n).map(x => (arr[x]));
 	} else return arr.slice(from, from + n);
+
+}
+function arrTakeLast(arr, n, from = 0) {
+	let res = [];
+	if (isDict(arr)) {
+		let keys = Object.keys(arr);
+		let ilast = keys.length - 1; for (let i = ilast - from; i>=0 && i > ilast - from - n; i--) { res.unshift(arr[keys[i]]); }
+	} else {
+		//ex arr=[1,2,3,4,5]; n=3; from=1; ilast=4; len = 5
+		//soll [2,3,4], ist: i=3,i=2,i=1
+		//ex arr=[0,1,2,3,4]; n=2; from=0; ilast=4; len = 5
+		//soll i=4, >5-0-2-1=2
+		// let len = arr.length;
+		// for (let i = len - 1 - from; i > len - 1 - from - n; i--) { res.unshift(arr[i]); }
+		let ilast = arr.length - 1; for (let i = ilast - from; i>=0 && i > ilast - from - n; i--) { res.unshift(arr[i]); }
+	}
+	return res;
 
 }
 function arrWithout(arr, b) { return arrMinus(arr, b); }
@@ -3250,9 +3269,9 @@ function choose(arr, n, excepti) { return rChoose(arr, n, null, excepti); }
 function chooseRandom(arr) { return rChoose(arr); }
 function coin(percent = 50) { let r = Math.random(); r *= 100; return r < percent; }
 function rAlphanums(n) { return rChoose(toLetters('0123456789abcdefghijklmnopq'), n); }
-function rCard(postfix='n',ranks='A23456789TJQK',suits='HSDC'){return rChoose(ranks)+rChoose(suits)+postfix;}
-function rRank(ranks='A23456789TJQK'){return rChoose(ranks);}
-function rSuit(suit='HSDC'){return rChoose(suit);}
+function rCard(postfix = 'n', ranks = 'A23456789TJQK', suits = 'HSDC') { return rChoose(ranks) + rChoose(suits) + postfix; }
+function rRank(ranks = 'A23456789TJQK') { return rChoose(ranks); }
+function rSuit(suit = 'HSDC') { return rChoose(suit); }
 function rCoin(percent = 50) {
 	let r = Math.random();
 	//r ist jetzt zahl zwischen 0 und 1
