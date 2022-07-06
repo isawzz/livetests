@@ -16,11 +16,18 @@ function start_tests() {
 
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
-	ltest64_aristo_blackmailed_building(); //ltest58_aristo_building_rumor_harvest();
+	ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
 }
 
 
 //#region live server tests
+// function no_rumors(o){o.options.rumors = 'no';}
+function ltest65_stamp(){
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
 function ltest64_aristo_blackmailed_building() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_other_blackmailed_building], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}

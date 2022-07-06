@@ -140,7 +140,7 @@ function aristo() {
 					//let stamp = mDiv(d1, { position:'absolute',top:30,left:0,transform:'rotate( 35deg )' },null,`blackmail!`,'rubberp');
 					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp is-approved">BLACKMAIL!</span>`);
 					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp1">BLACKMAIL!</span>`);
-					mDiv(d1,{position:'absolute',top:30,left:0,weight:300,fg:'black',border:'2px solid black',padding:2},null,`BLACKMAIL!`,'stamp1');
+					mDiv(d1,{position:'absolute',top:25,left:5,weight:700,fg:'black',border:'2px solid black',padding:2},null,`BLACKMAIL`,'stamp1');
 				}
 
 				lookupAddToList(ui, ['buildings', k], b_ui); //GEHT!!!!!!!!!!!!!!!!!!!!!
