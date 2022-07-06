@@ -134,6 +134,15 @@ function aristo() {
 				b_ui.type = k;
 				ui.buildinglist.push(b_ui);
 
+				if (b.isblackmailed){
+					let d1=b_ui.container;mStyle(d1,{position:'relative'})
+					//let stamp = mDiv(d1, { family:'tahoma', fz:16, weight:'bold', position:'absolute', top:'25%',left:'10%',transform:'rotate(35deg)', w: '80%', h: 24 },null,`blackmail!`,'rubberstamp');
+					//let stamp = mDiv(d1, { position:'absolute',top:30,left:0,transform:'rotate( 35deg )' },null,`blackmail!`,'rubberp');
+					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp is-approved">BLACKMAIL!</span>`);
+					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp1">BLACKMAIL!</span>`);
+					mDiv(d1,{position:'absolute',top:30,left:0,weight:300,fg:'black',border:'2px solid black',padding:2},null,`BLACKMAIL!`,'stamp1');
+				}
+
 				lookupAddToList(ui, ['buildings', k], b_ui); //GEHT!!!!!!!!!!!!!!!!!!!!!
 				i += 1;
 				//console.log('bui eingetragener path ist',b_ui.path)
@@ -363,11 +372,23 @@ function ari_check_action_available(a, fen, uplayer) {
 		}
 		return true;
 	} else if (a == 'blackmail') {
-		for (const c of pl.commissions) {
-			let rank = c[0];
-			if (firstCond(pl.hand, x => x[0] == rank) || firstCond(pl.stall, x => x[0] == rank)) return true;
+		//there has to be some building in any other player with a rumor
+		let others = fen.plorder.filter(x => x != uplayer);
+		let n = 0;
+		for (const plname of others) {
+			for (const k in fen.players[plname].buildings) {
+				let list = fen.players[plname].buildings[k];
+				let building_with_rumor = firstCond(list, x => !isEmpty(x.rumors));
+				if (building_with_rumor) n++;
+			}
 		}
-		return false;
+		if (n == 0) return false;
+		//player needs to have a jack or coin>0 and jack phase
+		let res = ari_get_player_hand_and_stall(fen, uplayer);
+		let has_a_queen = firstCond(res, x => x[0] == 'Q');
+		if (pl.coins < 1 && !has_a_queen) return false;
+		if (fen.phase != 'queen' && !has_a_queen) return false;
+		return true;
 	} else if (a == 'buy rumor') {
 		//there has to be some card in deck_rumors
 		if (fen.deck_rumors.length == 0) return false;
@@ -1687,6 +1708,15 @@ function ui_get_other_buildings(uplayer) {
 	for (const plname of Z.plorder) {
 		if (plname == uplayer) continue;
 		items = items.concat(ui_get_buildings(UI.players[plname].buildinglist));
+	}
+	reindex_items(items);
+	return items;
+}
+function ui_get_other_buildings_with_rumors(uplayer) {
+	let items = [];
+	for (const plname of Z.plorder) {
+		if (plname == uplayer) continue;
+		items = items.concat(ui_get_buildings(UI.players[plname].buildinglist.filter(x=>!isEmpty(x.rumors))));
 	}
 	reindex_items(items);
 	return items;

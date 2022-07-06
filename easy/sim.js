@@ -1351,14 +1351,14 @@ function arisim_stage_4_all(fen, n = 3) {
 	//move 2 or 3 cards to stalls
 	for (let i = 0; i < n; i++) top_elem_from_to(fen.players.mimi.hand, fen.players.mimi.stall);
 	let others = get_keys(fen.players).filter(x => x != 'mimi');
-	for (const uname of others) {
-		for (let i = 0; i < n; i++)	top_elem_from_to(fen.players[uname].hand, fen.players[uname].stall);
+	for (const plname of others) {
+		for (let i = 0; i < n; i++)	top_elem_from_to(fen.players[plname].hand, fen.players[plname].stall);
 	}
 
 	let list = [];
-	for (const uname of get_keys(fen.players)) {
-		fen.players[uname].stall_value = arrSum(fen.players[uname].stall.map(x => ari_get_card(x).val));
-		list.push({ uname: uname, val: fen.players[uname].stall_value });
+	for (const plname of get_keys(fen.players)) {
+		fen.players[plname].stall_value = arrSum(fen.players[plname].stall.map(x => ari_get_card(x).val));
+		list.push({ uname: plname, val: fen.players[plname].stall_value });
 	}
 
 	//need to set num_actions! and iturn to player with least stall value!
@@ -1381,7 +1381,6 @@ function ari_test_hand_to_discard(fen, uname, keep = 0) {
 }
 function stage_building(fen, i_pl, type) {
 	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
-	type += 's';
 	let plname = fen.plorder[i_pl];
 	//console.log('fen',fen, plname)
 	lookupSet(fen.players[plname],['buildings',type],[]);

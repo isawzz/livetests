@@ -16,11 +16,23 @@ function start_tests() {
 
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
-	ltest62_aristo_inspect_closed_schwein(); //ltest58_aristo_building_rumor_harvest();
+	ltest64_aristo_blackmailed_building(); //ltest58_aristo_building_rumor_harvest();
 }
 
 
 //#region live server tests
+function ltest64_aristo_blackmailed_building() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_other_blackmailed_building], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
+function ltest63_aristo_blackmail() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_other_various_buildings, set_queen_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
 function ltest62_aristo_inspect_closed_schwein() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [x=>give_players_schwein(x,false), add_rumors_to_buildings], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -1099,6 +1111,22 @@ function give_other_jolly_sequence(o) {
 	pl.goals['7R'] = true; pl.roundgoal = '7R';
 	fen.players[uplayer].hand.push('2Hn', '5Hn', 'JHn', 'QHn');
 }
+function give_other_blackmailed_building(o){
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let b1 = stage_building(fen, 1, 'farm'); b1.rumors=['KHr'];
+	b1.isblackmailed = true;
+	set_queen_phase(o);
+}
+function give_other_various_buildings(o){
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let b1 = stage_building(fen, 1, 'farm'); b1.rumors=['KHr'];
+	let b2 = stage_building(fen, 1, 'farm'); 
+	let lead = b2.list[0]; console.log('lead', lead);
+	b2.rumors=['4Cr', `${lead[0]}Cr`];
+
+	let b3 = stage_building(fen, 1, 'farm'); 
+	set_queen_phase(o);
+}
 function give_players_buildings(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	stage_correct_buildings(fen, { mimi: { estate: 1 }, amanda: { chateau: 1 } });
@@ -1200,6 +1228,16 @@ function set_player_tides(o) {
 	fen.church_order = jsCopy(fen.plorder);
 	//fen.selection_order = sorted;
 	fen.stage = 18;
+}
+function set_queen_phase(o) {
+	//console.log('deck', jsCopy(otree.deck));
+	fen = o.fen;
+	fen.phase = o.phase = 'queen';
+	arisim_stage_3(fen);
+	arisim_stage_4_all(fen);
+	ensure_actions(fen);
+	[o.stage,o.turn] = [fen.stage,fen.turn];
+	//fen.stage = o.stage = 5;
 }
 function small_hands(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];

@@ -12,6 +12,8 @@ function ari_pre_action() {
 		case 'buy rumor': select_add_items(ui_get_top_rumors(), post_buy_rumor, 'must select one of the cards', 1, 1); break;
 		case 'rumor discard': select_add_items(ui_get_rumors_items(uplayer), process_rumor_discard, 'must select a rumor card to discard', 1, 1); break;
 		case 'rumor_both': select_add_items(ui_get_top_rumors(), post_rumor_both, 'must select one of the cards', 1, 1); break;
+		case 'blackmail': select_add_items(ui_get_other_buildings_with_rumors(uplayer), process_blackmail, 'must select a building to blackmail', 1, 1); break;
+		case 'blackmail_owner': select_add_items(ui_get_string_items(['defend', 'accept', 'reject']), being_blackmailed, 'must react to BLACKMAIL!!!', 1, 1); break; //console.log('YOU ARE BEING BLACKMAILED!!!',uplayer); break;
 		case 'journey': select_add_items(ui_get_hand_and_journey_items(uplayer), process_journey, 'may form new journey or add cards to existing one'); break;
 		case 'add new journey': post_new_journey(); break;
 		case 'auto market': ari_open_market(fen, phase, deck, market); break;
@@ -80,7 +82,7 @@ function ari_pre_action() {
 
 				case 'rumor': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for placing a rumor', 1, 1); break;
 				case 'inspect': select_add_items(ui_get_other_buildings(uplayer), post_inspect, 'must select building to visit', 1, 1); break;
-				case 'blackmail': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for visiting', 1, 1); break;
+				case 'blackmail': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for blackmailing', 1, 1); break;
 
 				case 'commission': select_add_items(ui_get_commission_items(uplayer), process_commission, 'must select a card to commission', 1, 1); break;
 				case 'pass': post_pass(); break;

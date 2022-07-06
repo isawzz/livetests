@@ -218,6 +218,7 @@ const ARI = {
 		24: 'rumors_weitergeben',
 		25: 'rumor',
 		26: 'blackmail',
+		blackmail: 26,
 		27: 'inspect',
 		rumor: 25,
 		28: 'buy rumor',
@@ -227,6 +228,7 @@ const ARI = {
 		30: 'pick luxury or journey cards',
 		31: 'add new journey',
 		32: 'rumor_both',
+		33: 'blackmail_owner',
 
 		40: 'trade',
 		41: 'build',
