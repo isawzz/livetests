@@ -1,3 +1,55 @@
+function mStamp(d1,text) {
+	mStyle(d1, { position: 'relative' });
+	//let stamp = mDiv(d1, { family:'tahoma', fz:16, weight:'bold', position:'absolute', top:'25%',left:'10%',transform:'rotate(35deg)', w: '80%', h: 24 },null,`blackmail!`,'rubberstamp');
+	//let stamp = mDiv(d1, { position:'absolute',top:30,left:0,transform:'rotate( 35deg )' },null,`blackmail!`,'rubberp');
+	// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp is-approved">BLACKMAIL!</span>`);
+	// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp1">BLACKMAIL!</span>`);
+	//mDiv(d1, { position: 'absolute', top: 25, left: 5, weight: 700, fg: 'black', border: '2px solid black', padding: 2 }, null, `BLACKMAIL`, 'stamp1');
+
+	let r=getRect(d1);
+	let [w,h]=[r.w,r.h];
+	let sz = r.h/7;
+	console.log('r',r, 'sz', sz);
+	//let [border,rounding,angle]=[sz*.08,sz/3,-14];
+	let [padding,border,rounding,angle]=[sz/10,sz/6,sz/8,rNumber(-25,25)];
+	mDiv(d1, {
+		opacity: 0.9,
+		position: 'absolute', top: 25, left: 5, //weight: 700, fg: 'black', border: '2px solid black', padding: 2,
+		transform: `rotate(${angle}deg)`,
+		fz:sz,
+		//'line-height':sz,
+		// border:`${border}px solid black`,
+		border:`${border}px solid black`,
+		hpadding: 2, //padding,
+		vpadding: 0,
+		// vpadding: border,
+		// hpadding: rounding,
+		rounding: rounding,
+		// 'background-image': `url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/8399/grunge.png')`,
+		// 'background-size': `${300*sz}px ${200*sz}px`,
+		// 'background-position': `${4*sz}px ${2*sz}px`,
+		// 'background-image': 'url(../base/assets/images/textures/stamp.jpg)',
+		// 'background-size': `${300*sz}px ${200*sz}px`,
+		// 'background-position': `${4*sz}px ${2*sz}px`,
+
+		'-webkit-mask-size': `${w}px ${h}px`,
+		'-webkit-mask-position': `50% 50%`,
+		//'-webkit-mask-image': `url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/8399/grunge.png')`,
+		'-webkit-mask-image': 'url("../base/assets/images/textures/grunge.png")',
+
+		// '-webkit-mask-size': `311px 200px`,
+		// '-webkit-mask-position': `4rem 2rem`,
+		// '-webkit-mask-image': `url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/8399/grunge.png')`,
+
+		weight: 400, //700,
+		display:'inline-block',
+		'text-transform':'uppercase',
+		family:"black ops one", //'Courier', //'courier new',
+		'mix-blend-mode':'multiply'}, null, text);
+
+}
+
+
 //#region aristo rumors
 function ui_get_top_rumors() {
 	//let cards = ari_open_rumors();

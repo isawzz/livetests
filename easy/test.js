@@ -1,3 +1,5 @@
+
+
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -16,13 +18,23 @@ function start_tests() {
 
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
-	ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
+	//ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
+	ltest64_aristo_blackmailed_building();
+
+
 }
 
 
 //#region live server tests
 // function no_rumors(o){o.options.rumors = 'no';}
-function ltest65_stamp(){
+function ltest66_stamp_style(){
+	dTable = mBy('dTable'); mClass('dTexture', 'wood'); mCenterFlex(dTable);
+	//let d=mDiv(dTable,{},null,'HALLO');
+	let hand = ['2Hn', '3Hn', '4Hn', '5Hn', '6Hn', '7Hn', '8Hn', '9Hn', 'THn', 'JHn', 'QHn', 'KHn', 'AHn'];
+	let ui = ui_type_hand(hand, dTable);
+	mStamp(ui.container,'blackmail');
+}
+function ltest65_stamp() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
@@ -41,7 +53,7 @@ function ltest63_aristo_blackmail() {
 	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
 }
 function ltest62_aristo_inspect_closed_schwein() {
-	TESTING = true; DA.testing = true; DA.test = { mods: [x=>give_players_schwein(x,false), add_rumors_to_buildings], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	TESTING = true; DA.testing = true; DA.test = { mods: [x => give_players_schwein(x, false), add_rumors_to_buildings], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
@@ -1118,20 +1130,20 @@ function give_other_jolly_sequence(o) {
 	pl.goals['7R'] = true; pl.roundgoal = '7R';
 	fen.players[uplayer].hand.push('2Hn', '5Hn', 'JHn', 'QHn');
 }
-function give_other_blackmailed_building(o){
+function give_other_blackmailed_building(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	let b1 = stage_building(fen, 1, 'farm'); b1.rumors=['KHr'];
+	let b1 = stage_building(fen, 1, 'farm'); b1.rumors = ['KHr'];
 	b1.isblackmailed = true;
 	set_queen_phase(o);
 }
-function give_other_various_buildings(o){
+function give_other_various_buildings(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	let b1 = stage_building(fen, 1, 'farm'); b1.rumors=['KHr'];
-	let b2 = stage_building(fen, 1, 'farm'); 
+	let b1 = stage_building(fen, 1, 'farm'); b1.rumors = ['KHr'];
+	let b2 = stage_building(fen, 1, 'farm');
 	let lead = b2.list[0]; console.log('lead', lead);
-	b2.rumors=['4Cr', `${lead[0]}Cr`];
+	b2.rumors = ['4Cr', `${lead[0]}Cr`];
 
-	let b3 = stage_building(fen, 1, 'farm'); 
+	let b3 = stage_building(fen, 1, 'farm');
 	set_queen_phase(o);
 }
 function give_players_buildings(o) {
@@ -1140,9 +1152,9 @@ function give_players_buildings(o) {
 	fen.stage = 5;
 	fen.phase = 'king';
 }
-function give_players_schwein(o,isOpen = true) {
+function give_players_schwein(o, isOpen = true) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	let b = stage_building(fen, 1, 'farm'); 
+	let b = stage_building(fen, 1, 'farm');
 	if (isOpen) b.schwein = b.list[2];
 	fen.stage = 5;
 	fen.phase = 'king';
@@ -1243,7 +1255,7 @@ function set_queen_phase(o) {
 	arisim_stage_3(fen);
 	arisim_stage_4_all(fen);
 	ensure_actions(fen);
-	[o.stage,o.turn] = [fen.stage,fen.turn];
+	[o.stage, o.turn] = [fen.stage, fen.turn];
 	//fen.stage = o.stage = 5;
 }
 function small_hands(o) {

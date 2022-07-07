@@ -795,6 +795,72 @@ function gSizeToContent(svg) {
 	svg.setAttribute("width", bbox.x + bbox.width + bbox.x);
 	svg.setAttribute("height", bbox.y + bbox.height + bbox.y);
 }
+function mStamp(d1, text, color, sz) {
+	mStyle(d1, { position: 'relative' });
+	let r = getRect(d1);
+	let [w, h] = [r.w, r.h];
+	color = ['green','red','blue'].includes(color)?color:'black';
+	sz = valf(sz, r.h / 7);
+	console.log('r', r, 'sz', sz);
+	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rNumber(-25, 25)];
+	let d2 =mDiv(d1, {
+		//opacity: 0.9,
+		fg: color,
+		position: 'absolute', top: 25, left: 5,
+		transform: `rotate(${angle}deg)`,
+		fz: sz,
+		hpadding: 2,
+		vpadding: 0,
+		rounding: rounding,
+		//the following wenn ich den black ops one font verwende! mit black
+		// border:`${border}px solid grey`, // black
+		// '-webkit-mask-size': `${w}px ${h}px`,
+		// '-webkit-mask-position': `50% 50%`,
+		// '-webkit-mask-image': 'url("../base/assets/images/textures/grunge.png")',
+		weight: 400, // 900
+		display: 'inline-block',
+		'text-transform': 'uppercase',
+		family: 'fredericka', // "Fredericka the Great", //"black ops one",  // Courier
+		'mix-blend-mode': 'multiply',
+
+	}, null, text);
+	mClass(d2,`${color}stamp`);
+
+}
+function mStamp(d1, text, color, sz) {
+	mStyle(d1, { position: 'relative' });
+	let r = getRect(d1);
+	let [w, h] = [r.w, r.h];
+	color = valf(color,'black'); // ['green','red','blue'].includes(color)?color:'black';
+	sz = valf(sz, r.h / 7);
+	//console.log('r', r, 'sz', sz);
+	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rChoose([-16, -14,-10,10,14])];
+	let d2 =mDiv(d1, {
+		//opacity: 0.9,
+		fg: color,
+		position: 'absolute', top: 25, left: 5,
+		transform: `rotate(${angle}deg)`,
+		fz: sz,
+		hpadding: 2,
+		vpadding: 0,
+		rounding: rounding,
+
+		//the following wenn ich den black ops one font verwende! mit black
+		border:`${border}px solid ${colorTrans(color,.8)}`, // black
+		'-webkit-mask-size': `${w}px ${h}px`,
+		'-webkit-mask-position': `50% 50%`,
+		'-webkit-mask-image': 'url("../base/assets/images/textures/grunge.png")',
+
+		weight: 400, // 800
+		display: 'inline-block',
+		'text-transform': 'uppercase',
+		family: 'blackops', // courier blackops fredericka
+		'mix-blend-mode': 'multiply',
+
+	}, null, text);
+	//mClass(d2,`${color}stamp`);
+
+}
 
 function mSuit(key, d, styles, pos, classes) {
 	let svg = gCreate('svg');
@@ -1611,7 +1677,7 @@ function arrTakeLast(arr, n, from = 0) {
 	let res = [];
 	if (isDict(arr)) {
 		let keys = Object.keys(arr);
-		let ilast = keys.length - 1; for (let i = ilast - from; i>=0 && i > ilast - from - n; i--) { res.unshift(arr[keys[i]]); }
+		let ilast = keys.length - 1; for (let i = ilast - from; i >= 0 && i > ilast - from - n; i--) { res.unshift(arr[keys[i]]); }
 	} else {
 		//ex arr=[1,2,3,4,5]; n=3; from=1; ilast=4; len = 5
 		//soll [2,3,4], ist: i=3,i=2,i=1
@@ -1619,7 +1685,7 @@ function arrTakeLast(arr, n, from = 0) {
 		//soll i=4, >5-0-2-1=2
 		// let len = arr.length;
 		// for (let i = len - 1 - from; i > len - 1 - from - n; i--) { res.unshift(arr[i]); }
-		let ilast = arr.length - 1; for (let i = ilast - from; i>=0 && i > ilast - from - n; i--) { res.unshift(arr[i]); }
+		let ilast = arr.length - 1; for (let i = ilast - from; i >= 0 && i > ilast - from - n; i--) { res.unshift(arr[i]); }
 	}
 	return res;
 

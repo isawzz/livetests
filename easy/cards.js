@@ -489,6 +489,7 @@ function spread_hand(path, ov) {
 	//items.map(x => ui_add_cards_to_hand_container(container, items));
 }
 function to_aristocard(ckey, color = RED, sz = 100, w) {
+	//console.log('ckey', ckey);
 	let info = jsCopy(C52Cards[ckey.substring(0, 2)]);
 	info.key = ckey;
 	info.cardtype = ckey[2];

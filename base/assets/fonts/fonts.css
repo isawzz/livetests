@@ -24,3 +24,12 @@
 	font-family: 'summervibes';
 	src: url('./summervibes.otf') format("truetype");
 }
+@font-face {
+	font-family: 'fredericka';
+	src: url('./fredericka.ttf') format("truetype");
+}
+@font-face {
+	font-family: 'blackops';
+	src: url('./blackops.ttf') format("truetype");
+}
+

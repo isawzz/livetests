@@ -134,14 +134,7 @@ function aristo() {
 				b_ui.type = k;
 				ui.buildinglist.push(b_ui);
 
-				if (b.isblackmailed){
-					let d1=b_ui.container;mStyle(d1,{position:'relative'})
-					//let stamp = mDiv(d1, { family:'tahoma', fz:16, weight:'bold', position:'absolute', top:'25%',left:'10%',transform:'rotate(35deg)', w: '80%', h: 24 },null,`blackmail!`,'rubberstamp');
-					//let stamp = mDiv(d1, { position:'absolute',top:30,left:0,transform:'rotate( 35deg )' },null,`blackmail!`,'rubberp');
-					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp is-approved">BLACKMAIL!</span>`);
-					// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp1">BLACKMAIL!</span>`);
-					mDiv(d1,{position:'absolute',top:25,left:5,weight:700,fg:'black',border:'2px solid black',padding:2},null,`BLACKMAIL`,'stamp1');
-				}
+				if (b.isblackmailed) { mStamp(b_ui.cardcontainer, 'blackmail'); }
 
 				lookupAddToList(ui, ['buildings', k], b_ui); //GEHT!!!!!!!!!!!!!!!!!!!!!
 				i += 1;
@@ -242,8 +235,8 @@ function aristo() {
 function ari_get_actions(uplayer) {
 	let fen = Z.fen;
 	//actions include market card exchange
-	let actions = exp_rumors(Z.options)? ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'buy rumor', 'rumor', 'inspect', 'blackmail', 'harvest', 'pickup', 'sell', 'tide', 'commission']
-	:['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'visit', 'harvest', 'pickup', 'sell', 'tide', 'commission'];
+	let actions = exp_rumors(Z.options) ? ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'buy rumor', 'rumor', 'inspect', 'blackmail', 'harvest', 'pickup', 'sell', 'tide', 'commission']
+		: ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'visit', 'harvest', 'pickup', 'sell', 'tide', 'commission'];
 	if (Config.autosubmit) actions.push('pass'); ////, 'pass'];
 	let avail_actions = [];
 	for (const a of actions) {
@@ -714,7 +707,7 @@ function check_if_church() {
 		jacks = jacks.concat(pl_jacks);
 		queens = queens.concat(pl_queens);
 	}
-	console.log('jacks',jacks,'queens',queens);
+	console.log('jacks', jacks, 'queens', queens);
 
 	let ischurch = false;
 	for (const j of jacks) {
@@ -1292,7 +1285,7 @@ function ari_add_harvest_cards(fen) {
 		}
 	}
 }
-function ari_add_rumor(fenbuilding,key) {
+function ari_add_rumor(fenbuilding, key) {
 	if (nundef(fenbuilding.rumors)) fenbuilding.rumors = [];
 	fenbuilding.rumors.push(key);
 }
@@ -1603,7 +1596,7 @@ function ui_get_rumors_and_players_items(uplayer) {
 		i++;
 		items.push(item);
 	}
-	items = items.concat(ui_get_string_items(arrWithout(Z.plorder,Z.uplayer)));
+	items = items.concat(ui_get_string_items(arrWithout(Z.plorder, Z.uplayer)));
 	reindex_items(items);
 	return items;
 }
@@ -1716,7 +1709,7 @@ function ui_get_other_buildings_with_rumors(uplayer) {
 	let items = [];
 	for (const plname of Z.plorder) {
 		if (plname == uplayer) continue;
-		items = items.concat(ui_get_buildings(UI.players[plname].buildinglist.filter(x=>!isEmpty(x.rumors))));
+		items = items.concat(ui_get_buildings(UI.players[plname].buildinglist.filter(x => !isEmpty(x.rumors))));
 	}
 	reindex_items(items);
 	return items;
@@ -2658,7 +2651,7 @@ function process_rumors_setup() {
 	let items = A.selected.map(x => A.items[x]);
 	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
 	let rumor = firstCond(items, x => !plorder.includes(x.key));
-	if (nundef(receiver)|| nundef(rumor)) {
+	if (nundef(receiver) || nundef(rumor)) {
 		select_error('you must select exactly one player and one rumor card!');
 		return;
 	}
@@ -2666,7 +2659,7 @@ function process_rumors_setup() {
 	//receiver gets that rumor, aber die verteilung ist erst wenn alle rumors verteilt sind!
 	let remaining = fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
 	lookupAddToList(fen, ['rumor_setup_di', receiver], rumor.key);
-	console.log('di',fen.rumor_setup_di)
+	console.log('di', fen.rumor_setup_di)
 
 	let next = get_next_player(Z, uplayer);
 	if (isEmpty(remaining) && next == plorder[0]) {
@@ -2679,10 +2672,10 @@ function process_rumors_setup() {
 		}
 		delete fen.rumor_setup_di;
 		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
-	}else if (isEmpty(remaining)){
+	} else if (isEmpty(remaining)) {
 		//next rumor round starts
 		Z.turn = [next];
-	} 
+	}
 	turn_send_move_update();
 }
 
