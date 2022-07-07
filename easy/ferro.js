@@ -236,7 +236,7 @@ function fp_card_selection() {
 		if (!isdef(handcard) || !isdef(jolly)) { select_error('select a hand card and the jolly you want!'); return; }
 
 		let key = handcard.key;
-		let j = path2fen(jolly.path);
+		let j = path2fen(fen,jolly.path);
 		if (!jolly_matches(key, j)) { select_error('your card does not match jolly!'); return; }
 
 		//if player has not yet played a set, simulate transaction!!!!
@@ -278,7 +278,7 @@ function fp_card_selection() {
 		//if more than one handcard, test if all have the same rank
 		let hand_rank = handcards[0].key[0];
 		let handcards_same_rank = handcards.every(x => x.key[0] == hand_rank);
-		let j = path2fen(groupcard.path);
+		let j = path2fen(fen,groupcard.path);
 
 		if (is_group(j)) {
 			if (!handcards_same_rank) { select_error('all hand cards must have the same rank!'); return; }
@@ -822,12 +822,7 @@ function onclick_by_suit_ferro() {
 	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
 function onclick_clear_selection_ferro() { clear_selection(); }
-function path2fen(path) {
-	let [fen, uplayer] = [Z.fen, Z.uplayer];
-	let res = lookup(fen, path.split('.'));
-	//console.log('res',res);
-	return res;
-}
+
 function path2UI(path) {
 	let res = lookup(UI, path.split('.'));
 	//console.log('res',res);

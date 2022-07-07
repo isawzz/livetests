@@ -1347,7 +1347,7 @@ function arisim_stage_4_all_mimi_starts(fen, n = 3) {
 	fen.action_number = 1;
 	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLOOOOOOOOO', minplayer, fen.num_actions)
 }
-function arisim_stage_4_all(fen, n = 3) {
+function arisim_stage_4_all(fen, n = 3,changeturn=true) {
 	//move 2 or 3 cards to stalls
 	for (let i = 0; i < n; i++) top_elem_from_to(fen.players.mimi.hand, fen.players.mimi.stall);
 	let others = get_keys(fen.players).filter(x => x != 'mimi');
@@ -1366,8 +1366,8 @@ function arisim_stage_4_all(fen, n = 3) {
 	list = sortBy(list, 'val');
 	let minplayer = list[0].uname;
 	fen.iturn = fen.plorder.indexOf(minplayer);
-	fen.turn = [minplayer];
-	fen.num_actions = fen.total_pl_actions = fen.players[minplayer].stall.length;
+	if (changeturn) fen.turn = [minplayer];
+	fen.num_actions = fen.total_pl_actions = fen.players[fen.turn[0]].stall.length;
 	fen.action_number = 1;
 	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLOOOOOOOOO', minplayer, fen.num_actions)
 }
@@ -1384,7 +1384,8 @@ function stage_building(fen, i_pl, type) {
 	let plname = fen.plorder[i_pl];
 	//console.log('fen',fen, plname)
 	lookupSet(fen.players[plname],['buildings',type],[]);
-	let building = { list: deck_deal(fen.deck, n), h: null };
+	let building = { list: deck_deal(fen.deck, n), h: null, type: type };
+	building.lead = building.list[0];
 	fen.players[plname].buildings[type].push(building);
 	return building;
 }

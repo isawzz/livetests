@@ -1,5 +1,4 @@
 
-
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -19,20 +18,29 @@ function start_tests() {
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
 	//ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
-	ltest64_aristo_blackmailed_building();
-
+	ltest68_aristo_blackmail_owner_defend();
 
 }
 
-
 //#region live server tests
-// function no_rumors(o){o.options.rumors = 'no';}
-function ltest66_stamp_style(){
+function ltest68_aristo_blackmail_owner_defend() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_blackmail_owner_stage_defend], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
+function ltest67_aristo_blackmail_owner() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_blackmail_owner_stage], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	startgame('aristo', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
+}
+function ltest66_stamp_style() {
 	dTable = mBy('dTable'); mClass('dTexture', 'wood'); mCenterFlex(dTable);
 	//let d=mDiv(dTable,{},null,'HALLO');
 	let hand = ['2Hn', '3Hn', '4Hn', '5Hn', '6Hn', '7Hn', '8Hn', '9Hn', 'THn', 'JHn', 'QHn', 'KHn', 'AHn'];
 	let ui = ui_type_hand(hand, dTable);
-	mStamp(ui.container,'blackmail');
+	mStamp(ui.container, 'blackmail');
 }
 function ltest65_stamp() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -1054,6 +1062,21 @@ function each_hand_of_one(o) {
 	}
 	fen.players[uplayer].hand = ['4Cn'];
 }
+function get_building_with_rumor(fen, plname) {
+	let buildings = fen.players[plname].buildings;
+	for (const type in buildings) {
+		let i = 0;
+		for (const b of buildings[type]) {
+			if (isdef(b.rumors)) {
+				b.type = type;
+				b.path = `players.${plname}.buildings.${type}.${i}`;
+				return b;
+			}
+			i++;
+		}
+	}
+	return null;
+}
 function give_player_hand_groups(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let pl = fen.players[uplayer];
@@ -1136,15 +1159,26 @@ function give_other_blackmailed_building(o) {
 	b1.isblackmailed = true;
 	set_queen_phase(o);
 }
+function give_player_various_buildings(o) {
+	let plname = o.fen.turn[0];
+	return give_various_buildings_to(o, plname);
+}
 function give_other_various_buildings(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	let b1 = stage_building(fen, 1, 'farm'); b1.rumors = ['KHr'];
-	let b2 = stage_building(fen, 1, 'farm');
-	let lead = b2.list[0]; console.log('lead', lead);
+	let other = firstCond(o.fen.plorder, (p) => p != uplayer);
+	return give_various_buildings_to(o, other);
+}
+function give_various_buildings_to(o, plname) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let i = fen.plorder.indexOf(plname);
+	//console.log('other is',plname,'index',i,'plorder',fen.plorder);
+	let b1 = stage_building(fen, i, 'farm'); b1.rumors = ['KHr'];
+	let b2 = stage_building(fen, i, 'farm');
+	let lead = b2.lead; //console.log('lead', lead);
 	b2.rumors = ['4Cr', `${lead[0]}Cr`];
 
-	let b3 = stage_building(fen, 1, 'farm');
-	set_queen_phase(o);
+	let b3 = stage_building(fen, i, 'farm');
+	return plname;
 }
 function give_players_buildings(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1235,6 +1269,38 @@ function prep_for_church_downgrade(o) {
 	}
 
 }
+function set_blackmail_owner_stage_defend(o) {
+	set_blackmail_owner_stage(o);
+	console.log('==>blackmailed is',o.fen.turn[0])
+	let fen = o.fen;
+	let uplayer = fen.turn[0];
+	console.log('==>blackmailed is',uplayer)
+	let building = path2fen(fen, fen.blackmail.building_path);
+	let lead = building.lead;
+	fen.players[uplayer].rumors.push(`${lead[0]}Cr`);
+
+	let plname = fen.blackmail.blackmailed;
+	let rumors = fen.players[plname].rumors;
+	console.log('lead', lead, 'blackmailed rumors', rumors);
+}
+function set_blackmail_owner_stage(o) {
+	set_queen_phase(o); //hier wird manchmal trn geaendert!!!
+	let fen = o.fen;
+	//console.log(fen)
+	let uplayer = fen.turn[0];
+	console.log('blackmailed is',uplayer)
+	give_various_buildings_to(o, uplayer);
+	let other = firstCond(fen.plorder, (p) => p != uplayer);
+
+	//console.log('uplayer',uplayer,'other',other,'fen',fen.players[uplayer].buildings);
+	let building = get_building_with_rumor(o.fen, uplayer);
+	//console.log('building',building);
+	let payment = { o: null, a: 'coin', key: 'coin', friendly: 'coin', path: null };
+	fen.blackmail = { blackmailer: other, blackmailed: uplayer, payment: payment, building_path: building.path };
+	building.isblackmailed = true;
+	// console.log('blackmail',fen.blackmail);
+	fen.stage = o.stage = 33;
+}
 function set_player_tides(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	for (const plname of fen.plorder) {
@@ -1253,9 +1319,10 @@ function set_queen_phase(o) {
 	fen = o.fen;
 	fen.phase = o.phase = 'queen';
 	arisim_stage_3(fen);
-	arisim_stage_4_all(fen);
+	arisim_stage_4_all(fen,3,false);
 	ensure_actions(fen);
-	[o.stage, o.turn] = [fen.stage, fen.turn];
+	o.stage = fen.stage;
+	//[o.stage, fen.turn] = [fen.stage, o.turn];
 	//fen.stage = o.stage = 5;
 }
 function small_hands(o) {

@@ -28,7 +28,7 @@ games:
       church: 'no,yes'
       journey: 'no,yes'
       commission: 'yes,no'
-      rumors: 'no,yes,no'
+      rumors: 'no,yes'
     def_startlevel: 4
     achieve_inc: 0
     hand_size: 7

@@ -229,6 +229,9 @@ const ARI = {
 		31: 'add new journey',
 		32: 'rumor_both',
 		33: 'blackmail_owner',
+		34: 'accept_blackmail',
+		35: 'blackmail_complete',
+		36: 'reject_blackmail',
 
 		40: 'trade',
 		41: 'build',

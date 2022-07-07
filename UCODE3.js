@@ -1,3 +1,11 @@
+
+
+function path2fen(path) {
+	let [fen, uplayer] = [Z.fen, Z.uplayer];
+	let res = lookup(fen, path.split('.'));
+	//console.log('res',res);
+	return res;
+}
 function mStamp(d1,text) {
 	mStyle(d1, { position: 'relative' });
 	//let stamp = mDiv(d1, { family:'tahoma', fz:16, weight:'bold', position:'absolute', top:'25%',left:'10%',transform:'rotate(35deg)', w: '80%', h: 24 },null,`blackmail!`,'rubberstamp');
