@@ -151,7 +151,7 @@ function fritz_stats_new(z, dParent) {
 		let item = player_stat_items[uname];
 		let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
 
-		player_stat_count('hand with fingers splayed', calc_hand_value(pl.hand, fritz_get_card), d);
+		player_stat_count('hand with fingers splayed', calc_hand_value(pl.hand.concat(pl.loosecards), fritz_get_card), d);
 		player_stat_count('star', pl.score, d);
 
 		if (fen.turn.includes(uname)) { show_hourglass(uname, d, 30, { left: -3, top: 0 }); }
