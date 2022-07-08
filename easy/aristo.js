@@ -3108,7 +3108,7 @@ function process_rumors_setup() {
 	//receiver gets that rumor, aber die verteilung ist erst wenn alle rumors verteilt sind!
 	let remaining = fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
 	lookupAddToList(fen, ['rumor_setup_di', receiver], rumor.key);
-	console.log('di', fen.rumor_setup_di)
+	//console.log('di', fen.rumor_setup_di)
 
 	let next = get_next_player(Z, uplayer);
 	if (isEmpty(remaining) && next == plorder[0]) {

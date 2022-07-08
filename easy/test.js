@@ -18,11 +18,19 @@ function start_tests() {
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
 	//ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
-	ltest68_aristo_blackmail_owner_defend();
+	ltest69_ferro_is_group(); //ltest57_aristo();
 
 }
 
 //#region live server tests
+function ltest69_ferro_is_group(){
+	let j=['*Hn','8Dn','8Hn'];
+	let x = is_group(j);
+	console.log('is_group',x);
+	j=['8Hn','*Dn','8Hn'];
+	x = is_group(j);
+	console.log('is_group',x);
+}
 function ltest68_aristo_blackmail_owner_defend() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_blackmail_owner_stage_defend], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}

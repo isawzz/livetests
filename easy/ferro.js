@@ -236,7 +236,7 @@ function fp_card_selection() {
 		if (!isdef(handcard) || !isdef(jolly)) { select_error('select a hand card and the jolly you want!'); return; }
 
 		let key = handcard.key;
-		let j = path2fen(fen,jolly.path);
+		let j = path2fen(fen, jolly.path);
 		if (!jolly_matches(key, j)) { select_error('your card does not match jolly!'); return; }
 
 		//if player has not yet played a set, simulate transaction!!!!
@@ -278,7 +278,7 @@ function fp_card_selection() {
 		//if more than one handcard, test if all have the same rank
 		let hand_rank = handcards[0].key[0];
 		let handcards_same_rank = handcards.every(x => x.key[0] == hand_rank);
-		let j = path2fen(fen,groupcard.path);
+		let j = path2fen(fen, groupcard.path);
 
 		if (is_group(j)) {
 			if (!handcards_same_rank) { select_error('all hand cards must have the same rank!'); return; }
@@ -509,7 +509,7 @@ function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_sui
 
 	//check if all cards have either different suit or are jolly
 	//check for duplicate suits in cards
-	let suits = cards.filter(x=>!is_joker(x)).map(x => x.suit);
+	let suits = cards.filter(x => !is_joker(x)).map(x => x.suit);
 	let num_duplicate_suits = suits.filter(x => suits.filter(y => y == x).length > 1).length;
 	if (isgroup && !group_same_suit_allowed && num_duplicate_suits > 0) return false;
 	else if (isgroup) return cards.map(x => x.key);
@@ -731,7 +731,11 @@ function jolly_matches(key, j) {
 }
 function is_correct_group(j, n = 3) { let r = j[0][0]; return j.length >= n && has_at_most_n_jolly(j, Z.options.jokers_per_group) && j.every(x => is_jolly(x) || x[0] == r); }
 function is_fixed_goal() { return Z.options.phase_order == 'fixed'; }
-function is_group(j) { return j.length >= 3 && (j[0][0] == j[1][0] || is_jolly(j[1])); }
+function is_group(j) {
+	if (j.length < 3) return false;
+	let rank = firstCond(j, x => !is_jolly(x))[0];
+	return j.every(x => is_jolly(x) || x[0] == rank);
+}
 function is_sequence(j) { return !is_group(j); }
 function is_jolly(ckey) { return ckey[0] == '*'; }
 function is_joker(card) { return is_jolly(card.key); }
