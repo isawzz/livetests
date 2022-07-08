@@ -24,10 +24,10 @@ games:
     game_type: turn
     options:
       #mode: 'solo,hotseat,multi'
-      mode: 'solo,multi,hotseat'
+      mode: 'solo,hotseat,multi'
       church: 'no,yes'
       journey: 'no,yes'
-      commission: 'yes,no'
+      commission: 'no,yes'
       rumors: 'no,yes'
     def_startlevel: 4
     achieve_inc: 0

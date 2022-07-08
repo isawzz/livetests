@@ -13,12 +13,13 @@ function start_tests() {
 	//ltest55_fritz_set_with_same_suits(); //ltest54_fritz_outoftime();
 	//ltest56_algo_overlapping_sets(); //
 	//ltest55_fritz_set_with_same_suits();
-	//#endregion
-
 	//console.log('arrFunc',arrFunc(4,rCard));	console.log('rCard',rCard('r'));
 	//ltest59_arrTakeLast();
 	//ltest65_stamp(); //ltest58_aristo_building_rumor_harvest();
-	ltest69_ferro_is_group(); //ltest57_aristo();
+	//ltest69_ferro_is_group(); //
+	//#endregion
+
+	ltest57_aristo();
 
 }
 

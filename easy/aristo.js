@@ -471,7 +471,7 @@ function ari_check_action_available(a, fen, uplayer) {
 				n += fen.players[plname].buildings[k].length;
 			}
 		}
-		return true;
+		return n>0;
 	} else if (a == 'blackmail') {
 		//there has to be some building in any other player with a rumor
 		let others = fen.plorder.filter(x => x != uplayer);
@@ -1144,7 +1144,7 @@ function process_comm_setup() {
 
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 
-	console.log('we are in stage ' + Z.stage);
+	//console.log('we are in stage ' + Z.stage);
 
 	let items = A.selected.map(x => A.items[x]);
 	let next = get_next_player(Z, uplayer);
@@ -2471,7 +2471,7 @@ function q_mirror_fen() {
 
 //#endregion
 
-//#region rumor
+//#region rumors
 function ari_open_rumors(stage = 28) {
 	let [fen, deck] = [Z.fen, UI.deck_rumors];
 	//console.log('*** RUMOR TOP OPENS!!! ***')
@@ -2508,6 +2508,40 @@ function output_arr_short(arr) {
 	console.log('output_arr_short', getFunctionsNameThatCalledThisFunction());
 	console.log('deck top 3', jsCopy(arrTake(arr, 3))); console.log('deck bottom 3', jsCopy(arrTakeLast(arr, 3)));
 
+}
+function process_rumors_setup() {
+
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+
+	let items = A.selected.map(x => A.items[x]);
+	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
+	let rumor = firstCond(items, x => !plorder.includes(x.key));
+	if (nundef(receiver) || nundef(rumor)) {
+		select_error('you must select exactly one player and one rumor card!');
+		return;
+	}
+
+	//receiver gets that rumor, aber die verteilung ist erst wenn alle rumors verteilt sind!
+	let remaining = fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
+	lookupAddToList(fen, ['rumor_setup_di', receiver], rumor.key);
+	//console.log('di', fen.rumor_setup_di)
+
+	let next = get_next_player(Z, uplayer);
+	if (isEmpty(remaining) && next == plorder[0]) {
+		//rumor distrib is complete, goto next stage
+		for (const plname of plorder) {
+			//if (plname == uplayer) continue;
+			let pl = fen.players[plname];
+			assertion(isdef(fen.rumor_setup_di[plname]), 'no rumors for ' + plname);
+			pl.rumors = fen.rumor_setup_di[plname];
+		}
+		delete fen.rumor_setup_di;
+		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
+	} else if (isEmpty(remaining)) {
+		//next rumor round starts
+		Z.turn = [next];
+	}
+	turn_send_move_update();
 }
 function post_rumor_both() {
 	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
@@ -3092,41 +3126,6 @@ function post_upgrade() {
 }
 //#endregion
 
-//#region rumors
-function process_rumors_setup() {
-
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-
-	let items = A.selected.map(x => A.items[x]);
-	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
-	let rumor = firstCond(items, x => !plorder.includes(x.key));
-	if (nundef(receiver) || nundef(rumor)) {
-		select_error('you must select exactly one player and one rumor card!');
-		return;
-	}
-
-	//receiver gets that rumor, aber die verteilung ist erst wenn alle rumors verteilt sind!
-	let remaining = fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
-	lookupAddToList(fen, ['rumor_setup_di', receiver], rumor.key);
-	//console.log('di', fen.rumor_setup_di)
-
-	let next = get_next_player(Z, uplayer);
-	if (isEmpty(remaining) && next == plorder[0]) {
-		//rumor distrib is complete, goto next stage
-		for (const plname of plorder) {
-			//if (plname == uplayer) continue;
-			let pl = fen.players[plname];
-			assertion(isdef(fen.rumor_setup_di[plname]), 'no rumors for ' + plname);
-			pl.rumors = fen.rumor_setup_di[plname];
-		}
-		delete fen.rumor_setup_di;
-		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
-	} else if (isEmpty(remaining)) {
-		//next rumor round starts
-		Z.turn = [next];
-	}
-	turn_send_move_update();
-}
 
 
 
