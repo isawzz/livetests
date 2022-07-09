@@ -129,24 +129,7 @@ function bluff_ack_uplayer() {
 
 //#endregion
 
-
 //#region helpers
-function aggregate_player_hands_by_rank(fen) {
-	let di_ranks = {};
-	let akku = [];
-	for (const uname in fen.players) {
-		let pl = fen.players[uname];
-		let hand = pl.hand;
-		for (const c of hand) {
-			akku.push(c);
-			let r = c[0];
-			if (isdef(di_ranks[r])) di_ranks[r] += 1; else di_ranks[r] = 1;
-		}
-	}
-	//console.log('di_ranks', di_ranks);
-	fen.akku = akku;
-	return di_ranks;
-}
 function apply_skin1(item) {
 	let d = item.container; mCenterFlex(d); mStyle(d, { position: 'relative', w: 400 }); //,bg:'pink'});
 	mText(`${item.label}: <span style="font-size:20px;margin:10px;color:red">${item.content}</span>`, d);
@@ -233,20 +216,48 @@ function bluff_clear_panel() {
 function bluff_generate_random_bid() {
 	let [A, fen, uplayer] = [Z.A, Z.fen, Z.uplayer];
 	const di2 = { _: '_', three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
-	//const di2 = { three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
+	//const direverse = { three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
 	let words = get_keys(di2).slice(1);
 
 	let b = isdef(fen.lastbid) ? jsCopy(fen.lastbid) : null;
 	//console.log('last bid:', isdef(b) ? b : 'null');
 	if (isdef(b)) {
 		assertion(b[0] >= (b[2] == '_' ? 0 : b[2]), 'bluff_generate_random_bid: bid not formatted correctly!!!!!!!', b)
-		//console.log('existing bid is', b);
-		if (b[3] == '_') { b[2] = 1; b[3] = rChoose(words, 1, x => x != b[1]); }
-		else if (b[0] > b[2]) { b[2] += 1; } //console.log('new bid is now:', b); }
-		else { b[0] += coin() ? 1 : 2; if (coin()) b[2] = b[3] = '_'; }
+
+		let nmax = calc_reasonable_max(fen);
+		let n = b[0] == '_' ? 1 : Number(b[0]);
+		let done = false;
+		if (n > nmax + 1) {
+			//try to modify word instead!
+			const di = { '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' };
+
+			let rankstr = '3456789TJQKA';
+			let w1 = di2[b[1]];
+			let idx = isdef(w1)?rankstr.indexOf(w1):-1;
+			if (idx >= 0 && idx < rankstr.length - 2) {
+				let r = rankstr[idx+1];
+				b[1] = di[r];
+				done = true;
+			}
+		}
+
+		//if no done, manipulate number
+		if (!done) {
+			if (b[3] == '_') { b[2] = 1; b[3] = rChoose(words, 1, x => x != b[1]); }
+			else if (b[0] > b[2]) { b[2] += 1; } //console.log('new bid is now:', b); }
+			else { b[0] += coin(80) ? 1 : 2; if (coin()) b[2] = b[3] = '_'; }
+		}
 	} else {
 		//let words = get_keys(di2); //!!!!!!!!!!!!!!!!!!!!!!!!!!NOOOOOOOOOOOOOOOOOOO
-		b = [rChoose([1, 2, 3, 4]), rChoose(words), rChoose([1, 2]), rChoose(words)];
+
+		//max bid soll abhaengig sein von wieviele cards im spiel sind oder ich mach clairvoyant bot!
+		let nmax = calc_reasonable_max(fen);
+		let nmin = Math.max(nmax - 1, 1);
+		let arr_nmax = arrRange(1, nmax);
+		let arr_nmin = arrRange(1, nmin);
+		b = [rChoose(arr_nmax), rChoose(words), rChoose(arr_nmin), rChoose(words)];
+
+		// b = [rChoose([1, 2, 3, 4]), rChoose(words), rChoose([1, 2]), rChoose(words)];
 		if (b[1] == b[3]) b[3] = rChoose(words, 1, x => x != b[1]);
 		if (coin()) b[2] = b[3] = '_';
 	}
@@ -294,6 +305,16 @@ function bluff_show_new_bid(dt) {
 	let content = `${bid_to_string(bid)}`;
 	let item = { container: d, label: 'YOUR bid', content: content, caption: 'BID', handler: handle_bid };
 	apply_skin3(item);
+}
+function calc_reasonable_max(fen) {
+	let allcards = [];
+	for (const plname in fen.players) {
+		let pl = fen.players[plname];
+		allcards = allcards.concat(pl.hand);
+	}
+	let ncards = allcards.length;
+	let nmax = Math.floor(ncards / 13) + 1;
+	return nmax;
 }
 function calc_bid_minus_cards(fen, bid) {
 	//console.log('bid',bid)
@@ -407,8 +428,8 @@ function handle_bid() {
 		//next person's turn
 	}
 }
-function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); } //mClass(d, 'highbg'); }
-function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); } //mClassRemove(d, 'silver'); }
+function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); } 
+function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); } 
 function inc_handsize(fen, uname) {
 	let pl = fen.players[uname];
 	//console.log('handsize',pl.handsize,typeof pl.handsize)
@@ -465,7 +486,6 @@ function input_to_anzeige1(caption, index) {
 	//iDiv(UI.panelItems[index]).innerHTML = bid[index];
 	for (let i = 0; i < 4; i++)	iDiv(UI.panelItems[i]).innerHTML = bid[i];
 }
-
 function is_higher_ranked_name(f1, f2) {
 	// let di2 = { _: 0, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
 	let di2 = { _: 0, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, jack: 11, queen: 12, king: 13, ace: 14 };

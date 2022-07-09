@@ -1,6 +1,6 @@
 function activate_ui() {
 
-	if (uiActivated) return;
+	if (uiActivated) {DA.ai_is_moving = false; return; }
 	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
 
 	if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
@@ -146,6 +146,7 @@ function get_user_pic_and_name(uname, dParent, sz = 50, border = 'solid medium w
 	mAppend(dParent, elem);
 	return elem;
 }
+function get_texture(name) { return `url(../base/assets/images/textures/${name}.png)`; }
 function is_advanced_user() {
 	let advancedUsers = ['mimi', 'bob', 'buddy', 'minnow', 'nimble', 'leo', 'guest'];
 	//console.log('U',isdef(U)?U.name:'undefined!!!');
@@ -158,6 +159,12 @@ function is_shield_mode() {
 	return Z.role == 'spectator'
 		|| Z.mode == 'multi' && Z.role == 'inactive' && Z.host != Z.uname
 		|| Z.mode == 'multi' && Z.role == 'inactive' && Z.pl.playmode != 'bot'
+}
+function path2fen(fen, path) { let o = lookup(fen, path.split('.')); return o; }
+function path2UI(path) {
+	let res = lookup(UI, path.split('.'));
+	//console.log('res',res);
+	return res;
 }
 function player_stat_count(key, n, dParent, styles = {}) {
 	let sz = valf(styles.sz, 16);
@@ -386,8 +393,9 @@ function show_tables(ms = 500) {
 	let tables = Serverdata.tables;
 	if (isEmpty(tables)) { mText('no active game tables', dParent); return []; }
 
+	tables.map(x=>x.game_friendly = Config.games[x.game].friendly);
 	mText(`<h2>game tables</h2>`, dParent, { maleft: 12 })
-	let t = mDataTable(tables, dParent, null, ['friendly', 'game', 'players'], 'tables', false);
+	let t = mDataTable(tables, dParent, null, ['friendly', 'game_friendly', 'players'], 'tables', false);
 
 	mTableCommandify(t.rowitems, {
 		0: (item, val) => hFunc(val, 'onclick_table', val, item.id),

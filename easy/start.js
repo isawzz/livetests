@@ -160,17 +160,6 @@ function ai_move(ms = 100) {
 			let i2 = firstCond(A.items, x => x.key == 'discard');
 			selitems = [i1, i2];
 
-			// for (const item of selitems) {
-			// 	select_last(item, select_toggle); // item.key != 'discard'?select_toggle:null);
-			// }
-			// A.selected.length = 1;
-			// console.log('A.selected', A.selected);
-			// clearTimeout(TO.ai);
-			// loader_on();
-			// console.log('callback', A.callback)
-			// TO.ai = setTimeout(() => { if (isdef(A.callback)) A.callback(); loader_off(); }, ms);
-			// return; //wichtig 
-
 		} else {
 			selitems = [A.items[1]]; //waehlt immer pass
 		}
@@ -200,6 +189,15 @@ function ai_move(ms = 100) {
 		selitems = ai_pick_legal_exchange();
 	} else if (A.command == 'upgrade') {
 		selitems = [rChoose(A.items)];
+	} else if (A.command == 'rumor') {
+		selitems = [];
+		let buildings = A.items.filter(x => x.path.includes('building'));
+		let rumors = A.items.filter(x => !x.path.includes('building'));
+		selitems = [rChoose(buildings),rChoose(rumors)];
+	} else if (ARI.stage[Z.stage] == 'rumors_weitergeben') {
+		let players = A.items.filter(x => Z.plorder.includes(x.key))
+		let rumors = A.items.filter(x => !Z.plorder.includes(x.key))
+		selitems = [rChoose(players),rChoose(rumors)];
 	} else if (ARI.stage[Z.stage] == 'journey') {
 		//console.log('bot should be picking a correct journey!!!! wie geht das?');
 		selitems = []; // always pass!
