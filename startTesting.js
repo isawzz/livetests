@@ -13,6 +13,7 @@ async function start() {
 	}
 	//console.log('U',U);
 	show_home_logo();
+	TESTING = true;
 	if (nundef(U)) { show_users(); } else { show_username(); }
 
 	start_with_assets();
@@ -64,29 +65,4 @@ function get_texture(name) { return `url(/./base/assets/images/textures/${name}.
 function _poll() { return; }
 //function clear_screen() { } //console.log('...clear_screen'); }
 function stopgame() { console.log('...stopgame'); }
-
-//#region load assets ist jetzt in basemin.js misc!
-// async function load_assets_fetch() {
-// 	let path = './base/assets/';
-// 	Config = await route_path_yaml_dict('./easy/config.yaml');
-// 	DB = await route_path_yaml_dict('./base/DB.yaml');
-// 	Syms = await route_path_yaml_dict(path + 'allSyms.yaml');
-// 	SymKeys = Object.keys(Syms);
-// 	ByGroupSubgroup = await route_path_yaml_dict(path + 'symGSG.yaml');
-// 	C52 = await route_path_yaml_dict(path + 'c52.yaml');
-// 	Cinno = await route_path_yaml_dict(path + 'fe/inno.yaml');
-// 	Info = await route_path_yaml_dict(path + 'lists/info.yaml');
-// 	create_card_assets_c52();
-// 	KeySets = getKeySets();
-// 	console.assert(isdef(Config), 'NO Config!!!!!!!!!!!!!!!!!!!!!!!!');
-// 	return { users: dict2list(DB.users, 'name'), games: dict2list(Config.games, 'name'), tables: [] };
-// }
-// async function route_path_yaml_dict(url) {
-// 	let data = await fetch(url);
-// 	let text = await data.text();
-// 	let dict = jsyaml.load(text);
-// 	return dict;
-// }
-//#endregion
-
 
