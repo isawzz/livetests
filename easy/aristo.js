@@ -787,57 +787,6 @@ function post_church() {
 	}
 
 }
-function post_tide_minimum() {
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	let pl = fen.players[uplayer];
-	let items = A.selected.map(x => A.items[x]);
-
-	//calc value of cards in items
-	let st = items.map(x => ({ key: x.key, path: x.path }));
-	// let val = arrSum(st.map(x => ari_get_card(x.key).val));
-	// let st = items.map(x => x.key);
-
-	//player already has tides!
-	pl.tides.keys = pl.tides.keys.concat(st);
-	pl.tides.val += arrSum(st.map(x => ari_get_card(x.key).val));
-	//console.log('player', uplayer, 'tides', st, 'value', pl.tides.val);
-
-	//tided cards have to be removed!
-	remove_tides_from_play(fen, uplayer, st);
-	// for (const tide of st) { removeInPlace(pl.hand, tide); }
-
-	proceed_to_newcards_selection();
-}
-function post_complementing_market_after_church() {
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	let pl = fen.players[uplayer];
-
-	let selectedKeys = A.selected.map(i => A.items[i].key);
-	for (const ckey of selectedKeys) {
-		elem_from_to(ckey, fen.players[uplayer].hand, fen.players[uplayer].stall);
-	}
-	ari_history_list([`${uplayer} chose ${selectedKeys.length == 0 ? 'NOT ' : ''} to complement stall`], 'complement_stall');
-
-	let next = get_next_player(Z, uplayer);
-	if (next == plorder[0]) {
-		ari_clear_church();
-		ari_start_action_stage();
-	} else {
-		Z.turn = [next];
-		turn_send_move_update();
-	}
-}
-function proceed_to_newcards_selection() {
-	//determine selection order for newcards selection
-	let fen = Z.fen;
-	let selorder = fen.selorder = sortByDescending(fen.church_order, x => fen.players[x].tides.val);
-	fen.toBeSelected = jsCopy(selorder);
-	Z.turn = [selorder[0]];
-	Z.stage = 19;
-	turn_send_move_update();
-
-
-}
 function post_tide() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 	let items = A.selected.map(x => A.items[x]);
@@ -929,6 +878,57 @@ function post_tide() {
 		Z.turn = [next];
 
 	}
+	turn_send_move_update();
+
+
+}
+function post_tide_minimum() {
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+	let pl = fen.players[uplayer];
+	let items = A.selected.map(x => A.items[x]);
+
+	//calc value of cards in items
+	let st = items.map(x => ({ key: x.key, path: x.path }));
+	// let val = arrSum(st.map(x => ari_get_card(x.key).val));
+	// let st = items.map(x => x.key);
+
+	//player already has tides!
+	pl.tides.keys = pl.tides.keys.concat(st);
+	pl.tides.val += arrSum(st.map(x => ari_get_card(x.key).val));
+	//console.log('player', uplayer, 'tides', st, 'value', pl.tides.val);
+
+	//tided cards have to be removed!
+	remove_tides_from_play(fen, uplayer, st);
+	// for (const tide of st) { removeInPlace(pl.hand, tide); }
+
+	proceed_to_newcards_selection();
+}
+function post_complementing_market_after_church() {
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+	let pl = fen.players[uplayer];
+
+	let selectedKeys = A.selected.map(i => A.items[i].key);
+	for (const ckey of selectedKeys) {
+		elem_from_to(ckey, fen.players[uplayer].hand, fen.players[uplayer].stall);
+	}
+	ari_history_list([`${uplayer} chose ${selectedKeys.length == 0 ? 'NOT ' : ''} to complement stall`], 'complement_stall');
+
+	let next = get_next_player(Z, uplayer);
+	if (next == plorder[0]) {
+		ari_clear_church();
+		ari_start_action_stage();
+	} else {
+		Z.turn = [next];
+		turn_send_move_update();
+	}
+}
+function proceed_to_newcards_selection() {
+	//determine selection order for newcards selection
+	let fen = Z.fen;
+	let selorder = fen.selorder = sortByDescending(fen.church_order, x => fen.players[x].tides.val);
+	fen.toBeSelected = jsCopy(selorder);
+	Z.turn = [selorder[0]];
+	Z.stage = 19;
 	turn_send_move_update();
 
 
