@@ -97,15 +97,7 @@ function aristo() {
 			mLinebreak(d, 9);
 			//R.add_ui_node(d, getUID('u'), uplayer);
 
-			//hidden cards if: spectator && plname != uplayer
-			// or
-			// hotseat && plname is bot 
-			// or 
-			// plname != uname
-			let hidden;;
-			if (Z.role == 'spectator') hidden = plname != uplayer;
-			else if (Z.mode == 'hotseat') hidden = (pl.playmode == 'bot' || plname != uplayer);
-			else hidden = plname != Z.uname;
+			let hidden = compute_hidden(plname);
 
 			ari_present_player(z, plname, d, hidden);
 		}
@@ -180,11 +172,11 @@ function aristo() {
 		let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent); //fen.plorder.map(x => fen.players[x]));
 		let fen = z.fen;
 		let herald = fen.heraldorder[0];
-		for (const uname of fen.plorder) {
-			let pl = fen.players[uname];
-			let item = player_stat_items[uname];
+		for (const plname of fen.plorder) {
+			let pl = fen.players[plname];
+			let item = player_stat_items[plname];
 			let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
-			if (uname == herald) {
+			if (plname == herald) {
 				//console.log('d', d, d.children[0]); let img = d.children[0];
 				mSym('tied-scroll', d, { fg: 'gold', fz: 24, padding: 4 }, 'TR');
 			}
@@ -195,13 +187,13 @@ function aristo() {
 				}
 			}
 			player_stat_count('coin', pl.coins, d);
-			if (!isEmpty(fen.players[uname].stall) && fen.stage >= 5 && fen.stage <= 6) {
-				player_stat_count('shinto shrine', !fen.actionsCompleted.includes(uname) || fen.stage < 6 ? calc_stall_value(fen, uname) : '_', d);
+			if (!isEmpty(fen.players[plname].stall) && fen.stage >= 5 && fen.stage <= 6) {
+				player_stat_count('shinto shrine', !fen.actionsCompleted.includes(plname) || fen.stage < 6 ? calc_stall_value(fen, plname) : '_', d);
 			}
-			player_stat_count('star', uname == U.name || isdef(fen.winners) ? ari_calc_real_vps(fen, uname) : ari_calc_fictive_vps(fen, uname), d);
+			player_stat_count('star', plname == U.name || isdef(fen.winners) ? ari_calc_real_vps(fen, plname) : ari_calc_fictive_vps(fen, plname), d);
 
-			if (fen.turn.includes(uname)) {
-				show_hourglass(uname, d, 30, { left: -3, top: 0 }); //'calc( 50% - 36px )' });
+			if (fen.turn.includes(plname)) {
+				show_hourglass(plname, d, 30, { left: -3, top: 0 }); //'calc( 50% - 36px )' });
 			}
 		}
 	}
@@ -732,7 +724,7 @@ function determine_church_turn_order() {
 	}
 	//let playerlist = dict2list(fen.players, 'name');
 	let sorted = sortByDescending(initial, 'score');
-	console.log('scores', sorted.map(x => `${x.name}:${x.score}`));
+	console.log('church order: scores', sorted.map(x => `${x.name}:${x.score}`));
 	return sorted.map(x => x.name);
 }
 function is_in_middle_of_church() {
@@ -740,7 +732,7 @@ function is_in_middle_of_church() {
 	return isdef(fen.players[uplayer].tides);
 }
 function post_church() {
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 	let pl = fen.players[uplayer];
 	let items = A.selected.map(x => A.items[x]);
 
@@ -780,6 +772,7 @@ function post_church() {
 		//proceed to next stage after church! also mark this round not to contain any more churches!!!
 		//list all properties related to churches in fen.players and fen: delete them!
 		Z.stage = 14;
+		let plorder = fen.plorder = jsCopy(fen.heraldorder);
 		Z.turn = [plorder[0]];
 		//church ends here!!!
 		turn_send_move_update();
@@ -899,12 +892,18 @@ function post_tide_minimum() {
 
 	//player already has tides!
 	pl.tides.keys = pl.tides.keys.concat(st);
-	pl.tides.val += arrSum(st.map(x => ari_get_card(x.key).val));
+	let newval = arrSum(st.map(x => ari_get_card(x.key).val));
+	pl.tides.val += newval;
 	//console.log('player', uplayer, 'tides', st, 'value', pl.tides.val);
 
 	//verify that val is at least tide_minimum
 	console.log('tide_minimum', fen.tide_minimum);
 	console.log('val', pl.tides.val);
+
+	if (newval < fen.tide_minimum){
+		select_error(`you need to tide at least ${fen.tide_minimum} to reach minimum`);
+		return;
+	}
 
 
 	//tided cards have to be removed!
@@ -935,8 +934,12 @@ function post_complementing_market_after_church() {
 function proceed_to_newcards_selection() {
 	//determine selection order for newcards selection
 	let fen = Z.fen;
-	let selorder = fen.selorder = sortByDescending(fen.church_order, x => fen.players[x].tides.val);
+
+	let selorder = fen.selorder = sortByFuncDescending(fen.church_order, x => fen.players[x].tides.val);
+	//console.log('church_order',fen.church_order);
+	//console.log('selorder',selorder);
 	fen.toBeSelected = jsCopy(selorder);
+	fen.plorder = selorder;
 	Z.turn = [selorder[0]];
 	Z.stage = 19;
 	turn_send_move_update();
@@ -2240,7 +2243,8 @@ function ari_start_action_stage() {
 }
 function ari_start_church_stage() {
 	//need to sort players by their vps, and set Z.turn and Z.stage
-	let order = Z.fen.church_order = determine_church_turn_order();
+	let [fen] = [Z.fen];
+	let order = fen.plorder = fen.church_order = determine_church_turn_order();
 	[Z.turn, Z.stage] = [[order[0]], 17];
 	turn_send_move_update();
 }

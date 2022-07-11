@@ -1,4 +1,70 @@
 
+function aristo_present(z, dParent, uplayer) {
+
+	let [fen, ui] = [z.fen, UI];
+	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1);
+
+	ari_player_stats(z, dRechts);
+
+	show_history(fen, dRechts);
+
+	//let h=ARI.hcontainer;
+	let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', ari_get_card);
+	let market = ui.market = ui_type_market(fen.market, dOpenTable, { maleft: 12 }, 'market', 'market', ari_get_card, true);
+	let open_discard = ui.open_discard = ui_type_market(fen.open_discard, dOpenTable, { maleft: 12 }, 'open_discard', 'discard', ari_get_card);
+	let deck_discard = ui.deck_discard = ui_type_deck(fen.deck_discard, dOpenTable, { maleft: 12 }, 'deck_discard', '', ari_get_card);
+
+	if (exp_commissions(z.options)) {
+		let open_commissions = ui.open_commissions = ui_type_market(fen.open_commissions, dOpenTable, { maleft: 12 }, 'open_commissions', 'bank', ari_get_card);
+		mMagnifyOnHoverControlPopup(ui.open_commissions.cardcontainer);
+		let deck_commission = ui.deck_commission = ui_type_deck(fen.deck_commission, dOpenTable, { maleft: 4 }, 'deck_commission', '', ari_get_card);
+		// let commissioned = ui.commissioned = ui_type_list(fen.commissioned, ['rank','count'], dOpenTable, {h:130}, 'commissioned', 'commissioned');
+		let comm = ui.commissioned = ui_type_rank_count(fen.commissioned, dOpenTable, {}, 'commissioned', 'sentiment', ari_get_card);
+		if (comm.items.length > 0) { let isent = arrLast(comm.items); let dsent = iDiv(isent); set_card_border(dsent, 15, 'green'); }
+	}
+
+	if (exp_church(z.options)) {
+		let church = ui.church = ui_type_church(fen.church, dOpenTable, { maleft: 28 }, 'church', 'church', ari_get_card);
+		//mMagnifyOnHoverControlPopup(ui.church.cardcontainer);
+	}
+
+	if (exp_rumors(z.options)) {
+		let deck_rumors = ui.deck_rumors = ui_type_deck(fen.deck_rumors, dOpenTable, { maleft: 25 }, 'deck_rumors', 'rumors', ari_get_card);
+	}
+
+
+	let uname_plays = fen.plorder.includes(Z.uname);
+	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
+	let order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first)); //[show_first].concat(fen.plorder.filter(x => x != show_first));
+	for (const plname of order) {
+		let pl = fen.players[plname];
+
+		let playerstyles = { w: '100%', bg: '#ffffff80', fg: 'black', padding: 4, margin: 4, rounding: 9, border: `2px ${get_user_color(plname)} solid` };
+		let d = mDiv(dMiddle, playerstyles, null, get_user_pic_html(plname, 25));
+
+		mFlexWrap(d);
+		mLinebreak(d, 9);
+		//R.add_ui_node(d, getUID('u'), uplayer);
+
+		//hidden cards if: spectator && plname != uplayer
+		// or
+		// hotseat && plname is bot 
+		// or 
+		// plname != uname
+		let hidden;
+		if (Z.role == 'spectator') hidden = plname != uplayer;
+		else if (Z.mode == 'hotseat') hidden = (pl.playmode == 'bot' || plname != uplayer);
+		else hidden = plname != Z.uname;
+
+		ari_present_player(z, plname, d, hidden);
+	}
+
+
+	if (isdef(fen.winners)) ari_reveal_all_buildings(fen);
+
+}
+
+
 //#region ferro ausmisten
 
 function ui_get_jolly_items() {
@@ -26,7 +92,7 @@ function path2fen(path) {
 	//console.log('res',res);
 	return res;
 }
-function mStamp(d1,text) {
+function mStamp(d1, text) {
 	mStyle(d1, { position: 'relative' });
 	//let stamp = mDiv(d1, { family:'tahoma', fz:16, weight:'bold', position:'absolute', top:'25%',left:'10%',transform:'rotate(35deg)', w: '80%', h: 24 },null,`blackmail!`,'rubberstamp');
 	//let stamp = mDiv(d1, { position:'absolute',top:30,left:0,transform:'rotate( 35deg )' },null,`blackmail!`,'rubberp');
@@ -34,20 +100,20 @@ function mStamp(d1,text) {
 	// mDiv(d1,{position:'absolute',top:30,left:0,},null,`<span class="stamp1">BLACKMAIL!</span>`);
 	//mDiv(d1, { position: 'absolute', top: 25, left: 5, weight: 700, fg: 'black', border: '2px solid black', padding: 2 }, null, `BLACKMAIL`, 'stamp1');
 
-	let r=getRect(d1);
-	let [w,h]=[r.w,r.h];
-	let sz = r.h/7;
-	console.log('r',r, 'sz', sz);
+	let r = getRect(d1);
+	let [w, h] = [r.w, r.h];
+	let sz = r.h / 7;
+	console.log('r', r, 'sz', sz);
 	//let [border,rounding,angle]=[sz*.08,sz/3,-14];
-	let [padding,border,rounding,angle]=[sz/10,sz/6,sz/8,rNumber(-25,25)];
+	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rNumber(-25, 25)];
 	mDiv(d1, {
 		opacity: 0.9,
 		position: 'absolute', top: 25, left: 5, //weight: 700, fg: 'black', border: '2px solid black', padding: 2,
 		transform: `rotate(${angle}deg)`,
-		fz:sz,
+		fz: sz,
 		//'line-height':sz,
 		// border:`${border}px solid black`,
-		border:`${border}px solid black`,
+		border: `${border}px solid black`,
 		hpadding: 2, //padding,
 		vpadding: 0,
 		// vpadding: border,
@@ -70,10 +136,11 @@ function mStamp(d1,text) {
 		// '-webkit-mask-image': `url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/8399/grunge.png')`,
 
 		weight: 400, //700,
-		display:'inline-block',
-		'text-transform':'uppercase',
-		family:"black ops one", //'Courier', //'courier new',
-		'mix-blend-mode':'multiply'}, null, text);
+		display: 'inline-block',
+		'text-transform': 'uppercase',
+		family: "black ops one", //'Courier', //'courier new',
+		'mix-blend-mode': 'multiply'
+	}, null, text);
 
 }
 
@@ -144,7 +211,7 @@ function post_rumor() {
 
 
 }
-function rest(){
+function rest() {
 
 	if (isdef(obuilding.schwein)) {
 
@@ -236,18 +303,18 @@ function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', ge
 
 //#region fritz
 
-function _show_special_message(msg,stay=false) {
-	let dParent = mBy('dBandMessage'); 
-	console.log('dBandMessage',mBy('dBandMessage'))
-	if (nundef(dParent)) dParent = mDiv(document.body,{},'dBandMessage');
-	console.log('dParent',dParent)
-	show(dParent); 
+function _show_special_message(msg, stay = false) {
+	let dParent = mBy('dBandMessage');
+	console.log('dBandMessage', mBy('dBandMessage'))
+	if (nundef(dParent)) dParent = mDiv(document.body, {}, 'dBandMessage');
+	console.log('dParent', dParent)
+	show(dParent);
 	clearElement(dParent);
-	mStyle(dParent, { position: 'absolute', top: 200, bg: 'green', wmin: '100vw'}); 
+	mStyle(dParent, { position: 'absolute', top: 200, bg: 'green', wmin: '100vw' });
 	let d = mDiv(dParent, { margin: 0 });
 	let styles = { classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' };
 	let dContent = mDiv(d, styles, null, msg);
-	mFadeClear(dParent, 3000 );
+	mFadeClear(dParent, 3000);
 }
 
 
@@ -367,7 +434,7 @@ function fritz_present_new(z, dParent, uplayer) {
 	mLinebreak(dOpenTable);
 
 
-	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, wmin:245, padding: '5px 50px 5px 5px', margin: 5 });
+	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, wmin: 245, padding: '5px 50px 5px 5px', margin: 5 });
 	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
@@ -411,11 +478,11 @@ function fritz_present_new(z, dParent, uplayer) {
 
 	//if ddarea is empty, write drag and drop hint
 	if (arrChildren(ddarea).length == 0) {
-		let d = mDiv(ddarea, {'pointer-events': 'none',maleft:45,align:'center',hmin:40,w:'100%',fz:12,fg:'dimgray'},'ddhint','drag and drop cards here');
+		let d = mDiv(ddarea, { 'pointer-events': 'none', maleft: 45, align: 'center', hmin: 40, w: '100%', fz: 12, fg: 'dimgray' }, 'ddhint', 'drag and drop cards here');
 		//setRect(ddarea)
 		//mPlace(d,'cc')
 
-	} 
+	}
 
 	ui.players = {};
 	let uname_plays = fen.plorder.includes(Z.uname);
@@ -553,7 +620,7 @@ function _boamain_start() {
 	mAppend(d1, createImage('boamain_header.png', { h: 111 }));
 
 	let d2 = mDiv(d);
-	let d3 = mDiv(d2, { display: 'flex', 'justify-content': 'center' },'dBoaMain');
+	let d3 = mDiv(d2, { display: 'flex', 'justify-content': 'center' }, 'dBoaMain');
 
 	let [wtotal, wleft, wright] = [972, 972 - 298, 292];
 	d = mDiv(d3, { w: wtotal, hmin: 500 });
@@ -846,7 +913,7 @@ function ui_get_bluff_inputs(strings) {
 }
 
 
-function ui_get_ferro_action_items(){
+function ui_get_ferro_action_items() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	let items = ui_get_hand_items(uplayer);
@@ -855,21 +922,21 @@ function ui_get_ferro_action_items(){
 	reindex_items(items);
 	return items;
 }
-function ferro_process_action(){
+function ferro_process_action() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	let selitems = A.selected.map(x => A.items[x]);
 	console.log('selitems:', selitems);
 	let cards = selitems.filter(x => x.itemtype == 'card');
 	let actions = selitems.filter(x => x.itemtype == 'string');
-	if (actions.length == 0) { select_error('select an action!'); selitems.map(x=>ari_make_unselected(x)); A.selected=[];return; }
-	let cmd=actions[0].a;
-	switch(cmd){
+	if (actions.length == 0) { select_error('select an action!'); selitems.map(x => ari_make_unselected(x)); A.selected = []; return; }
+	let cmd = actions[0].a;
+	switch (cmd) {
 		case 'discard': ferro_process_discard(); break;
 		case 'auflegen': ferro_process_group(); break;
 		case 'anlegen': ferro_process_anlegen(); break;
 		case 'jolly': ferro_process_jolly(); break;
-		default: console.log('unknown command: '+cmd);
+		default: console.log('unknown command: ' + cmd);
 	}
 }
 function ferro_process_action_() {
@@ -883,19 +950,19 @@ function ferro_process_action_() {
 	Z.stage = 'commands';
 	ferro_pre_action();
 }
-function ferro_process_command_(){
+function ferro_process_command_() {
 
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 
 	//player has selected 1 card
 	let cmd = A.items[A.selected[0]].a;
-	switch(cmd){
+	switch (cmd) {
 		case 'discard': ferro_process_discard(); break;
 		case 'group': ferro_prep_group(); break;
-		default: console.log('unknown command: '+cmd);
+		default: console.log('unknown command: ' + cmd);
 	}
 }
-function ferro_prep_group(){
+function ferro_prep_group() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 
 	A.command = 'group';
@@ -933,19 +1000,19 @@ function ferro_check_action_available(a, fen, uplayer) {
 		let wildcard = hand.find(x => x[0] == '*');
 		//console.log('wildcard', wildcard?'yes':'no');
 		let n = group.length + (isdef(wildcard) ? 1 : 0);
-		console.log('can build group of',n)
+		console.log('can build group of', n)
 		return n >= 3;
 
 	} else return false;
 }
-function ui_get_group_items(){
+function ui_get_group_items() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	let rank = A.initialItem.o.rank;
 	let items = ui_get_hand_items(uplayer);
-	console.log('items',items,'rank',rank);
-	
-	items = items.filter(x=>x.key[0] == rank || x.key[0] == '*');
-	console.log('items',items);
+	console.log('items', items, 'rank', rank);
+
+	items = items.filter(x => x.key[0] == rank || x.key[0] == '*');
+	console.log('items', items);
 	reindex_items(items);
 	return items;
 }

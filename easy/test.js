@@ -20,11 +20,53 @@ function start_tests() {
 	//#endregion
 
 	//ltest70_aristo_church(); //ltest57_aristo();
-	ltest76_aristo_multi();
+	ltest83_ferro_multi();
 
 }
 
 //#region live server tests
+function ltest83_ferro_multi() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix', 'gul', 'amanda']; //, 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
+	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi' });
+}
+function ltest82_ferro() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
+	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest81_spotit_multi() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix']; //, 'gul', 'amanda', 'lauren'];
+	startgame('spotit', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi' });
+}
+function ltest80_fritz_multi() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix']; //, 'gul', 'amanda', 'lauren'];
+	startgame('fritz', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi' });
+}
+function ltest79_bluff_multi() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix']; //, 'gul', 'amanda', 'lauren'];
+	startgame('bluff', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi' });
+}
+function ltest78_aristo_church() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [['random'],['random']];
+	let playernames = [U.name, 'felix']; //, 'gul', 'amanda', 'lauren'];
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
 function ltest77_aristo_church() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -37,7 +79,7 @@ function ltest76_aristo_multi() {
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	let playernames = ['mimi', 'felix', 'gul'];
-	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', rumors: 'no', commission: 'no', journey: 'no' });
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi', rumors: 'no', commission: 'no', journey: 'no' });
 }
 function ltest75_ferro_multi() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };

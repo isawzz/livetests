@@ -74,7 +74,10 @@ function gamestep() {
 	for(const id of ['bSpotitStart','bClearAck','bRandomMove','bSkipPlayer']) hide(id);
 	if (Z.game == 'spotit' && Z.uname == Z.host && Z.stage == 'init') show('bSpotitStart');
 	else if (Z.game == 'bluff' && Z.uname == Z.host && Z.stage == 1) show('bClearAck');
-	else if (['ferro','bluff','aristo'].includes(Z.game)) show('bRandomMove');
+	else if (['ferro','bluff','aristo'].includes(Z.game)) {
+		console.log('random should show because game is', Z.game)
+		show('bRandomMove');
+	}
 
 
 
@@ -98,7 +101,7 @@ function gamestep() {
 		Z.scoring = { winners: winners }
 		sendgameover(winners[0], Z.friendly, Z.fen, Z.scoring);
 	} else if (is_shield_mode()) {
-		if (!DA.no_shield == true) { hide('bRestartMove'); } //mShield(dTable);  }
+		if (!DA.no_shield == true) { hide('bRestartMove'); } //if (isdef(Z.fen.shield)) mShield(dTable);  }
 		autopoll();
 	} else {
 		Z.A = { level: 0, di: {}, ll: [], items: [], selected: [], tree: null, breadcrumbs: [], sib: [], command: null, autosubmit:Config.autosubmit };
@@ -132,7 +135,7 @@ function ack_player(plname){
 	//console.log('ack_player','plname',plname,'uplayer',uplayer,'pl',pl,'Z.turn',Z.turn,'Z.stage',Z.stage);
 	assertion(sameList(Z.turn,[plname]), "ack_player: wrong turn");
 	
-	if (plname == fen.lastplayer){
+	if (plname == fen.lastplayer || fen.players[uplayer].buy==true){
 		let func = window[fen.callbackname_after_ack];
 		if (isdef(func)) func();
 	} else{

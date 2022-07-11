@@ -32,6 +32,19 @@ function collect_game_specific_options(game) {
 	}
 	return di;
 }
+function compute_hidden(plname){
+	let [fen, uplayer] = [Z.fen, Z.uplayer];
+	let pl = fen.players[plname];
+
+	let hidden;
+	if (isdef(fen.winners)) hidden = false;
+	else if (Z.role == 'spectator') hidden = plname != uplayer;
+	else if (Z.mode == 'hotseat') hidden = (pl.playmode == 'bot' || plname != uplayer);
+	else hidden = plname != Z.uname;
+
+	return hidden;
+
+}
 function ev_to_gname(ev) { evNoBubble(ev); return evToTargetAttribute(ev, 'gamename'); }
 function generate_table_name(n) {
 	let existing = Serverdata.tables.map(x => x.friendly);
