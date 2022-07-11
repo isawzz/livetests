@@ -15,9 +15,41 @@ users:
     games:
       gSpotit:
         startlevel: 5
-  meckele:
+  minnow:
     name: meckele
-    color: '#F28DB2'
+    color: PINK
+    motto: miau!
+    image: true
+    games:
+      gSpotit:
+        startlevel: 3
+  annabel:
+    name: meckele
+    color: violet
+    motto: miau!
+    image: true
+    games:
+      gSpotit:
+        startlevel: 3
+  sarah:
+    name: meckele
+    color: hotpink
+    motto: miau!
+    image: true
+    games:
+      gSpotit:
+        startlevel: 3
+  nasi:
+    name: meckele
+    color: YELLOW
+    motto: miau!
+    image: true
+    games:
+      gSpotit:
+        startlevel: 3
+  sheeba:
+    name: meckele
+    color: PURPLE
     motto: miau!
     image: true
     games:

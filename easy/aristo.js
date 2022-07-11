@@ -718,16 +718,18 @@ function check_if_church() {
 function determine_church_turn_order() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 
+	let initial = [];
 	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];
 		pl.vps = ari_calc_fictive_vps(fen, plname);
 		pl.max_journey_length = ari_get_max_journey_length(fen, plname);
 		pl.score = pl.vps * 10000 + pl.max_journey_length * 100 + pl.coins;
+		initial.push(pl);
 		//console.log('score', plname, pl.score);
 	}
-	let playerlist = dict2list(fen.players, 'name');
-	let sorted = sortByDescending(playerlist, 'score');
-	//console.log('scores', sorted.map(x => `${x.name}:${x.score}`));
+	//let playerlist = dict2list(fen.players, 'name');
+	let sorted = sortByDescending(initial, 'score');
+	console.log('scores', sorted.map(x => `${x.name}:${x.score}`));
 	return sorted.map(x => x.name);
 }
 function is_in_middle_of_church() {
@@ -896,6 +898,11 @@ function post_tide_minimum() {
 	pl.tides.keys = pl.tides.keys.concat(st);
 	pl.tides.val += arrSum(st.map(x => ari_get_card(x.key).val));
 	//console.log('player', uplayer, 'tides', st, 'value', pl.tides.val);
+
+	//verify that val is at least tide_minimum
+	console.log('tide_minimum', fen.tide_minimum);
+	console.log('val', pl.tides.val);
+
 
 	//tided cards have to be removed!
 	remove_tides_from_play(fen, uplayer, st);

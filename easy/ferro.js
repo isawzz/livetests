@@ -5,8 +5,8 @@ function ferro() {
 
 		//calc how many decks are needed (basically 1 suit per person, plus 1 for the deck)
 		let n = players.length;
-		let num_decks = fen.num_decks = 2 + (n > 5 ? Math.ceil((n - 5) / 2) : 0); //<=5?2:Math.max(2,Math.ceil(players.length/3));
-
+		let num_decks = fen.num_decks = 2 + (n >= 9 ? 2 : n >= 7 ? 1 : 0); // 2 + (n > 5 ? Math.ceil((n - 5) / 2) : 0); //<=5?2:Math.max(2,Math.ceil(players.length/3));
+		console.log('num_decks', num_decks);
 		let deck = fen.deck = create_fen_deck('n', num_decks, 4 * num_decks);
 		let deck_discard = fen.deck_discard = [];
 		shuffle(deck);
