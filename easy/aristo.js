@@ -42,6 +42,7 @@ function aristo() {
 		fen.phase = 'king'; //TODO: king !!!!!!!
 		fen.num_actions = 0;
 		fen.herald = fen.plorder[0];
+		fen.heraldorder = jsCopy(fen.plorder);
 
 		if (exp_commissions(options)) { [fen.stage, fen.turn] = [23, [fen.plorder[0]]]; fen.comm_setup_num = 3; }
 		else if (exp_rumors(options)) { [fen.stage, fen.turn] = [24, [fen.plorder[0]]]; }
@@ -85,7 +86,7 @@ function aristo() {
 
 		let uname_plays = fen.plorder.includes(Z.uname);
 		let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
-		let order = [show_first].concat(fen.plorder.filter(x => x != show_first));
+		let order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first)); //[show_first].concat(fen.plorder.filter(x => x != show_first));
 		for (const plname of order) {
 			let pl = fen.players[plname];
 
@@ -178,7 +179,7 @@ function aristo() {
 
 		let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent); //fen.plorder.map(x => fen.players[x]));
 		let fen = z.fen;
-		let herald = fen.plorder[0];
+		let herald = fen.heraldorder[0];
 		for (const uname of fen.plorder) {
 			let pl = fen.players[uname];
 			let item = player_stat_items[uname];
@@ -1392,9 +1393,9 @@ function ari_history_list(lines, title = 'unknown') {
 function ari_move_herald(fen) {
 	// let cur_herald = fen.plorder[0];
 	// let next_herald = fen.plorder[1];
-	fen.plorder = arrCycle(fen.plorder, 1);
-	ari_history_list([`*** new herald: ${fen.plorder[0]} ***`], 'herald');
-	return fen.plorder[0];
+	fen.heraldorder = arrCycle(fen.heraldorder, 1);
+	ari_history_list([`*** new herald: ${fen.heraldorder[0]} ***`], 'herald');
+	return fen.heraldorder[0];
 }
 function ari_move_market_to_discard() {
 	let fen = Z.fen;
@@ -1457,7 +1458,8 @@ function ari_next_phase() {
 		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, Z.phase);
 	} else {
 		//gesamte runde fertig: herald moves!
-		fen.herald = ari_move_herald(fen, uplayer); //fen.plorder changed in there!
+		fen.herald = ari_move_herald(fen, uplayer); 
+		fen.plorder = jsCopy(fen.heraldorder);
 		ari_add_harvest_cards(fen);
 		Z.phase = 'king';
 		let taxneeded = ari_tax_phase_needed(fen);

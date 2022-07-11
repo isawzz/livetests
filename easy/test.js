@@ -20,37 +20,51 @@ function start_tests() {
 	//#endregion
 
 	//ltest70_aristo_church(); //ltest57_aristo();
-	ltest75_ferro_multi();
+	ltest76_aristo_multi();
 
 }
 
 //#region live server tests
+function ltest77_aristo_church() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix', 'leo', 'gul']; //, 'gul', 'amanda', 'lauren'];
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest76_aristo_multi() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = ['mimi', 'felix', 'gul'];
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', rumors: 'no', commission: 'no', journey: 'no' });
+}
 function ltest75_ferro_multi() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [['random']];//[['random']];
-	let playernames = ['mimi', 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble','sheeba','sarah']; //, 'gul', 'amanda', 'lauren'];
+	let playernames = ['mimi', 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'multi' });
 }
 function ltest74_ferro_scroll_history() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
-	let playernames = ['mimi', 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble','sheeba','sarah']; //, 'gul', 'amanda', 'lauren'];
+	let playernames = ['mimi', 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest73_ferro_deck_empty() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [make_deck_empty], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
-	let playernames = [U.name, 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble','sheeba','sarah']; //, 'gul', 'amanda', 'lauren'];
+	let playernames = [U.name, 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest72_ferro() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
-	let playernames = [U.name, 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble','sheeba','sarah']; //, 'gul', 'amanda', 'lauren'];
+	let playernames = [U.name, 'felix', 'gul', 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest71_ferro() {
@@ -62,13 +76,10 @@ function ltest71_ferro() {
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest70_aristo_church() {
-	TESTING = true; DA.testing = true; DA.test = {
-		mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0]
-	};
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	let playernames = [U.name, 'felix', 'leo', 'gul']; //, 'gul', 'amanda', 'lauren'];
-
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest69_ferro_is_group() {
@@ -1321,14 +1332,14 @@ function make_church(o) {
 	fen.stage = 1004;
 	fen.market = ['JHn', 'QSn'];
 }
-function make_long_history(o){
+function make_long_history(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.history = [];
-	for(let i=0;i<100;i++){
+	for (let i = 0; i < 100; i++) {
 		fen.history.push([`line ${i}: something happened`]);
 	}
 }
-function make_deck_empty(o){
+function make_deck_empty(o) {
 	let fen = o.fen;
 	fen.deck_discard = fen.deck;
 	output_arr_short(fen.deck);

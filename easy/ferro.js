@@ -67,7 +67,8 @@ function ferro_present_new(z, dParent, uplayer) {
 
 	let uname_plays = fen.plorder.includes(Z.uname);
 	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
-	let order = TESTING ? fen.plorder : [show_first].concat(fen.plorder.filter(x => x != show_first));
+	//let order = TESTING ? fen.plorder : [show_first].concat(fen.plorder.filter(x => x != show_first));
+	order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first));
 	for (const plname of order) {
 		let pl = fen.players[plname];
 
