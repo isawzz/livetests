@@ -141,6 +141,8 @@ function fritz_present_player(playername, dMiddle) {
 	} else {
 		//console.log('player has no loose cards',pl);
 	}
+	ensure_buttons_visible_for(playername);
+
 }
 function fritz_stats_new(z, dParent) {
 	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
@@ -266,7 +268,7 @@ function cleanup_or_resplay(oldgroup) {
 }
 function deck_deal_safe_fritz(fen, plname, n = 1) {
 	if (fen.deck.length < n) {
-		fen.deck = create_fen_deck('n');
+		fen.deck = create_fen_deck('n', fen.num_decks, 0); 
 		fen.loosecards.push('*Hn'); //1 jolly kommt dazu!
 	}
 	let newcards = deck_deal(fen.deck, n);

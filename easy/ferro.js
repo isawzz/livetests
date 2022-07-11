@@ -52,6 +52,7 @@ function ferro_pre_action() {
 
 function ferro_present_new(z, dParent, uplayer) {
 
+	//DA.no_shield = true;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1);
 
@@ -100,10 +101,11 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 		pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, '23456789TJQKA*').concat(arr2);
 	}
 	let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ferro_get_card);
-	if (!TESTING && ishidden) { hand.items.map(x => face_down(x)); }
+	if (ishidden) { hand.items.map(x => face_down(x)); }
 	else {
 		//mStyle(d,{transform:'scale(2)'}); } 
 		//hand.items.map(x=>mStyle(iDiv(x),{h:200,w:100})); 
+		ensure_buttons_visible_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname);
 
 	}
 
@@ -115,12 +117,6 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 		i += 1;
 		ui.journeys.push(jui);
 	}
-
-	// if (!ishidden){
-	// 	//make all descendants of d including d larger in width and height by 100%
-	// 	mStyle(d,{w:'48.5%',transform:'scale(2)','transform-origin':'0 0'});
-	// 	mLinebreak(d.parentNode,200);
-	// }
 
 }
 function ferro_activate_ui() {
@@ -424,7 +420,7 @@ function calc_ferro_highest_goal_achieved(pl) {
 }
 function deck_deal_safe_ferro(fen, plname, n) {
 	if (fen.deck.length < n) {
-		fen.deck = fen.deck.concat(fen.deck_discard);
+		fen.deck = fen.deck.concat(fen.deck_discard.reverse());
 		fen.deck_discard = [];
 	}
 	let newcards = deck_deal(fen.deck, n);
@@ -465,7 +461,7 @@ function end_of_round_ferro() {
 	}
 
 }
-function ensure_buttons_visible_ferro() {
+function old_ensure_buttons_visible_ferro() {
 	if (isdef(mBy('dbPlayer'))) return;
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 	if (fen.players[uplayer].hand.length <= 1) return; // only display for hand size > 1
@@ -480,6 +476,45 @@ function ensure_buttons_visible_ferro() {
 		let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
 		if (isEmpty(A.selected)) hide(b);
 	}
+
+}
+function ensure_buttons_visible_ferro() {
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	if (fen.players[uplayer].hand.length <= 1) return; // only display for hand size > 1
+	let dbPlayer = mBy('dbPlayer');
+	if (nundef(dbPlayer)) {
+		let d = iDiv(UI.players[uplayer]);
+		mStyle(d, { position: 'relative' })
+		dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
+	}
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	// let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
+	// let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
+	if (Z.game == 'ferro') {
+		let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
+		if (isEmpty(A.selected)) hide(b);
+	}
+
+}
+function ensure_buttons_visible_for(plname) {
+	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+
+	let fen = Z.fen;
+	let pl = fen.players[plname];
+	let plui = UI.players[plname];
+	console.log('plui', plui);
+	if (pl.hand.length <= 1) return; // only display for hand size > 1
+	let d = iDiv(plui);
+	mStyle(d, { position: 'relative' })
+	//console.log('d', d);
+	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
+	let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
+	// if (Z.game == 'ferro' && plname == uplayer) {
+	// 	let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
+	// 	if (isEmpty(A.selected)) hide(b);
+	// }
 
 }
 function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = true) {

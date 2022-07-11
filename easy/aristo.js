@@ -7,7 +7,9 @@ function aristo() {
 	function aristo_setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: [] };
 		//let deck = fen.deck = get_keys(C52Cards).filter(x => 'br'.includes(x[2]));
-		let deck = fen.deck = create_fen_deck('n', 2);
+		let n = players.length;
+		let num_decks = fen.num_decks = 2 + (n >= 8 ? 2 : n >= 6 ? 1 : 0); // 2 + (n > 5 ? Math.ceil((n - 5) / 2) : 0); //<=5?2:Math.max(2,Math.ceil(players.length/3));
+		let deck = fen.deck = create_fen_deck('n', num_decks);
 		//console.log('deck',deck)
 		//console.log('deck length is',deck.length);
 		shuffle(deck);

@@ -98,7 +98,7 @@ function gamestep() {
 		Z.scoring = { winners: winners }
 		sendgameover(winners[0], Z.friendly, Z.fen, Z.scoring);
 	} else if (is_shield_mode()) {
-		if (!DA.no_shield == true) { mShield(dTable); hide('bRestartMove'); }
+		if (!DA.no_shield == true) { hide('bRestartMove'); } //mShield(dTable);  }
 		autopoll();
 	} else {
 		Z.A = { level: 0, di: {}, ll: [], items: [], selected: [], tree: null, breadcrumbs: [], sib: [], command: null, autosubmit:Config.autosubmit };
