@@ -26,6 +26,7 @@ function start_tests() {
 }
 function landing(){
 
+	console.log('dHistory',UI.dHistory)
 	show_history_popup();
 
 }
@@ -1429,7 +1430,7 @@ function make_long_history(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.history = [];
 	for (let i = 0; i < 100; i++) {
-		let lines = [`${uplayer} discards KHn`];
+		let lines = [`${rChoose(get_keys(fen.players))} discards ${rCard()}`];
 		let title = 'discard';
 		let html = beautify_history(lines, title, fen, uplayer);
 		fen.history.push(html);

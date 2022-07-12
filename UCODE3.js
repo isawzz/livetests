@@ -1,3 +1,23 @@
+function old_show_history_popup() {
+	
+	let fen = Z.fen;
+	if (!isEmpty(fen.history)) {
+		let html = '';
+		for (const arr of jsCopy(fen.history).reverse()) {
+			html += arr;
+			//html+=`<h1>${k}</h1>`;
+			//for (const line of arr) { html += `<p>${line}</p>`; }
+		}
+		let dpop = mPopup('', dTable, { paleft:12, fz: 16, bg: colorLight('#EDC690',.5), rounding:8, fg: 'black', top: 0, right: 0, border: 'white' }, 'dOptions');
+		let dHistory = mDiv(dpop, { matop:10, patop:10, w:'100%', hmax: `calc( 100vh - 250px )`, 'overflow-y': 'auto', wmin: 260 }, null, html); //JSON.stringify(fen.history));
+		mInsert(dpop, mCreateFrom(`<div style="text-align:center;width:100%;font-family:Algerian;font-size:22px;">${Z.game}</div>`));
+		// let bclose = mButtonX(dpop,'tr',hide_options_popup,null,12);
+		let bclose = mButtonX(dpop, hide_options_popup, 'tr');
+
+		//mNode(fen.history, dHistory, 'history');
+	}
+	//console.log('popup', dpop);
+}
 
 function aristo_present(z, dParent, uplayer) {
 

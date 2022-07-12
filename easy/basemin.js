@@ -381,6 +381,7 @@ function mCard(dParent, styles, classtr = '', id = null) {
 	// console.log('classes', classes);
 	return mDiv(dParent, styles, id, null, classes);
 }
+function mCardText(ckey,sz,color){ return is_jolly(ckey)? '<span style="font-family:Algerian">jolly</span>':`${ckey[0]}${mSuit(ckey,sz,color)}`;}
 function mCenterFlex(d, hCenter = true, vCenter = false, wrap = true) {
 	let styles = { display: 'flex' };
 	if (hCenter) styles['justify-content'] = 'center';
@@ -896,7 +897,6 @@ function mStamp(d1, text, color, sz) {
 	//mClass(d2,`${color}stamp`);
 
 }
-function mCardText(ckey,sz,color){ return `${mSuit(ckey,sz,color)}${ckey[0]}`;}
 function mSuit(ckey,sz=20,color=null){
 	let suit = ckey.length == 1?ckey:ckey[1];
 	let di = {S:'&spades;',H:'&hearts;',D:'&diams;',C:'&clubs;'};
@@ -3329,7 +3329,7 @@ function choose(arr, n, excepti) { return rChoose(arr, n, null, excepti); }
 function chooseRandom(arr) { return rChoose(arr); }
 function coin(percent = 50) { let r = Math.random(); r *= 100; return r < percent; }
 function rAlphanums(n) { return rChoose(toLetters('0123456789abcdefghijklmnopq'), n); }
-function rCard(postfix = 'n', ranks = 'A23456789TJQK', suits = 'HSDC') { return rChoose(ranks) + rChoose(suits) + postfix; }
+function rCard(postfix = 'n', ranks = '*A23456789TJQK', suits = 'HSDC') { return rChoose(ranks) + rChoose(suits) + postfix; }
 function rRank(ranks = 'A23456789TJQK') { return rChoose(ranks); }
 function rSuit(suit = 'HSDC') { return rChoose(suit); }
 function rCoin(percent = 50) {
