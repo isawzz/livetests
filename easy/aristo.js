@@ -1386,10 +1386,11 @@ function ari_get_max_journey_length(fen, uplayer) {
 	let sorted_journeys = sortByDescending(pl.journeys.map(x => ({ arr: x, len: x.length })), 'len');
 	return isEmpty(pl.journeys) ? 0 : sorted_journeys[0].len;
 }
-function ari_history_list(lines, title = 'unknown') {
+function ari_history_list(lines, title = '') {
 	let fen = Z.fen;
 	if (nundef(fen.history)) fen.history = [];
-	fen.history.push(lines);
+	let html = beautify_history(lines,title, fen,Z.uplayer);
+	fen.history.push(html);
 	//lookupSetOverride(Z.fen,['history',title],lines);
 	//console.log('____history', fen.history);
 }

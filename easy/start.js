@@ -111,6 +111,9 @@ function gamestep() {
 		Z.func.activate_ui();
 		if (Z.options.zen_mode != 'yes') autopoll();
 	}
+
+	landing();
+
 }
 
 //#region ack
