@@ -75,7 +75,7 @@ function gamestep() {
 	if (Z.game == 'spotit' && Z.uname == Z.host && Z.stage == 'init') show('bSpotitStart');
 	else if (Z.game == 'bluff' && Z.uname == Z.host && Z.stage == 1) show('bClearAck');
 	else if (['ferro','bluff','aristo'].includes(Z.game)) {
-		console.log('random should show because game is', Z.game)
+		//console.log('random should show because game is', Z.game)
 		show('bRandomMove');
 	}
 

@@ -55,7 +55,7 @@ function show_settings(dParent) {
 	clearElement(dParent);
 	mFlex(dParent);
 	mStyle(dParent, { 'justify-content': 'end', gap: 12, paright: 10 })
-	console.log('dParent', dParent)
+	//console.log('dParent', dParent)
 	let playermode = get_playmode(uplayer); //console.log('playermode',playermode)
 	let game_mode = Z.mode;
 	// let dplaymode = mDiv(dParent, { fg: 'blue' }, null, playermode); // playermode == 'bot' ? 'bot' : '');

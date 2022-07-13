@@ -26,7 +26,7 @@ function start_tests() {
 }
 function landing(){
 
-	console.log('dHistory',UI.dHistory)
+	//console.log('dHistory',UI.dHistory)
 	show_history_popup();
 
 }
@@ -82,7 +82,7 @@ function ltest83_ferro_multi() {
 function ltest82_ferro() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
-	DA.auto_moves = [['random']];
+	DA.auto_moves = [];
 	let playernames = ['mimi', 'felix', 'gul'];//, 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
 	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
