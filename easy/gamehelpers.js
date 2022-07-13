@@ -496,6 +496,29 @@ function tableLayoutMR(dParent, m, r) {
 	let dOpenTable = ui.dOpenTable = mDiv(dMiddle, { w: '100%', padding: 10 }); mFlexWrap(dOpenTable);// mLinebreak(d_table);
 	return [dOben, dOpenTable, dMiddle, dRechts];
 }
+function PRHLayout(){
+	let drr=UI.DRR = mDiv(dTable);
+	mAppend(drr,UI.dHistory);
+	Clientdata.historyLayout = 'prh';
+}
+function HRPLayout(){
+	let dr=UI.dRechts;
+	dr.remove();
+	let drr=UI.DRR = mDiv(dTable);
+	mAppend(drr,UI.dHistory);
+	mAppend(dTable,dr);
+	Clientdata.historyLayout = 'hrp';
+}
+function PHLayout(){
+	if (isdef(UI.DRR)) UI.DRR.remove();
+	mAppend(UI.dRechts,UI.dHistory);
+	Clientdata.historyLayout = 'ph';
+}
+function HPLayout(){
+	if (isdef(UI.DRR)) UI.DRR.remove();
+	mInsert(UI.dRechts,UI.dHistory);
+	Clientdata.historyLayout = 'hp';
+}
 function ui_player_info(g, dParent, outerStyles = { dir: 'column' }, innerStyles = {}) {
 	let fen = g.fen;
 	let players = dict2list(fen.players, 'name');
