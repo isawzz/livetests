@@ -384,7 +384,7 @@ function fp_card_selection() {
 	} else if (cmd == 'anlegen') {
 
 		if (selitems.length < 1) { select_error('select at least 1 hand card and the first card of a group!'); return; }
-		else if (pl.hand.length == selitems.length){ select_error('you need to keep a card for discard!!',clear_selection); return; }
+		else if (pl.hand.length == selitems.length-1){ select_error('you need to keep a card for discard!!',clear_selection); return; }
 
 		let handcards = selitems.filter(x => !is_joker(x.o) && x.path.includes(`${uplayer}.hand`));
 		let groupcard = selitems.find(x => !is_joker(x.o) && !x.path.includes(`${uplayer}.hand`));

@@ -1,3 +1,16 @@
+function old_show_settings(dParent) {
+	let [options, fen, uplayer] = [Z.options, Z.fen, Z.uplayer];
+	clearElement(dParent);
+	mFlex(dParent);
+	let playermode = get_playmode(uplayer); //console.log('playermode',playermode)
+	let game_mode = Z.mode;
+	let dplaymode = mDiv(dParent, { fg: 'blue' }, null, playermode); // playermode == 'bot' ? 'bot' : '');
+	let dgamemode = mDiv(dParent, { fg: 'red' }, null, Z.mode); //Z.mode == 'hotseat' ? 'h' : '');
+	let d = miPic('gear', dParent, { fz: 20, padding: 6, h: 40, box: true, matop: 2, rounding: '50%', cursor: 'pointer' });
+	options.playermode = playermode;
+	d.onmouseenter = () => show_options_popup(options);
+	d.onmouseleave = hide_options_popup;
+}
 function show_history_popup() {
 	
 	if (isEmpty(Z.fen.history)) return;
