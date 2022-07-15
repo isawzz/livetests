@@ -1,3 +1,70 @@
+function bw_set_new_password_popup() {
+	let w = 210;
+	// let html = `
+	// 	<div id="dBw" class="mystyle" style="background:silver;padding:12px">
+	// 		<div id="dBWLogin">
+	// 			<div>Your master password has expired!</div><br>
+	// 			<form action="javascript:bw_master_password_renew()" id="fBitwarden">
+	// 				<div style="width:${w}px;display:inline-block;">Enter New Master Password:</div>
+	// 				<input style="width:${w}px;" type="password" id="inputPassword" placeholder="" />
+	// 				<div id="dError1" style="color:red"></div><br>
+	// 				<div style="width:${w}px;display:inline-block;">Repeat New Master Password:</div>
+	// 				<input style="width:${w}px;" type="password" id="inputPassword2" placeholder="" />
+	// 				<div id="dError2" style="color:red"></div><br>
+	// 				<div style="text-align:center"><input style="margin:10px;padding:4px 20px;" type="submit" value="set new password" /></div>
+	// 			</form>
+	// 		</div>
+	// 	</div>
+	// `;
+	let html = `
+		<div id="dBw" class="mystyle" style="background:silver;padding:12px">
+			<div id="dBWLogin">
+				<form action="javascript:bw_master_password_renew()" id="fBitwarden">
+					<label for="inputPassword">New Password:</label>
+					<input type="password" id="inputPassword" placeholder="" onkeydown="focusNextSiblingOrSubmitOnEnter(event,'inputPassword2')" />
+					<label for="inputPassword2">Repeat Password:</label>
+					<input type="password" id="inputPassword2" placeholder="" onkeydown="focusNextSiblingOrSubmitOnEnter(event,'fBitwarden')" />
+				</form>
+				<div id="bw_login_status" style="color:red"></div>
+			</div>
+		</div>
+	`;
+	let d = mCreateFrom(html);
+	let dParent = mBy('dPopup');
+	show(dParent);
+	mClear(dParent);
+	mStyle(dParent, { top: 50, right: 10 });
+	mAppend(dParent, d);
+	document.getElementById("inputPassword").focus();
+}
+
+
+function bw_set_new_password_popup() {
+	let w=210;
+	let html = `
+		<div id="dBw" class="mystyle" style="background:silver;padding:12px">
+			<div id="dBWLogin">
+				<div>Your master password has expired!</div><br>
+				<form action="javascript:bw_master_password_renew()" id="fBitwarden">
+					<div style="width:${w}px;display:inline-block;">Enter New Master Password:</div>
+					<input style="width:${w}px;" type="password" id="inputPassword" placeholder="" />
+					<div id="dError1" style="color:red"></div><br>
+					<div style="text-align:center"><input style="margin:10px;padding:4px 20px;" type="submit" value="set new password" /></div>
+				</form>
+			</div>
+		</div>
+	`;
+	let d = mCreateFrom(html);
+	let dParent = mBy('dPopup');
+	show(dParent);
+	mClear(dParent);
+	mStyle(dParent, { top: 50, right: 10 });
+	mAppend(dParent, d);
+	document.getElementById("inputPassword").focus();
+}
+
+
+
 function old_show_history_popup() {
 	
 	let fen = Z.fen;

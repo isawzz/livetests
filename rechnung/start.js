@@ -7,6 +7,9 @@ function start() {
 	if (FirstLoad) { FirstLoad = false; initialize_state(); } //show_master_password(); }
 	get_toolbar();
 	//#region test
+
+	// start_challenge0();	onclick_popup('bw');
+
 	//show_eval_message(false);
 	//start_challenge2();
 	//onclick_location('skype');	S.skype_contact = DIBOA.skype.contacts[DIBOA.skype.contacts.length - 1];	show_skype_contact(DIBOA.skype.divRight)
@@ -15,7 +18,7 @@ function start() {
 	//onclick_location('boa');
 	//onclick_bigredloginbutton();
 	//fillout_boa_login();
-	//#endregion
+	//#_endregion
 }
 function initialize_state() {
 	//var S = { location: null, boa_state: null, bw_state: null, master_password: 'Ab33', score: 0, };
@@ -23,15 +26,26 @@ function initialize_state() {
 	onclick = close_popup;
 	onkeyup = keyhandler;
 	let state = localStorage.getItem('boa');
-	if (state) S = JSON.parse(state); else S = { location: null, boa_state: null, bw_state: null, master_password: 'Ab33', score: 0, };
+	if (state) S = JSON.parse(state);
+	else S = { location: null, boa_state: null, bw_state: null, master_password: 'Ab33', score: 10, };
+
 	let score = S.score;
 	if (score >= 10) { set_new_password(); }
 	S.location = 'home'; // home | boa 
-	S.bw_state = 'loggedin'; // loggedin | expired | loggedout;
+
+	S.bw_state = 'loggedin'; // coin()?'loggedin':coin()?'loggedout':'expired'; // loggedin | expired | loggedout;
+
 	S.boa_state = null;
 	//console.log('load_boa', S);
 }
 
+function start_challenge0() {
+	DA.challenge = 0;
+	DA.name = 'Password';
+	scrollToTop();
+	if (S.bw_state == 'loggedin') toggle_bw_symbol();
+	S.bw_state = coin() ? 'loggedout' : 'expired';
+}
 function start_challenge1() {
 	DA.challenge = 1;
 	DA.name = 'Login';
@@ -180,11 +194,13 @@ function add_make_payments_button(ev) {
 	DA.prevHidden = dHidden;
 
 }
+
+//#region bw master password
 function bw_login_popup() {
 	let html = `
 		<div id="dBw" class="mystyle" style="background:silver;padding:12px">
 			<div id="dBWLogin">
-				<form action="javascript:check_bw_master_password()" id="fBitwarden">
+				<form action="javascript:bw_master_password_check()" id="fBitwarden">
 					<label for="inputPassword">Enter Master Password:</label>
 					<input type="password" id="inputPassword" placeholder="" />
 				</form>
@@ -200,6 +216,29 @@ function bw_login_popup() {
 	mAppend(dParent, d);
 	document.getElementById("inputPassword").focus();
 }
+function bw_master_password_check() {
+	let pw = mBy('inputPassword').value;
+	if (pw === S.master_password) {
+		//user entered master password
+		set_boa_score(1);
+		S.bw_state = 'loggedin';
+		toggle_bw_symbol();
+		hide('dPopup');
+
+		//change to other symbol!!!
+		//soll ich den bw_state saven? erst bei langem pwd
+
+	} else {
+		set_boa_score(-1);
+		let d = mBy('bw_login_status');
+		d.innerHTML = 'Incorrect Master Password';
+	}
+
+	if (DA.name == 'Password'){		show_eval_message(pw === S.master_password);	}
+
+}
+//#_endregion
+
 function boa_start() {
 	let d = mBy('dBoa');
 	mClear(d);
@@ -237,7 +276,7 @@ function boamain_start() {
 			let msg = DA.challenge == 1 ? 'CONGRATULATIONS!!!! YOU SUCCEEDED IN LOGGING IN TO BOA' : 'Session timed out!';
 			show_eval_message(true);
 		}, 3000);
-	} else if (DA.challenge == 3) show_bill_button(); 
+	} else if (DA.challenge == 3) show_bill_button();
 	show_correct_location('boa');  //das ist um alle anderen screens zu loeschen!
 	let dParent = mBy('dBoa'); mClear(dParent);
 	let d0 = mDiv(dParent, { align: 'center' }, 'dBoaMain'); mCenterFlex(d0);
@@ -388,23 +427,6 @@ function close_popup() {
 	//console.log('screen click');
 	let dpop = mBy('dPopup');
 	hide(dpop);
-}
-function check_bw_master_password() {
-	let pw = mBy('inputPassword').value;
-	if (pw === S.master_password) {
-		//user entered master password
-		set_boa_score(1);
-		S.bw_state = 'loggedin';
-		toggle_bw_symbol();
-		hide('dPopup');
-		//change to other symbol!!!
-		//soll ich den bw_state saven? erst bei langem pwd
-
-	} else {
-		set_boa_score(-1);
-		let d = mBy('bw_login_status');
-		d.innerHTML = 'Incorrect Master Password';
-	}
 }
 function enterOnlineIDFormSubmit() {
 	var form = document.getElementById("EnterOnlineIDForm");
@@ -1127,11 +1149,11 @@ function get_toolbar(list) {
 			let offset = 6;
 			mStyle(elem, { fg: 'transparent', fz: 10, position: 'absolute', bottom: offset - 1, right: offset + 1 });
 			//console.log('is_bw',is_bw())
-			if (!is_bw()) toggle_bw_symbol(dsym);
+			if (!is_bw_loggedin()) toggle_bw_symbol(dsym);
 		}
 	}
 }
-function is_bw() {
+function is_bw_loggedin() {
 	//find out bitwarden state
 	let bw_state = S.bw_state; //localStorage.getItem('bw_state');
 	//console.log('bw_state', bw_state);
@@ -1248,9 +1270,9 @@ function onclick_popup(k) {
 	let o = DIBOA[k];
 	if (nundef(o)) { console.log('missing popup item: ' + k); return; }
 	if (k == 'bw') {
-		if (!is_bw()) {
-			assertion(S.bw_state != 'loggedin', "bw_state is not set!!!!", S.bw_state);
-			bw_login_popup();
+		if (!is_bw_loggedin()) {
+			assertion(S.bw_state == 'loggedout' || S.bw_state == 'expired', "bw_state is corrupted!!!!", S.bw_state);
+			if (S.bw_state == 'loggedout') { bw_login_popup(); } else { bw_set_new_password_popup(); }
 		} else {
 			bw_widget_popup();
 		}
@@ -1461,7 +1483,7 @@ function skype_start() {
 function toggle_bw_symbol(d) {
 	if (nundef(d)) d = document.getElementById('tbbw');
 	d = d.getElementsByTagName('i')[0];
-	console.log('d', d);
+	//console.log('d', d);
 	if (isdef(d)) {
 		if (d.classList.contains('fa-car')) {
 			d.classList.remove('fa-car');

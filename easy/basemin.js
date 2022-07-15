@@ -364,8 +364,8 @@ function old_mButtonX(dParent, pos = 'tr', handler = null, defaultBehavior = 'hi
 	mPlace(d2, pos, 10);
 	return d2;
 }
-function mButtonX(dParent, handler, pos='tr', sz = 25, color='white') {
-	let d2 = mDiv(dParent, { fg:color, w: sz, h: sz, pointer: 'cursor' }, null, `<i class="fa fa-times" style="font-size:${sz}px;"></i>`, 'btnX');
+function mButtonX(dParent, handler, pos = 'tr', sz = 25, color = 'white') {
+	let d2 = mDiv(dParent, { fg: color, w: sz, h: sz, pointer: 'cursor' }, null, `<i class="fa fa-times" style="font-size:${sz}px;"></i>`, 'btnX');
 	//let d2 = mDiv(dParent, { fg:'white', w: sz, h: sz, pointer: 'cursor' }, null, 'CLOSE', 'btnX');
 	mPlace(d2, pos, 2);
 	d2.onclick = handler;
@@ -381,7 +381,7 @@ function mCard(dParent, styles, classtr = '', id = null) {
 	// console.log('classes', classes);
 	return mDiv(dParent, styles, id, null, classes);
 }
-function mCardText(ckey,sz,color){ return is_jolly(ckey)? '<span style="font-family:Algerian">jolly</span>':`${ckey[0]}${mSuit(ckey,sz,color)}`;}
+function mCardText(ckey, sz, color) { return is_jolly(ckey) ? '<span style="font-family:Algerian">jolly</span>' : `${ckey[0]}${mSuit(ckey, sz, color)}`; }
 function mCenterFlex(d, hCenter = true, vCenter = false, wrap = true) {
 	let styles = { display: 'flex' };
 	if (hCenter) styles['justify-content'] = 'center';
@@ -835,11 +835,11 @@ function mStamp(d1, text, color, sz) {
 	mStyle(d1, { position: 'relative' });
 	let r = getRect(d1);
 	let [w, h] = [r.w, r.h];
-	color = ['green','red','blue'].includes(color)?color:'black';
+	color = ['green', 'red', 'blue'].includes(color) ? color : 'black';
 	sz = valf(sz, r.h / 7);
 	console.log('r', r, 'sz', sz);
 	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rNumber(-25, 25)];
-	let d2 =mDiv(d1, {
+	let d2 = mDiv(d1, {
 		//opacity: 0.9,
 		fg: color,
 		position: 'absolute', top: 25, left: 5,
@@ -860,18 +860,18 @@ function mStamp(d1, text, color, sz) {
 		'mix-blend-mode': 'multiply',
 
 	}, null, text);
-	mClass(d2,`${color}stamp`);
+	mClass(d2, `${color}stamp`);
 
 }
 function mStamp(d1, text, color, sz) {
 	mStyle(d1, { position: 'relative' });
 	let r = getRect(d1);
 	let [w, h] = [r.w, r.h];
-	color = valf(color,'black'); // ['green','red','blue'].includes(color)?color:'black';
+	color = valf(color, 'black'); // ['green','red','blue'].includes(color)?color:'black';
 	sz = valf(sz, r.h / 7);
 	//console.log('r', r, 'sz', sz);
-	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rChoose([-16, -14,-10,10,14])];
-	let d2 =mDiv(d1, {
+	let [padding, border, rounding, angle] = [sz / 10, sz / 6, sz / 8, rChoose([-16, -14, -10, 10, 14])];
+	let d2 = mDiv(d1, {
 		//opacity: 0.9,
 		fg: color,
 		position: 'absolute', top: 25, left: 5,
@@ -882,7 +882,7 @@ function mStamp(d1, text, color, sz) {
 		rounding: rounding,
 
 		//the following wenn ich den black ops one font verwende! mit black
-		border:`${border}px solid ${colorTrans(color,.8)}`, // black
+		border: `${border}px solid ${colorTrans(color, .8)}`, // black
 		'-webkit-mask-size': `${w}px ${h}px`,
 		'-webkit-mask-position': `50% 50%`,
 		'-webkit-mask-image': 'url("../base/assets/images/textures/grunge.png")',
@@ -897,10 +897,10 @@ function mStamp(d1, text, color, sz) {
 	//mClass(d2,`${color}stamp`);
 
 }
-function mSuit(ckey,sz=20,color=null){
-	let suit = ckey.length == 1?ckey:ckey[1];
-	let di = {S:'&spades;',H:'&hearts;',D:'&diams;',C:'&clubs;'};
-	color = valf(color,suit == 'H' || suit == 'D'?'red':'black');
+function mSuit(ckey, sz = 20, color = null) {
+	let suit = ckey.length == 1 ? ckey : ckey[1];
+	let di = { S: '&spades;', H: '&hearts;', D: '&diams;', C: '&clubs;' };
+	color = valf(color, suit == 'H' || suit == 'D' ? 'red' : 'black');
 	let html = `<span style='color:${color};font-size:${sz}px'>${di[suit]}</span>`;
 	return html;
 
@@ -3879,6 +3879,7 @@ function jsClean(o) {
 function jsonToYaml(o) { let y = jsyaml.dump(o); return y; }
 function isdef(x) { return x !== null && x !== undefined; }
 function nundef(x) { return x === null || x === undefined; }
+function isAlphaNum(s) { query = /^[a-zA-Z0-9]+$/; return query.test(s); }
 function isDOM(x) { let c = lookup(x, ['constructor', 'name']); return c ? startsWith(c, 'HTML') || startsWith(c, 'SVG') : false; }
 function isDict(d) { let res = (d !== null) && (typeof (d) == 'object') && !isList(d); return res; }
 function isDictOrList(d) { return typeof (d) == 'object'; }
