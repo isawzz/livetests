@@ -8,9 +8,9 @@ function start() {
 	get_toolbar();
 	//#region test
 
-	// start_challenge0();	onclick_popup('bw');
+	// start_challenge4();	onclick_popup('bw');
 
-	//show_eval_message(false);
+	//show_eval_message(true,null,onclick_home);
 	//start_challenge2();
 	//onclick_location('skype');	S.skype_contact = DIBOA.skype.contacts[DIBOA.skype.contacts.length - 1];	show_skype_contact(DIBOA.skype.divRight)
 	//S.bw_state = 'loggedin'; bw_widget_popup();
@@ -27,10 +27,9 @@ function initialize_state() {
 	onkeyup = keyhandler;
 	let state = localStorage.getItem('boa');
 	if (state) S = JSON.parse(state);
-	else S = { location: null, boa_state: null, bw_state: null, master_password: 'Ab33', score: 10, };
+	else S = { location: null, boa_state: null, bw_state: null, master_password: null, score: 0, };
 
-	let score = S.score;
-	if (score >= 10) { set_new_password(); }
+	//let score = S.score; if (score >= 10) { set_new_password(); }
 	S.location = 'home'; // home | boa 
 
 	S.bw_state = 'loggedin'; // coin()?'loggedin':coin()?'loggedout':'expired'; // loggedin | expired | loggedout;
@@ -39,13 +38,6 @@ function initialize_state() {
 	//console.log('load_boa', S);
 }
 
-function start_challenge0() {
-	DA.challenge = 0;
-	DA.name = 'Password';
-	scrollToTop();
-	if (S.bw_state == 'loggedin') toggle_bw_symbol();
-	S.bw_state = coin() ? 'loggedout' : 'expired';
-}
 function start_challenge1() {
 	DA.challenge = 1;
 	DA.name = 'Login';
@@ -64,6 +56,14 @@ function start_challenge3() {
 	DA.name = 'Full Bill Pay';
 	scrollToTop();
 	onclick_location('boa');
+}
+function start_challenge4() {
+	DA.challenge = 4;
+	DA.name = 'Password';
+	scrollToTop();
+	if (S.bw_state == 'loggedin') toggle_bw_symbol();
+	S.bw_state = (coin(25) || !S.master_password) ? 'expired' : 'loggedout';
+	//console.log('start_challenge4', S.bw_state);
 }
 
 function add_verify_content(dParent) {
@@ -216,27 +216,6 @@ function bw_login_popup() {
 	mAppend(dParent, d);
 	document.getElementById("inputPassword").focus();
 }
-function bw_master_password_check() {
-	let pw = mBy('inputPassword').value;
-	if (pw === S.master_password) {
-		//user entered master password
-		set_boa_score(1);
-		S.bw_state = 'loggedin';
-		toggle_bw_symbol();
-		hide('dPopup');
-
-		//change to other symbol!!!
-		//soll ich den bw_state saven? erst bei langem pwd
-
-	} else {
-		set_boa_score(-1);
-		let d = mBy('bw_login_status');
-		d.innerHTML = 'Incorrect Master Password';
-	}
-
-	if (DA.name == 'Password'){		show_eval_message(pw === S.master_password);	}
-
-}
 //#_endregion
 
 function boa_start() {
@@ -274,7 +253,7 @@ function boamain_start() {
 		TO.boa = setTimeout(() => {
 			S.boa_state = null;
 			let msg = DA.challenge == 1 ? 'CONGRATULATIONS!!!! YOU SUCCEEDED IN LOGGING IN TO BOA' : 'Session timed out!';
-			show_eval_message(true);
+			show_eval_message(true,null,onclick_home);
 		}, 3000);
 	} else if (DA.challenge == 3) show_bill_button();
 	show_correct_location('boa');  //das ist um alle anderen screens zu loeschen!
@@ -1175,7 +1154,7 @@ function make_payments_challenge_eval(inp) {
 	//console.log('solution',solution,'answer',answer);
 	let correct = solution.amount.toFixed(2) == answer.amount.toFixed(2) && solution.index == answer.index;
 	//if (correct) { console.log('CORRECT!!!!!!!!!'); } else { console.log('WRONG!!!!!!!!!', 'solution', solution, 'answer', answer); }
-	show_eval_message(correct);
+	show_eval_message(correct,null,correct ? onclick_home : null);
 }
 function onclick_bill() {
 	//console.log('clicked bill');
@@ -1258,6 +1237,7 @@ function onclick_location(k) {
 		S.boa_state = null;
 		let dband = mBy('dBandMessage');
 		if (isdef(dband)) mStyle(dband, { display: 'none', h: 0, hmin: 0 });
+		DA.challenge = DA.name = null;
 	}
 }
 function onclick_userid() {
@@ -1310,24 +1290,20 @@ function show_master_password() {
 	let score = localStorage.getItem('score');
 	show_special_message('the bitwarden master password is ' + S.master_password, false, 5000, 2000, { bg: 'dodgerblue', classname: '', top: 400 });
 }
-function show_eval_message(correct) {
-	let msg = correct ? `Congratulations!!! You passed the ${DA.name} challenge!` : 'Wrong solution - Try Again!';
+function show_eval_message(correct, msg=null, callback=null) {
+	
+	//console.log('_show_eval_message: DA',DA);
+	if (isdef(DA.anim)) {DA.anim.onfinish=null;DA.anim.cancel();} //console.log('!!!!!!!!!!!!');
+	if (nundef(msg)) msg = correct ? `Congratulations!!! You passed the ${DA.name} challenge!` : 'Wrong solution - Try Again!';
+
 	//show_special_message(msg, false, 5000, 2000, { bg: 'dodgerblue', position:'sticky', classname: 'special_message' },onclick_home);
 	let d = valf(mBy('dBandMessage'), mDiv(document.body, {}, 'dBandMessage'));
-	//console.log('dParent',dParent)
 	show(d);
 	clearElement(d);
-
-	//addKeys({ position: 'fixed', top: 200, classname: 'slow_gradient_blink', vpadding: 10, align: 'center', position: 'absolute', fg: 'white', fz: 24, w: '100vw' }, styles);
-	//if (!isEmpty(styles.classname)) { mClass(dParent, styles.classname); }
-	//delete styles.classname;
-	//mStyle(dParent, styles);
 	d.innerHTML = msg; //'blablablablabllllllllllllllllllllllllllllllaaaaaaaaaaaaaaaaaaaaaaa'; //msg;
-	mStyle(d, { position: 'fixed', top: 127, left: 0, bg: 'red', fg: 'white', w: '100%', h: 40, hmin: 40, hmax: 40, fz: 24, align: 'center', vpadding: 10, classname: 'slow_gradient_blink' });
-	//mClass(d,'slow_gradient_blink')
-	let [ms, delay, callback] = [5000, 0, correct ? onclick_home : null];
-	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(d, ms, callback); }, delay);
-	else mFadeClear(d, ms, callback);
+	mStyle(d, { display:'block', position: 'fixed', top: 127, left: 0, bg: 'red', fg: 'white', w: '100%', h: 40, hmin: 40, hmax: 40, fz: 24, align: 'center', vpadding: 10, classname: 'slow_gradient_blink' });
+	DA.anim=mFadeClear(d, 4000, callback);
+	//console.log('dParent',d,msg);
 
 }
 function show_correct_location(k) {
@@ -1370,7 +1346,7 @@ function show_skype_contact(dParent) {
 		d.scrollTop = d.scrollHeight;
 	}
 
-	console.log('auth code is', S.boa_authorization_code);
+	//console.log('auth code is', S.boa_authorization_code);
 }
 function set_new_password() {
 	let len = Math.min(20, S.master_password.length + 1);

@@ -326,7 +326,12 @@ function mAnimate(elem, prop, valist, callback, msDuration = 1000, easing = 'cub
 	}
 	let opts = { duration: msDuration, fill: forwards, easing: easing, delay: delay };
 	let a = toElem(elem).animate(kflist, opts);
-	if (isdef(callback)) a.onfinish = callback;
+
+	if (isdef(callback)) { a.onfinish = callback; }
+	return a;
+
+	// if (isdef(callback)) a.onfinish = ()=>{delete DA.anim;callback()}; else a.onfinish = ()=>delete DA.anim;
+	// DA.anim = a; return a;
 }
 function mAnimateTo(elem, prop, val, callback, msDuration = 1000, easing = 'cubic-bezier(1,-0.03,.86,.68)', delay = 0) {
 	//usage: mAnimateTo(elem, 'opacity', 1, somefunc, 2000, 'ease-in', 1000);
@@ -335,7 +340,11 @@ function mAnimateTo(elem, prop, val, callback, msDuration = 1000, easing = 'cubi
 	let kflist = [o];
 	let opts = { duration: msDuration, fill: 'forwards', easing: easing, delay: delay };
 	let a = toElem(elem).animate(kflist, opts);
-	if (isdef(callback)) a.onfinish = callback;
+
+	if (isdef(callback)) { a.onfinish = callback; }
+	return a;
+	// if (isdef(callback)) a.onfinish = ()=>{delete DA.anim;callback()}; else a.onfinish = ()=>delete DA.anim;
+	// DA.anim = a; return a;
 }
 function mAppend(d, child) { toElem(d).appendChild(child); return child; }
 function mButton(caption, handler, dParent, styles, classes, id) {
@@ -1244,11 +1253,11 @@ function mYaml(d, js) {
 //#endregion
 
 //#region m prefix anim
-function mAppear(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 1, callback, ms); }
-function mFade(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 0, callback, ms); }
-function mFadeRemove(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 0, () => { mRemove(d); if (callback) callback(); }, ms); }
-function mFadeClear(d, ms = 800, callback = null) { mAnimateTo(d, 'opacity', 0, () => { mClear(d); if (callback) callback(); }, ms); }
-function mFadeClearShow(d, ms = 800, callback = null) { mAnimate(d, 'opacity', [1, 0], () => { mClear(d); if (callback) callback(); }, ms); }
+function mAppear(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 1, callback, ms); }
+function mFade(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, callback, ms); }
+function mFadeRemove(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, () => { mRemove(d); if (callback) callback(); }, ms); }
+function mFadeClear(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, () => { mClear(d); if (callback) callback(); }, ms); }
+function mFadeClearShow(d, ms = 800, callback = null) { return mAnimate(d, 'opacity', [1, 0], () => { mClear(d); if (callback) callback(); }, ms); }
 function mFall(d, ms = 800) { toElem(d).animate([{ opacity: 0, transform: 'translateY(-50px)' }, { opacity: 1, transform: 'translateY(0px)' },], { fill: 'both', duration: ms, easing: 'ease' }); }
 function mPulse(d, ms, callback = null) { mClass(d, 'onPulse'); TO[getUID()] = setTimeout(() => { mClassRemove(d, 'onPulse'); if (callback) callback(); }, ms); }
 function mPulse1(d, callback) { mPulse(d, 1000); }

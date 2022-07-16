@@ -1,3 +1,24 @@
+function show_eval_message(correct, msg=null, callback=null) {
+	
+	console.log('_show_eval_message: DA',DA);
+	if (isdef(DA.anim)) DA.anim.cancel();
+	if (nundef(msg)) msg = correct ? `Congratulations!!! You passed the ${DA.name} challenge!` : 'Wrong solution - Try Again!';
+
+	//show_special_message(msg, false, 5000, 2000, { bg: 'dodgerblue', position:'sticky', classname: 'special_message' },onclick_home);
+	let d = valf(mBy('dBandMessage'), mDiv(document.body, {}, 'dBandMessage'));
+	show(d);
+	clearElement(d);
+	console.log('dParent',d,msg);
+
+	d.innerHTML = msg; //'blablablablabllllllllllllllllllllllllllllllaaaaaaaaaaaaaaaaaaaaaaa'; //msg;
+	mStyle(d, { display:'block', position: 'fixed', top: 127, left: 0, bg: 'red', fg: 'white', w: '100%', h: 40, hmin: 40, hmax: 40, fz: 24, align: 'center', vpadding: 10, classname: 'slow_gradient_blink' });
+	//mClass(d,'slow_gradient_blink')
+	//let [ms, delay] = [5000, 0];
+	//if (delay > 0) TO.special = setTimeout(() => { mFadeClear(d, ms, callback); }, delay);	else 
+	DA.anim=mFadeClear(d, 4000, callback);
+
+}
+
 function bw_set_new_password_popup() {
 	let w = 210;
 	// let html = `
