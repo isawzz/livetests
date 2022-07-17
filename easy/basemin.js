@@ -4063,8 +4063,8 @@ function show_special_message(msg, stay = false, ms = 3000, delay = 0, styles = 
 	delete styles.classname;
 	mStyle(dParent, styles);
 	dParent.innerHTML = msg;
-	if (delay > 0) TO.special = setTimeout(() => { mFadeClear(dParent, ms, callback); }, delay);
-	else mFadeClear(dParent, ms, callback);
+	if (delay > 0) TO.special = setTimeout(() => { mFadeRemove(dParent, ms, callback); }, delay);
+	else mFadeRemove(dParent, ms, callback);
 }
 function selectText(el) {
 	var sel, range;
