@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; ai_move(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -21,8 +21,21 @@ function start_tests() {
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	// ltest89_aristo_journey();
 	//#endregion
-	ltest90_bluff();
+	ltest90_bluff_ueberbiete();
 
+}
+function bluff_start_bid(o){
+	let ranks = rChoose(BLUFF.rankstr,2).map(x=>BLUFF.toword[x]);
+	let b2=coin(10)?'_':rNumber(1,4);
+	o.fen.lastbid = [rNumber(1,4),ranks[0],b2,b2=='_'?'_':ranks[1]];
+}
+function ltest90_bluff_ueberbiete() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [bluff_start_bid], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
+
+	startgame('bluff', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest90_bluff() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };

@@ -255,6 +255,12 @@ const ARI = {
 
 	}
 };
+const BLUFF = {
+	torank : { _: '_', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' },
+	toword : { _: '_', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' },
+	rankstr: '3456789TJQKA',
+
+};
 const SHERIFF = {
 	color: {
 		legal: GREEN, //'lime',
@@ -1675,11 +1681,11 @@ function arrSplitByIndices(arr, indices) {
 function arrShufflip(arr) { if (isEmpty(arr)) return []; else return fisherYates(arr); }
 function arrSum(arr, props) { if (nundef(props)) return arr.reduce((a, b) => a + b); if (!isList(props)) props = [props]; return arr.reduce((a, b) => a + (lookup(b, props) || 0), 0); }
 function arrSwap(arr, i, j) { let h = arr[i]; arr[i] = arr[j]; arr[j] = h; }
-function arrTake(arr, n, from = 0) {
+function arrTake(arr, n = 0, from = 0) {
 	if (isDict(arr)) {
 		let keys = Object.keys(arr);
-		return keys.slice(from, from + n).map(x => (arr[x]));
-	} else return arr.slice(from, from + n);
+		return n>0? keys.slice(from, from + n).map(x => (arr[x])):keys.slice(from).map(x => (arr[x]));
+	} else return n>0? arr.slice(from, from + n):arr.slice(from);
 
 }
 function arrTakeLast(arr, n, from = 0) {

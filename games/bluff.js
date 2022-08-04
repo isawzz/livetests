@@ -79,16 +79,16 @@ function bluff_activate_new() {
 function bluff_stats_new(dParent) {
 	let player_stat_items = UI.player_stat_items = ui_player_info(Z, dParent, {}, { 'border-width': 1, margin: 10, wmax: 180 });
 	let fen = Z.fen;
-	for (const uname of fen.plorder) {
-		let pl = fen.players[uname];
-		let item = player_stat_items[uname];
+	for (const plname of fen.plorder) {
+		let pl = fen.players[plname];
+		let item = player_stat_items[plname];
 		let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
-		if (fen.turn.includes(uname)) {
-			let dh = show_hourglass(uname, d, 20, { left: -4, top: 0 });
+		if (fen.turn.includes(plname)) {
+			let dh = show_hourglass(plname, d, 20, { left: -4, top: 0 });
 		}
 		let dhz = mDiv(d, { fg: pl.handsize == Z.options.max_handsize ? 'yellow' : 'white' }, null, `hand: ${pl.handsize}`); mLinebreak(d);
-		if (uname == fen.loser) UI.dHandsize = dhz;
-		let elem = mDiv(d, { fg: uname == fen.lastbidder ? 'red' : 'white' }, null, `${valf(pl.lastbid, ['_']).join(' ')}`);
+		if (plname == fen.loser) UI.dHandsize = dhz;
+		let elem = mDiv(d, { fg: plname == fen.lastbidder ? 'red' : 'white' }, null, `${valf(pl.lastbid, ['_']).join(' ')}`);
 		let szhand = getSizeNeeded(dhz);
 		let sz = getSizeNeeded(elem);
 		let w = Math.max(szhand.w + 20, sz.w + 20, 80);
@@ -178,7 +178,7 @@ function bluff_activate_stage1() {
 
 	if (isdef(DA.ack) && isdef(DA.ack[uplayer])) { console.log('DA.ack', DA.ack); mText('...waiting for ack', dt); return; }
 
-	mPulse(ui.dHandsize, 2000);
+	if (isdef(ui.dHandsize)) mPulse(ui.dHandsize, 2000);
 	// mButton('WEITER', () => {
 	// 	bluff_ack_uplayer();
 	// 	if (isEmpty(Z.turn) || Z.mode == 'hotseat') { bluff_change_to_turn_round(); take_turn_fen(); }
