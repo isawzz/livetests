@@ -273,10 +273,11 @@ function deck_deal_safe_fritz(fen, plname, n = 1) {
 		fen.deck = create_fen_deck('n', fen.num_decks, 0); 
 		fen.loosecards.push('*Hn'); //1 jolly kommt dazu!
 	}
-	let newcards = deck_deal(fen.deck, n);
-	fen.players[plname].hand.push(...newcards);
-	newcards.map(x => lookupAddToList(fen.players[plname], ['newcards'], x));
-	return newcards;
+	let new_cards = deck_deal(fen.deck, n);
+	fen.players[plname].hand.push(...new_cards);
+	new_cards.map(x => lookupAddToList(fen.players[plname], ['newcards'], x));
+	// new_cards.map(x => lookupAddToList(Clientdata, ['newcards'], x));
+	return new_cards;
 }
 function drag(ev) { clear_quick_buttons(); ev.dataTransfer.setData("text", ev.target.id); }
 function drop_card_fritz(ev) {
@@ -442,7 +443,7 @@ function end_of_turn_fritz() {
 	} else { Z.turn = [get_next_player(Z, uplayer)]; deck_deal_safe_fritz(fen, Z.turn[0]); }
 
 	//console.log('...plorder', fen.plorder, 'turn', Z.turn); output_scores();
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function frnew(card, ev) {
@@ -516,6 +517,7 @@ function fritz_new_player_hands(fen, starter, options) {
 		pl.time_left = options.seconds_per_game * 1000; //seconds
 		pl.roundchange = true;
 		delete pl.handsorting;
+		// delete Clientdata.newcards;
 		delete pl.newcards;
 
 	}

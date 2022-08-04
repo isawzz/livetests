@@ -46,7 +46,7 @@ games:
   bluff:
     friendly: Bluff
     logo: beaming face with smiling eyes
-    color: RED
+    color: red
     game_type: turn
     options:
       mode: 'solo,hotseat,multi'
@@ -79,8 +79,10 @@ games:
       #mode: 'solo,multi,hotseat'
       mode: 'solo,hotseat,multi'
       handsize: '3,5,11'
-      maxrounds: '5,1,2,7'
+      maxrounds: '1,3,5,7'
       phase_order: 'fixed,choice'
+      thinking_time: '3,10,20,5'
+      auto_weiter: 'no,yes'
       # allow_sequences: 'yes,no'
       # allow_exchange: 'yes,no'
       jokers_per_group: '3,2,1'
@@ -96,7 +98,7 @@ games:
   spotit:
     friendly: Spotit
     logo: spy
-    color: GREEN
+    color: green
     game_type: race
     options:
       mode: 'solo,hotseat,multi'

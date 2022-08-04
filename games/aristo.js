@@ -46,10 +46,11 @@ function aristo() {
 
 		if (exp_commissions(options)) {
 			ari_history_list([`commission trading starts`], 'commissions', fen);
-			[fen.stage, fen.turn] = [23, [fen.plorder[0]]]; fen.comm_setup_num = 3;
+			//[fen.stage, fen.turn] = [23, [fen.plorder[0]]]; fen.comm_setup_num = 3;
+			[fen.stage, fen.turn] = [23, fen.plorder]; fen.comm_setup_num = 3; fen.keeppolling = true;
 		} else if (exp_rumors(options)) {
 			ari_history_list([`gossiping starts`], 'rumors', fen);
-			[fen.stage, fen.turn] = [24, [fen.plorder[0]]];
+			[fen.stage, fen.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
 		} else[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
 
 		return fen;
@@ -218,6 +219,31 @@ function aristo() {
 			return iDiv(card).outerHTML;
 		}
 
+		if (DA.TEST0 == true) {
+			//testing output
+			let html = `${Z.stage}`;
+			if (isdef(Z.playerdata)) {
+	
+				let trigger = get_multi_trigger();
+				if (trigger) html += ` trigger:${trigger}`;
+	
+				for (const data of Z.playerdata) {
+					if (data.name == trigger) continue;
+					let name = data.name;
+					let state = data.state;
+					//console.log('state', name, state, typeof(state));
+					let s_state = object2string(state);
+					html += ` ${name}:'${s_state}'`; // (${typeof state})`;
+					//let buys=!isEmpty(data.state)?data.state.buy:'_';
+					//html += ` ${name}:${buys}`;
+				}
+				dParent.innerHTML += ` ${Z.playerdata.map(x => x.name)}`;
+			}
+	
+			dParent.innerHTML = html;
+			return;
+		}
+	
 		let user_html = get_user_pic_html(Z.uplayer, 30);
 		let phase_html = get_phase_html();
 
@@ -244,7 +270,16 @@ function ari_pre_action() {
 	show_stage();
 	switch (ARI.stage[stage]) {
 		case 'comm_weitergeben': select_add_items(ui_get_all_commission_items(uplayer), process_comm_setup, `must select ${fen.comm_setup_num} card${fen.comm_setup_num > 1 ? 's' : ''} to discard`, fen.comm_setup_num, fen.comm_setup_num); break;
-		case 'rumors_weitergeben': select_add_items(ui_get_rumors_and_players_items(uplayer), process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); break;
+		case 'rumors_weitergeben': 
+		let rumitems = ui_get_rumors_and_players_items(uplayer);
+		if (isEmpty(rumitems)) {
+			//console.log('ALL ITEMS HAVE BEEN ASSIGNED!!!');
+			show_waiting_message('waiting for other players...');
+			let done = ari_try_resolve_rumors_distribution();
+			if (!done) autopoll();
+			//check if other playerdata are also complete, if yes and I am the trigger??? modify fen!
+		}else select_add_items(rumitems, process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); break;
+		case 'next_rumor_setup_stage': post_rumor_setup(); break;
 		case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
 		case 'buy rumor': select_add_items(ui_get_top_rumors(), post_buy_rumor, 'must select one of the cards', 1, 1); break;
 		case 'rumor discard': select_add_items(ui_get_rumors_items(uplayer), process_rumor_discard, 'must select a rumor card to discard', 1, 1); break;
@@ -340,6 +375,7 @@ function ari_pre_action() {
 		case 'auction: buy': select_add_items(ui_get_market_items(), post_auction, 'must buy a card', 1, 1); break;
 		case 'end game?': select_add_items(ui_get_endgame(uplayer), post_endgame, 'may end the game here and now or go on!', 1, 1); break;
 		case 'pick luxury or journey cards': select_add_items(ui_get_string_items(['luxury cards', 'journey cards']), post_luxury_or_journey_cards, 'must select luxury cards or getting cards from the other end of the journey', 1, 1); break;
+		case 'next_comm_setup_stage': select_confirm_weiter(post_comm_setup_stage); break;
 		default: console.log('stage is', stage); break;
 	}
 
@@ -590,7 +626,7 @@ function ari_next_action() {
 	} else {
 		Z.stage = 5;
 	}
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 //#endregion
@@ -621,7 +657,7 @@ function process_auction() {
 			Z.stage = 4;
 			Z.turn = [fen.plorder[0]];
 			//ari_next_action();
-			turn_send_move_update(); //wenn send mache muss ich die ui nicht korrigieren!
+			take_turn_fen(); //wenn send mache muss ich die ui nicht korrigieren!
 			return;
 		}
 
@@ -637,7 +673,7 @@ function process_auction() {
 		Z.turn = [fen.plorder[iturn]];
 	}
 	//console.log('next player is', Z.turn[0]);
-	turn_send_move_update(); //wenn send mache muss ich die ui nicht korrigieren!
+	take_turn_fen(); //wenn send mache muss ich die ui nicht korrigieren!
 }
 function post_auction() {
 	console.assert(Z.stage == 13, 'WRONG STAGE IN POST AUCTION ' + Z.stage);
@@ -650,7 +686,7 @@ function post_auction() {
 		if (!lookup(fen, ['buy', plname])) {
 			//let iturn = fen.plorder.indexOf(uplayer);
 			Z.turn = [plname]; //fen.plorder[iturn];
-			turn_send_move_update(); //wenn send mache muss ich die ui nicht korrigieren!
+			take_turn_fen(); //wenn send mache muss ich die ui nicht korrigieren!
 			return;
 		}
 	}
@@ -683,7 +719,8 @@ function post_auction() {
 		ari_reorg_discard(fen);
 	}
 
-	ari_history_list(get_auction_history(fen), 'auction');
+	add_auction_history();
+	//ari_history_list(get_auction_history(fen), 'auction');
 
 	delete fen.second_most;
 	delete fen.maxplayers;
@@ -692,10 +729,22 @@ function post_auction() {
 	Z.stage = 4;
 	Z.turn = [fen.plorder[0]];
 	//ari_next_action();
-	turn_send_move_update(); //wenn send mache muss ich die ui nicht korrigieren!
+	take_turn_fen(); //wenn send mache muss ich die ui nicht korrigieren!
 
 
 }
+function add_auction_history() {
+	let [fen,plorder]=[Z.fen,Z.plorder];
+	for (const plname of plorder) {
+		ari_history_list([`${plname} bids ${fen.auction[plname]}`], 'auction');
+	}
+	ari_history_list([`auction winner${fen.maxplayers.length > 1 ? 's' : ''}: ${fen.maxplayers.join(', ')}`], 'auction');
+	for (const plname of fen.plorder) {
+		if (nundef(fen.buy[plname])) continue;
+		ari_history_list([`${plname} buys ${fen.buy[plname].a} for ${fen.second_most}`], 'auction');
+	}
+}
+
 function get_auction_history(fen) {
 	let lines = [];
 	let revorder = jsCopy(fen.plorder).reverse();
@@ -703,7 +752,7 @@ function get_auction_history(fen) {
 		if (nundef(fen.buy[uplayer])) continue;
 		lines.push(`${uplayer} buys ${fen.buy[uplayer].a} for ${fen.second_most}`);
 	}
-	lines.push(`auction winners${fen.maxplayers.length > 1 ? 's' : ''}: ${fen.maxplayers.join(', ')}`);
+	lines.push(`auction winner(s)${fen.maxplayers.length > 1 ? 's' : ''}: ${fen.maxplayers.join(', ')}`);
 	for (const uplayer of revorder) {
 		lines.push(`${uplayer} bids ${fen.auction[uplayer]}`);
 	}
@@ -762,7 +811,7 @@ function post_ball() {
 	Z.turn = [fen.plorder[iturn]];
 	//console.log('turn', Z.turn);
 	ari_history_list([`${uplayer} added ${keys.length} card${plural(keys.length)} to ball!`], 'ball');
-	turn_send_move_update(); //wenn send mache muss ich die ui nicht korrigieren!
+	take_turn_fen(); //wenn send mache muss ich die ui nicht korrigieren!
 
 
 }
@@ -895,13 +944,13 @@ function post_church() {
 		let plorder = fen.plorder = jsCopy(fen.heraldorder);
 		Z.turn = [plorder[0]];
 		//church ends here!!!
-		turn_send_move_update();
+		take_turn_fen();
 
 		//ari_start_action_stage(); NEIN! zuerst kommt ein complementing_market stage!
 
 	} else {
 		Z.turn = [get_next_in_list(uplayer, fen.selorder)];
-		turn_send_move_update();
+		take_turn_fen();
 	}
 
 }
@@ -996,7 +1045,7 @@ function post_tide() {
 		Z.turn = [next];
 
 	}
-	turn_send_move_update();
+	take_turn_fen();
 
 
 }
@@ -1049,11 +1098,11 @@ function post_complementing_market_after_church() {
 		ari_start_action_stage();
 	} else {
 		Z.turn = [next];
-		turn_send_move_update();
+		take_turn_fen();
 	}
 }
 function proceed_to_newcards_selection() {
-	//determine selection order for newcards selection
+	//determine selection order for _newcards selection
 	let fen = Z.fen;
 
 	let selorder = fen.selorder = sortByFuncDescending(fen.church_order, x => fen.players[x].tides.val);
@@ -1063,7 +1112,7 @@ function proceed_to_newcards_selection() {
 	fen.plorder = selorder;
 	Z.turn = [selorder[0]];
 	Z.stage = 19;
-	turn_send_move_update();
+	take_turn_fen();
 
 
 }
@@ -1120,6 +1169,91 @@ function ui_get_church_items(uplayer) {
 //#endregion
 
 //#region commission
+function process_comm_setup() {
+
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+	assertion(fen.keeppolling == true, "keeppolling must be true for process_comm_setup!!!");
+	//console.log('OK 1');
+
+	//get keys of selected cards
+	let items = A.selected.map(x => A.items[x]);
+	let next = get_next_player(Z, uplayer);
+	let receiver = next;
+	let giver = uplayer;
+	let keys = items.map(x => x.key);
+
+	//must write to pldata (=Z.state) {giver, receiver, keys}
+	Z.state = { giver, receiver, keys };
+
+	assertion(isdef(Z.playerdata), "Z.playerdata must be defined for process_comm_setup!!!");
+	let data = firstCond(Z.playerdata, x => x.name == uplayer);
+	assertion(isdef(data), `MISSING: playerdata for ${uplayer}`);
+	data.state = Z.state;
+
+	//console.log('OK 2');
+
+	//check if playerdata set for all players
+	let can_resolve = true;
+	for (const plname of plorder) {
+		let data1 = firstCond(Z.playerdata, x => x.name == plname && !isEmpty(x.state));
+		if (nundef(data1)) { can_resolve = false; break; }
+	}
+	if (can_resolve) {
+		Z.turn = [Z.host];
+		Z.stage = 104; //'next_comm_setup_stage';
+		take_turn_fen_write();
+	} else {
+		take_turn_multi();
+	}
+
+
+
+}
+function post_comm_setup_stage() {
+	//console.log('OK 3');
+
+	//erst uebertrage alle cards from pldata.state.keys to pldata.state.receiver
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+	for (const data of Z.playerdata) {
+		let state = data.state;
+		console.log('state',state)
+		let giver = state.giver;
+		let receiver = state.receiver;
+		let keys = state.keys;
+		console.log('giver',giver,'receiver',receiver,'keys',keys);
+
+		keys.map(x=>elem_from_to(x,fen.players[giver].commissions,fen.players[receiver].commissions));
+		//fen.players[giver].commissions = arrMinus(fen.players[giver].commissions, keys);
+		//fen.players[receiver].commissions = fen.players[receiver].commissions.concat(keys); //arrPlus(fen.players[receiver].commissions, keys);
+		//fen.players[receiver].commissions = arrPlus(fen.players[receiver].commissions, keys);
+	}
+
+	fen.comm_setup_num -= 1;
+
+	if (fen.comm_setup_num == 0) {
+		delete fen.comm_setup_di;
+		delete fen.comm_setup_num;
+		delete fen.keeppolling;
+		ari_history_list([`commission trading ends`], 'commissions');
+
+		if (exp_rumors) {
+			[Z.stage, Z.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
+			ari_history_list([`gossiping starts`], 'rumors');
+
+		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
+	}else{
+	
+		//muss auf jeden fen clear aufrufen!
+		//mach dasselbe wie beim ersten mal!
+		[Z.stage, Z.turn] = [23, fen.plorder]; 
+	}
+
+	//if fen.comm_setup_num is 1, then go to next stage 
+	console.log('fen',fen);
+	take_turn_fen_clear();
+}
+
+
 function process_commission() {
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 
@@ -1176,58 +1310,6 @@ function post_commission() {
 	ari_history_list([`${uplayer} replaced commission card ${A.commission.key} by ${comm_selected.key}`, `${uplayer} gets ${points} for commissioning ${A.commission.key}`], 'commission');
 
 	ari_next_action();
-}
-function is_setup_commissions_complete() {
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	let next = get_next_player(Z, uplayer);
-	return next == plorder[0] && fen.comm_setup_num == 1;
-}
-function process_comm_setup() {
-
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-
-	//console.log('we are in stage ' + Z.stage);
-
-	let items = A.selected.map(x => A.items[x]);
-	let next = get_next_player(Z, uplayer);
-	let receiver = next;
-	let giver = uplayer;
-	let keys = items.map(x => x.key);
-	fen.players[giver].commissions = arrMinus(fen.players[giver].commissions, keys);
-	if (nundef(fen.comm_setup_di)) fen.comm_setup_di = {};
-	fen.comm_setup_di[receiver] = keys;
-
-	if (is_setup_commissions_complete()) {
-		for (const plname of plorder) {
-			let pl = fen.players[plname];
-			assertion(isdef(fen.comm_setup_di[plname]), 'no commission setup for ' + plname);
-			pl.commissions = pl.commissions.concat(fen.comm_setup_di[plname]);
-		}
-		delete fen.comm_setup_di;
-		delete fen.comm_setup_num;
-
-		ari_history_list([`commission trading ends`], 'commissions');
-
-		if (exp_rumors) { 
-			[Z.stage, Z.turn] = [24, [plorder[0]]]; 
-			ari_history_list([`gossiping starts`], 'rumors');
-		
-		}else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
-
-	} else if (next == plorder[0]) {
-		//next commission round starts
-		for (const plname of plorder) {
-			let pl = fen.players[plname];
-			assertion(isdef(fen.comm_setup_di[plname]), 'no commission setup for ' + plname);
-			pl.commissions = pl.commissions.concat(fen.comm_setup_di[plname]);
-		}
-		fen.comm_setup_num -= 1;
-		Z.turn = [plorder[0]]
-	} else {
-		Z.turn = [next];
-	}
-	turn_send_move_update();
-
 }
 
 //#endregion
@@ -1333,7 +1415,7 @@ function post_endgame() {
 		let all_winners = sorted.filter(x => x.score == max_score);
 		fen.winners = all_winners.map(x => x.name);
 		console.log('winners:', fen.winners)
-		turn_send_move_update();
+		take_turn_fen();
 
 	} else {
 		// *** this potential winners chose go on! ***
@@ -1343,11 +1425,11 @@ function post_endgame() {
 			Z.turn = [fen.plorder[0]];
 			Z.phase = 'queen';
 			[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, Z.phase);
-			turn_send_move_update();
+			take_turn_fen();
 
 		} else {
 			Z.turn = [fen.pl_gameover[iturn]];
-			turn_send_move_update();
+			take_turn_fen();
 		}
 	}
 
@@ -1748,6 +1830,44 @@ function set_journey_or_stall_stage(fen, options, phase) {
 //#endregion
 
 //#region get ui items for various object groups
+function ui_get_rumors_and_players_items(uplayer) {
+	//console.log('uplayer',uplayer,UI.players[uplayer])
+	let items = [], i = 0;
+	let comm = UI.players[uplayer].rumors;
+
+	let [data, pl] = [Z.uplayer_data, Z.pl];
+	// let data = firstCond(Z.playerdata, x => x.name == uplayer);
+	assertion(isdef(data), 'no data for player ' + uplayer);
+
+	//console.log('ui: uplayer', Z.uplayer, 'data', data);
+	//sss();
+
+	if (!isDict(data.state)) data.state = {remaining:jsCopy(pl.rumors),receivers:[],di:{}};
+	let rem = data.state.remaining;
+	for (const k of rem) {
+		let o = firstCond(comm.items, x => x.key == k);
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i };
+		i++;
+		items.push(item);
+	}
+
+	let players = [];
+
+	// let receivers = valf(Z.fen.receivers, []);
+	let receivers = data.state.receivers;
+	//console.log('receivers', receivers);
+
+	for (const plname in UI.players) {
+		if (plname == uplayer || receivers.includes(plname)) continue;
+		players.push(plname);
+	}
+	items = items.concat(ui_get_string_items(players));
+
+	//assertion(comm.items.length == players.length, 'irgendwas stimmt nicht mit rumors verteilung!!!!', players, comm)
+
+	reindex_items(items);
+	return items;
+}
 function ui_get_card_items(cards) {
 	let items = [], i = 0;
 	for (const o of cards) {
@@ -2147,7 +2267,7 @@ function process_journey() {
 	if (isEmpty(A.selected)) {
 		if (nundef(fen.passed)) fen.passed = []; fen.passed.push(uplayer);
 		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, Z.phase); //set_nextplayer_after_journey();
-		turn_send_move_update();
+		take_turn_fen();
 		return;
 	}
 
@@ -2168,7 +2288,7 @@ function post_new_journey() {
 	arrReplace(fen.players[uplayer].hand, A.jlegal, deck_deal(fen.deck_luxury, A.jlegal.length));
 	ari_history_list([`${uplayer} added journey`], 'journey');
 	[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, Z.phase);
-	turn_send_move_update();
+	take_turn_fen();
 }
 function check_correct_journey(A, fen, uplayer) {
 	let items = A.selected.map(x => A.items[x]);
@@ -2275,7 +2395,7 @@ function post_luxury_or_journey_cards() {
 	fen.players[owner].journeys.splice(Number(parts[3]), 1, A.jlegal);
 	[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, Z.phase); //set_nextplayer_after_journey();
 	ari_history_list([`${uplayer} added to existing journey and takes ${luxury_selected ? 'luxury cards' : 'journey cards'}`], 'journey');
-	turn_send_move_update();
+	take_turn_fen();
 }
 
 
@@ -2358,7 +2478,7 @@ function post_stall_selected() {
 		if (check_if_church()) ari_start_church_stage(); else ari_start_action_stage();
 	} else {
 		Z.turn = [get_next_player(Z, uplayer)];
-		turn_send_move_update();
+		take_turn_fen();
 	}
 }
 
@@ -2368,7 +2488,7 @@ function ari_start_action_stage() {
 	//console.assert(next, 'NOBODY PUT UP A STALL!!!!!!!');
 
 	if (!next) { ari_next_phase(); }
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function ari_start_church_stage() {
@@ -2379,7 +2499,7 @@ function ari_start_church_stage() {
 
 	ari_history_list([`inquisition starts!`], 'church');
 
-	turn_send_move_update();
+	take_turn_fen();
 }
 //#endregion
 
@@ -2434,7 +2554,7 @@ function post_pickup() {
 	let item = A.items[A.selected[0]];
 	//move elem item.a from mimi.stall to mimi.hand
 	elem_from_to(item.key, fen.players[uplayer].stall, fen.players[uplayer].hand);
-	//turn_send_move_update();
+	//take_turn_single();
 	ari_history_list([`${uplayer} picks up ${item.key}`], 'pickup');
 	ari_next_action();
 }
@@ -2514,6 +2634,94 @@ function q_mirror_fen() {
 //#endregion
 
 //#region rumors
+function process_rumors_setup() {
+
+	let [fen, A, uplayer, plorder, data] = [Z.fen, Z.A, Z.uplayer, Z.plorder, Z.uplayer_data];
+
+	let items = A.selected.map(x => A.items[x]);
+	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
+	let rumor = firstCond(items, x => !plorder.includes(x.key));
+	if (nundef(receiver) || nundef(rumor)) {
+		select_error('you must select exactly one player and one rumor card!');
+		return;
+	}
+
+	assertion(isdef(data), 'no data for player ' + uplayer); //	sss(); //console.log('data',data);
+
+	let remaining = arrMinus(data.state.remaining, rumor.key); //fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
+	lookupAddToList(data, ['state', 'di', receiver], rumor.key);
+	lookupAddToList(data, ['state', 'receivers'], receiver);
+	lookupSetOverride(data, ['state', 'remaining'], remaining);
+
+	//console.log('state nach auswahl von', rumor.key, 'fuer', receiver, data.state);
+
+	Z.state = data.state; //genau DAS muss gesendet werden!!!!!
+
+	//check can_resolve (das ist weenn ALLE rumors von ALLEN spielern verteilt sind!)
+	let done = ari_try_resolve_rumors_distribution();
+	//console.log('===>ALL DONE!', done, 'remaining', remaining);
+	if (!done) {
+		if (isEmpty(remaining)) {
+			take_turn_write_complete();
+		} else {
+			//console.log('WRITING STOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!',uplayer)
+			take_turn_write_partial();
+		}
+	}
+}
+function ari_try_resolve_rumors_distribution() {
+	if (!i_am_host()) return false;
+	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAA')
+	let can_resolve = true;
+	for (const pldata of Z.playerdata) {
+		//let data1 = pldata;
+		//console.log('pldata', pldata, pldata.state, pldata.remaining);
+
+		// if (isEmpty(pldata.state)) { console.log('empty, break'); can_resolve = false; break; }
+		// else if (!isEmpty(pldata.state.remaining)) { console.log('some remaining!, break'); can_resolve = false; break; }
+
+		//let receivers = data1.receivers;		if (receivers.length < Z.plorder.length-1) { can_resolve = false; break; }
+
+		if (isEmpty(pldata.state)) { can_resolve = false; break; }
+		else if (!isEmpty(pldata.state.remaining)) { can_resolve = false; break; }
+
+	}
+
+	// console.log('can_resolve', can_resolve);
+	if (can_resolve) {
+		//console.log('HAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOO');
+		Z.turn = [Z.host];
+		Z.stage = 105; //'next_rumors_setup_stage';
+		take_turn_fen_write();
+		return true;
+	}
+	return false;
+}
+function post_rumor_setup() {
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+
+	for (const plname of plorder) { fen.players[plname].rumors = []; }
+
+
+	for (const plname of plorder) {
+		//if (plname == uplayer) continue;
+		//let pl = fen.players[plname];
+		let data = firstCond(Z.playerdata, x => x.name == plname);
+		let di = data.state.di;
+		//console.log('di', plname, di);
+		for (const k in di) arrPlus(fen.players[k].rumors, di[k]);
+		// 	assertion(isdef(fen.rumor_setup_di[plname]), 'no rumors for ' + plname);
+		// 	pl.rumors = fen.rumor_setup_di[plname];
+	}
+	// delete fen.rumor_setup_di;
+	// delete fen.rumor_setup_receivers;
+	ari_history_list([`gossiping ends`], 'rumors');
+
+
+	[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
+	take_turn_fen_clear();
+}
+
 function ari_open_rumors(stage = 28) {
 	let [fen, deck] = [Z.fen, UI.deck_rumors];
 	//console.log('*** RUMOR TOP OPENS!!! ***')
@@ -2550,46 +2758,6 @@ function output_arr_short(arr) {
 	console.log('output_arr_short', getFunctionsNameThatCalledThisFunction());
 	console.log('deck top 3', jsCopy(arrTake(arr, 3))); console.log('deck bottom 3', jsCopy(arrTakeLast(arr, 3)));
 
-}
-function process_rumors_setup() {
-
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-
-	let items = A.selected.map(x => A.items[x]);
-	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
-	let rumor = firstCond(items, x => !plorder.includes(x.key));
-	if (nundef(receiver) || nundef(rumor)) {
-		select_error('you must select exactly one player and one rumor card!');
-		return;
-	}
-
-	//receiver gets that rumor, aber die verteilung ist erst wenn alle rumors verteilt sind!
-	let remaining = fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
-	lookupAddToList(fen, ['rumor_setup_di', receiver], rumor.key);
-	lookupAddToList(fen, ['rumor_setup_receivers'], receiver);
-	//console.log('di', fen.rumor_setup_di)
-
-	let next = get_next_player(Z, uplayer);
-	if (isEmpty(remaining) && next == plorder[0]) {
-		//rumor distrib is complete, goto next stage
-		for (const plname of plorder) {
-			//if (plname == uplayer) continue;
-			let pl = fen.players[plname];
-			assertion(isdef(fen.rumor_setup_di[plname]), 'no rumors for ' + plname);
-			pl.rumors = fen.rumor_setup_di[plname];
-		}
-		delete fen.rumor_setup_di;
-		delete fen.rumor_setup_receivers;
-		ari_history_list([`gossiping ends`], 'rumors');
-
-
-		[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
-	} else if (isEmpty(remaining)) {
-		//next rumor round starts
-		delete fen.rumor_setup_receivers;
-		Z.turn = [next];
-	}
-	turn_send_move_update();
 }
 function post_rumor_both() {
 	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
@@ -2628,11 +2796,14 @@ function post_inspect() {
 		fen.players[uplayer].rumors.push(rumor);
 		//console.log('...got rumor', rumor);
 		//output_arr_short(fen.deck_rumors);
+		ari_history_list([`${uplayer} inspects a schwein!`], 'inspect');
+
 		ari_next_action();
 	} else if (building_is_correct(building)) {
 		//uplayer need to chose a rumor card to discard!
 		//console.log('')
 		Z.stage = 29;
+		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
 		ari_pre_action();
 	} else {
 		//building is not correct: turn schwein up, both players get a rumor
@@ -2640,6 +2811,7 @@ function post_inspect() {
 		//console.log('building', building);
 		A.owner = stringAfter(building.path, '.');
 		A.owner = stringBefore(A.owner, '.');
+		ari_history_list([`${uplayer} reveals a schwein!`], 'inspect');
 		turn_schwein_up(building);
 	}
 
@@ -2723,7 +2895,7 @@ function process_blackmail() {
 
 	ari_history_list([`${uplayer} is blackmailing ${building_owner}`], 'blackmail');
 	[Z.stage, Z.turn] = [33, [building_owner]];
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function being_blackmailed() {
@@ -2761,7 +2933,7 @@ function post_accept_blackmail() {
 
 	//turn goes back to blackmailer
 	[Z.stage, Z.turn] = [35, [blackmailer]];
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function post_defend_blackmail() {
@@ -2792,7 +2964,7 @@ function post_defend_blackmail() {
 
 	//turn goes back to blackmailer
 	[Z.stage, Z.turn] = [35, [blackmailer]];
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function post_reject_blackmail() {
@@ -2829,7 +3001,7 @@ function post_reject_blackmail() {
 
 	//turn goes back to blackmailer
 	[Z.stage, Z.turn] = [35, [blackmailer]];
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function post_blackmail() {
@@ -2851,29 +3023,6 @@ function turn_schwein_up(b) {
 	let obuilding = lookup(Z.fen, b.path.split('.'));
 	b.schwein = obuilding.schwein = schwein;
 	ari_open_rumors(32);
-}
-function ui_get_rumors_and_players_items(uplayer) {
-	//console.log('uplayer',uplayer,UI.players[uplayer])
-	let items = [], i = 0;
-	let comm = UI.players[uplayer].rumors;
-	for (const o of comm.items) {
-		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i };
-		i++;
-		items.push(item);
-	}
-
-	let players = [];
-	let received = valf(Z.fen.rumor_setup_receivers, []);
-	for (const plname in UI.players) {
-		if (plname == uplayer || received.includes(plname)) continue;
-		players.push(plname);
-	}
-	items = items.concat(ui_get_string_items(players));
-
-	assertion(comm.items.length == players.length, 'irgendwas stimmt nicht mit rumors verteilung!!!!', players, comm)
-
-	reindex_items(items);
-	return items;
 }
 
 //#endregion
@@ -2937,7 +3086,7 @@ function post_tax() {
 		Z.turn = [plnext];
 	}
 
-	turn_send_move_update(fen, uplayer);
+	take_turn_fen(fen, uplayer);
 
 }
 function get_tax_history(tax) {

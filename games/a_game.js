@@ -53,19 +53,18 @@ function activate_a_game() {
 		//mButton('start multi turn', agmove_startmulti, dTable, { margin: 20 });
 		//console.log('stage', Z.stage);
 		mButton('indiv move', agmove_indiv, dTable, { margin: 20 });
-		//mButton('resolve', agmove_resolve, dTable, { margin: 20 });
 
 		//felix_sends_timed_move_at_mimi_slot();
 	}
 
 }
 
-function autosend(plname,slot){
+function autosend(plname, slot) {
 	Z.uplayer = plname;
 	take_turn_collect_open();
 }
-function felix_sends_timed_move_at_mimi_slot(){
-	let[fen, pl] = [Z.fen, Z.pl];
+function felix_sends_timed_move_at_mimi_slot() {
+	let [fen, pl] = [Z.fen, Z.pl];
 	let slot = fen.players.mimi.slot;
 	slot = busy_wait_until_slot(slot);
 	//console.log('felix will be sending at time',slot, Date.now());
@@ -74,12 +73,10 @@ function felix_sends_timed_move_at_mimi_slot(){
 function agmove_single() {
 	if (Z.pl.hand.length > 2) removeInPlace(Z.pl.hand, Z.pl.hand[0]);
 	Z.turn = [get_next_player(Z, Z.uplayer)];
-	take_turn_single();
+	take_turn_fen();
 }
-function agmove_clear_all() { Z.stage = 'clear'; Z.fen.endcond = 'all'; Z.fen.acting_host = Z.uplayer; Z.turn = [Z.uplayer]; take_turn_clear(); }
-function agmove_clear_first() { Z.stage = 'clear'; Z.fen.endcond = 'first'; Z.fen.acting_host = Z.uplayer; Z.turn = [Z.uplayer]; take_turn_clear(); }
-function agmove_startmulti() { Z.stage = 'multi'; Z.turn = Z.plorder;[Z.fen.stage_after_collect, Z.fen.turn_after_collect] = ['click', [rChoose(Z.plorder)]]; take_turn_single(); }
-function agmove_indiv(plname,slot) {
+function agmove_startmulti() { Z.stage = 'multi'; Z.turn = Z.plorder;[Z.fen.stage_after_multi, Z.fen.turn_after_multi] = ['click', [rChoose(Z.plorder)]]; take_turn_fen(); }
+function agmove_indiv(plname, slot) {
 	if (isDict(plname) && Z.uplayer != 'mimi') return; // only mimi can actually click button!!!
 
 	if (isString(plname)) Z.uplayer = plname;
@@ -93,7 +90,7 @@ function agmove_indiv(plname,slot) {
 
 	take_turn_collect_open();
 
-	if (plname != 'felix') agmove_indiv('felix',pl.slot);
+	if (plname != 'felix') agmove_indiv('felix', pl.slot);
 	//autosend('felix');
 }
 function agmove_resolve() {
@@ -112,11 +109,59 @@ function agmove_resolve() {
 	console.log('players selected the following cards:', fen.collection);
 
 	//common code for resolve!!!
-	[Z.stage, Z.turn] = [Z.fen.stage_after_collect, Z.fen.turn_after_collect];
+	[Z.stage, Z.turn] = [Z.fen.stage_after_multi, Z.fen.turn_after_multi];
 	take_turn_resolve('single');
 }
 
+function busy_wait_until_slot(slot) {
+	let diff = get_slot_diff(Z.fen);
+	let dd;
+	do {
+		dd = last_n_digits(Date.now(), 2);
+		if (dd >= slot && dd <= slot + diff) { break; }
 
+	} while (true);
+	return dd;
+}
+function last_n_digits(number, n = 2) {
+	return number % Math.pow(10, n);
+}
+function get_now_milliseconds() {
+	return Date.now();
+}
+function get_slot_diff(fen) { return Math.floor(100 / fen.plorder.length); }
+
+
+
+//#region removed from necessity!!!!!!!!
+function agmove_clear_all() { Z.stage = 'clear'; Z.fen.endcond = 'all'; Z.fen.acting_host = Z.uplayer; Z.turn = [Z.uplayer]; take_turn_clear(); }
+function agmove_clear_first() { Z.stage = 'clear'; Z.fen.endcond = 'first'; Z.fen.acting_host = Z.uplayer; Z.turn = [Z.uplayer]; take_turn_clear(); }
+function agmove_clear_turn() { Z.stage = 'clear'; Z.fen.endcond = 'turn'; Z.fen.acting_host = Z.uplayer; Z.turn = [Z.uplayer]; take_turn_clear(); }
+
+function take_turn_clear() {
+	prep_move();
+	let o = { uname: Z.uplayer, friendly: Z.friendly, fen: Z.fen, players: Z.playerlist };
+	let cmd = 'clear';
+	send_or_sim(o, cmd);
+}
+function take_turn_collect_open() {
+	prep_move();
+	let o = { uname: Z.uplayer, friendly: Z.friendly, fen: Z.fen, state: Z.state, write_player: true };
+	let cmd = 'table';
+	send_or_sim(o, cmd);
+}
+function take_turn_resolve(notes) {
+	prep_move();
+	let o = { uname: Z.uplayer, friendly: Z.friendly, fen: Z.fen, write_fen: true, write_notes: notes };
+	let cmd = 'table';
+	send_or_sim(o, cmd);
+}
+function take_turn_ack() {
+	prep_move();
+	let o = { uname: Z.uplayer, friendly: Z.friendly, fen: Z.fen, state: { ack: true }, write_player: true };
+	let cmd = 'table';
+	send_or_sim(o, cmd);
+}
 
 
 

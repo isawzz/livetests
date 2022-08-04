@@ -1,12 +1,18 @@
-onload = start; var FirstLoad = true;
+onload = start; var FirstLoad = true;//document.onBlur = stopPolling;//onblur = stopPolling;//onfocus = onclick_reload_after_switching;
+
+//DA.TEST0 = true; 
+//DA.TEST1 = true; DA.TEST1Counter = 0;
 function start() { let uname = localStorage.getItem('uname'); if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
 //function start() { let uname = null; if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
 function start_with_assets() {
 
+	//console.log(`browser name: ${navigator.appName}, or ${navigator.userAgent}`);
+	DA.isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1; if (DA.isFirefox) console.log('using Firefox!')
 	show_home_logo();
 	if (nundef(U)) { show_users(); return; } show_username();
 
-	//if (FirstLoad) setTimeout(() => { phpPost({ friendly: 'duel of Banjul' }, 'table'); FirstLoad = false; }, 800);
+	if (DA.TEST0) show('dTestButtons');
+
 	//startgame('ferro'); 
 	//#region TESTING
 	//test11_cardcoloring();
@@ -64,50 +70,109 @@ function startgame(game, players, options = {}) {
 	ensure_polling(); // macht einfach nur Pollmode = 'auto'
 	phpPost(o, 'startgame');
 }
+function gamestep() {
 
-//#region ack
-function start_simple_ack_round(ackstage, ack_players, nextplayer, callbackname_after_ack, keeppolling = false) {
+	show_admin_ui();
 
-	let fen = Z.fen;
-	//each player except uplayer will get opportunity to buy top discard - nextplayer will draw if passing
-	fen.ack_players = ack_players;
-	fen.lastplayer = arrLast(ack_players);
-	fen.nextplayer = nextplayer; //next player after ack!
-	fen.turn_after_ack = [nextplayer];
-	fen.callbackname_after_ack = callbackname_after_ack;
-	fen.keeppolling = keeppolling;
+	DA.running = true; clear_screen();
+	dTable = mBy('dTable'); mFall(dTable); mClass('dTexture', 'wood');
 
-	Z.stage = ackstage;
-	Z.turn = [ack_players[0]];
+	shield_off();
+	show_title();
+	show_role();
+	Z.func.present(Z, dTable, Z.uplayer);	// *** Z.uname und Z.uplayer ist IMMER da! ***
 
-}
-function ack_player(plname) {
-	let [fen, uplayer, pl] = [Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-
-	//console.log('ack_player','plname',plname,'uplayer',uplayer,'pl',pl,'Z.turn',Z.turn,'Z.stage',Z.stage);
-	assertion(sameList(Z.turn, [plname]), "ack_player: wrong turn");
-
-	if (plname == fen.lastplayer || fen.players[uplayer].buy == true) {
-		let func = window[fen.callbackname_after_ack];
-		if (isdef(func)) func();
+	//console.log('_____uname:'+Z.uname,'role:'+Z.role,'player:'+Z.uplayer,'host:'+Z.host,'curplayer:'+Z.turn[0],'bot?',is_current_player_bot()?'YES':'no');
+	if (isdef(Z.scoring.winners)) { show_winners(); animatedTitle('GAMEOVER!'); }
+	else if (Z.func.check_gameover(Z)) {
+		let winners = show_winners();
+		Z.scoring = { winners: winners }
+		sendgameover(winners[0], Z.friendly, Z.fen, Z.scoring);
+	} else if (is_shield_mode()) {
+		staticTitle();
+		if (!DA.no_shield == true) { hide('bRestartMove'); shield_on(); } //mShield(dTable.firstChild.childNodes[1])} //if (isdef(Z.fen.shield)) mShield(dTable);  }
+		autopoll();
 	} else {
-		Z.turn = [get_next_in_list(plname, fen.ack_players)];
+		Z.A = { level: 0, di: {}, ll: [], items: [], selected: [], tree: null, breadcrumbs: [], sib: [], command: null, autosubmit: Config.autosubmit };
+		copyKeys(jsCopy(Z.fen), Z);
+		copyKeys(UI, Z);
+		activate_ui(Z);
+		Z.func.activate_ui();
+		//console.log('Z.waiting:', Z.isWaiting);
+		if (Z.isWaiting == true || Z.mode != 'multi') staticTitle(); else animatedTitle();
+		//console.log('player_status',Z.uplayer_data.player_status);
+		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') autopoll();
 	}
-	//console.log('ack_player','plname',plname,'uplayer',uplayer,'pl',pl,'Z.turn',Z.turn,'Z.stage',Z.stage);
-	turn_send_move_update();
+	if (TESTING==true) landing();
 }
-function clear_ack_variables() {
-	let [fen, uplayer, pl] = [Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-	delete fen.ack_players;
-	delete fen.lastplayer;
-	delete fen.nextplayer;
-	delete fen.turn_after_ack;
-	delete fen.ackstage;
-	delete fen.callbackname_after_ack;
-	delete fen.keeppolling;
 
+//#region basemin NEW HELPERS!!!!!
+function object2string(o, props = [], except_props = []) {
+	let s = '';
+	if (nundef(o)) return s;
+	if (isString(o)) return o;
+	let keys = Object.keys(o).sort();
+	//console.log('keys',keys);
+	for (const k of keys) {
+		if (!isEmpty(props) && props.includes(k) || !except_props.includes(k)) {
+			let val = isList(o[k]) ? o[k].join(',') : isDict(o[k]) ? object2string(o[k].props, except_props) : o[k];
+			let key_part = isEmpty(s) ? '' : `, ${k}:`;
+			s += val;
+		}
+	}
+	return s;
 }
-//#endregion
+function simpleCompare(o1, o2) {
+	let s1 = object2string(o1);
+	let s2 = object2string(o2);
+	return s1 == s2;
+}
+function complexCompare(obj1, obj2) {
+	const obj1Keys = Object.keys(obj1);
+	const obj2Keys = Object.keys(obj2);
+
+	if (obj1Keys.length !== obj2Keys.length) {
+		return false;
+	}
+
+	for (let objKey of obj1Keys) {
+		if (obj1[objKey] !== obj2[objKey]) {
+			if (typeof obj1[objKey] == "object" && typeof obj2[objKey] == "object") {
+				if (!isEqual(obj1[objKey], obj2[objKey])) {
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+function aggregate_elements(list_of_object, propname) {
+	let result = [];
+	for (let i = 0; i < list_of_object.length; i++) {
+		let obj = list_of_object[i];
+		let arr = obj[propname];
+		for (let j = 0; j < arr.length; j++) {
+			result.push(arr[j]);
+		}
+	}
+	return result;
+}
+function intersection(arr1, arr2) {
+	//each el in result will be unique
+	let res = [];
+	for (const a of arr1) {
+		if (arr2.includes(a)) {
+			addIf(res, a);
+		}
+	}
+	return res;
+}
+
+
 
 //#region helpers
 function ai_move(ms = 100) {
@@ -126,28 +191,27 @@ function ai_move(ms = 100) {
 			let i2 = firstCond(A.items, x => x.key == 'discard');
 			selitems = [i1, i2];
 
-		} else {
+		} else if (Z.stage == 'buy_or_pass') {
 			selitems = [A.items[1]]; //waehlt immer pass
-		}
+		} else selitems = [A.items[0]];
 		//console.log('A', A)
-
 	} else if (Z.game == 'bluff') {
-		//weil impl manual (no use of select!), fake selection
-		//geht hoch available?
-		selitems = [];
-		if (isdef(fen.lastbid)) {
-			if (coin(30)) A.callback = handle_gehtHoch; else { bluff_generate_random_bid(); A.callback = handle_bid; }
-			//have 2 choices: bid or gehthoch
-			//assertion(A.items.length == 2, "ai_move bluff: items wrong!!!", A.items)
-			// let is_gehthoch = rChoose([0, 1]);
-			// if (is_gehthoch) selitems = [A.items[1]]; else { bluff_generate_random_bid(); selitems = [A.items[0]]; }
 
-		} else {
-			//assertion(A.items.length == 1, "ai_move bluff: items wrong!!!", A.items)
-			bluff_generate_random_bid();
-			A.callback = handle_bid;
-			//selitems = [A.items[0]];
-		}
+		//testing 
+		let [newbid, handler] = bluff_ai(); 
+		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } //console.log('newbid', newbid); }
+		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
+		A.callback = handler;
+
+		selitems = [];
+		// if (isdef(fen.lastbid)) {
+		// 	if (coin(25)) A.callback = handle_gehtHoch; else { if (!newbid) bluff_generate_random_bid(); A.callback = handle_bid; }
+		// } else {
+		// 	if (!newbid) bluff_generate_random_bid();
+		// 	A.callback = handle_bid;
+		// }
+
+		//console.log('bluff ai_move selitems', selitems, 'callback', A.callback.name);
 
 	} else if (A.command == 'trade') {
 		selitems = ai_pick_legal_trade();
@@ -222,43 +286,51 @@ function stopgame() {
 
 	pollStop();
 	//clear_table();
-	Z = null;delete Serverdata.table;delete Serverdata.playerdata;Clientdata={};
+	Z = null; delete Serverdata.table; delete Serverdata.playerdata; Clientdata = {};
+	staticTitle();
 }
 
 function sendgameover(plname, friendly, fen, scoring) {
 	let o = { winners: plname, friendly: friendly, fen: fen, scoring: scoring };
 	phpPost(o, 'gameover');
 }
-function sendmove(plname, friendly, fen, action, expected, phase, round, step, stage, notes, scoring = {}) {
+
+function take_turn_fen() { take_turn(); }
+
+function take_turn_spotit() { take_turn(true, true); }
+
+function take_turn_fen_clear() { take_turn(true, false, true); }
+
+function take_turn_fen_write() { take_turn(true, true); }
+
+function take_turn_multi() { if (isdef(Z.state)) take_turn(false, true); else take_turn(false, false); }
+function take_turn_write() { take_turn_multi(); }
+function take_turn_write_partial() { if (isdef(Z.state)) take_turn(false, true, false, 'stop'); else take_turn(false, false, false, 'stop'); }
+function take_turn_write_complete() { take_turn(false, true, false, null); } //if (isdef(Z.state)) else take_turn(false, true, false, null); }
+
+function take_turn(write_fen = true, write_player = false, clear_players = false, player_status = null) {
+	prep_move();
+	let o = { uname: Z.uplayer, friendly: Z.friendly };
+	if (isdef(Z.fen)) o.fen = Z.fen;
+	if (write_fen) { assertion(isdef(Z.fen), 'write_fen without fen!!!!'); o.write_fen = true; }
+	if (write_player) { o.write_player = true; o.state = Z.state; }
+	if (clear_players) o.clear_players = true;
+	o.player_status = player_status;
+	let cmd = 'table';
+	send_or_sim(o, cmd);
+}
+
+function prep_move() {
+	let [fen, uplayer, pl] = [Z.fen, Z.uplayer, Z.pl];
+	for (const k of ['round', 'phase', 'stage', 'step', 'turn']) { fen[k] = Z[k]; }
 	deactivate_ui();
 	clear_timeouts();
-
-	let o = { uname: plname, friendly: friendly, fen: fen, action: action, expected: expected, phase: phase, round: round, step: step, stage: stage, notes: notes, scoring: scoring };
-	//console.log('sendmove: turn',fen.turn)
-
-	//console.log(`sendmove: simulated: ${DA.simulate}`);
-	if (DA.simulate) phpPostSimulate(o, 'move'); else phpPost(o, 'move');
 }
-function turn_send_move_update(action_star = false) { 
-	take_turn_single(); return;
-	let [fen, uplayer] = [Z.fen, Z.uplayer];	//console.log('sending move:Z',Z); //return;
-
-	//console.log('uplayer', uplayer, 'action_star', action_star);
-
-	[fen.stage, fen.phase, fen.turn] = [Z.stage, Z.phase, Z.turn];
-
-	//ACHTUNG!!!!
-	assertion(!isEmpty(fen.turn), 'ACHTUNG!!!!!!!!!!! TURN IST EMPTY in turn_send_move_update!!!!!!!!!!!!!', Z.turn);
-	//if (isEmpty(fen.turn)) { fen.turn = Z.turn = [Z.host]; console.log('SETTING HOST TURN BECAUSE TURN EMPTY AT SEND!!!!!!!') }
-
-	let action = action_star ? { stage: '*', step: '*' } : Z.expected[uplayer];
-	let expected = {}; fen.turn.map(x => expected[x] = { stage: fen.stage, step: Z.step });
-	//console.log(':::turn_send_move_update: action', action, 'expected', expected, 'Z.step', Z.step, 'Z.turn', Z.turn);
-
-	//console.log('in',getFunctionsNameThatCalledThisFunction(),'fen.turn', fen.turn);
-	sendmove(Z.uplayer, Z.friendly, Z.fen, action, expected, Z.phase, Z.round, Z.step, Z.stage, Z.notes, Z.scoring);
+function send_or_sim(o, cmd) {
+	Counter.server += 1;
+	//if (nundef(Z) || is_multi_stage()) o.read_players = true; das wird jetzt IMMER gemacht!!!
+	if (DA.simulate) phpPostSimulate(o, cmd); else phpPost(o, cmd);
 }
-
 
 
 

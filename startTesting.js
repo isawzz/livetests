@@ -36,6 +36,7 @@ function phpPost(o, cmd) {
 
 		o.expected = expected; //Z.expected;
 		o.options = Z.options;
+		o.game = Z.game;
 	}
 	switch (cmd) {
 		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;

@@ -4756,7 +4756,7 @@ function onclick_player_in_gametable(uname, tablename, rid) {
 
 	stopgame();
 	U = firstCond(Serverdata.users, x => x.name == uname);
-	phpPost({ friendly: tablename }, 'table');
+	send_or_sim({ friendly: tablename, uname: U.name,  }, 'table');
 }
 function onclick_pause_continue() {
 
@@ -4888,7 +4888,7 @@ function toggle_tables_on() { let a = mBy('aTables'); mStyle(a, { bg: '#afe78f' 
 function toggle_tables_off() { let a = mBy('aTables'); hide('dTables'); mStyle(a, { bg: 'silver' }); }
 function toggle_users_on() { let a = mBy('aUsers'); mStyle(a, { bg: 'coral' }); }
 function toggle_users_off() { let a = mBy('aUsers'); hide('dUsers'); mStyle(a, { bg: 'silver' }); }
-function ui_game_menu_item(g, g_tables = []) {
+function _ui_game_menu_item(g, g_tables = []) {
 	function runderkreis(color, id) {
 		return `<div id=${id} style='width:20px;height:20px;border-radius:50%;background-color:${color};color:white;position:absolute;left:0px;top:0px;'>` + '' + "</div>";
 	}
@@ -4900,7 +4900,7 @@ function ui_game_menu_item(g, g_tables = []) {
 		id = `rk_${t.id}`;
 	}
 	return `
-	<div onclick="onclick_game_menu_item(event)" gamename=${g.id} style='cursor:pointer;border-radius:10px;margin:10px;padding:5px;padding-top:15px;width:120px;height:90px;display:inline-block;background:${bg};position:relative;'>
+	<div onclick="onclick_game_menu_item(event)" gamename=${g.id} style='cursor:pointer;border-radius:10px;margin:10px;padding:5px;padding-top:15px;min-width:120px;height:90px;display:inline-block;background:${bg};position:relative;'>
 	${nundef(color) ? '' : runderkreis(color, id)}
 	<span style='font-size:50px;font-family:${sym.family}'>${sym.text}</span><br>${g.friendly.toString()}</div>
 	`;
@@ -4926,7 +4926,7 @@ function test_endgame() {
 	//test_skip_to_actions();
 	Z.stage = 5;
 	Z.phase = 'king';
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function test_add_schwein() {
@@ -4935,14 +4935,14 @@ function test_add_schwein() {
 	let type = rChoose(['farm', 'estate', 'chateau']);
 	let keys = deck_deal(fen.deck, type[0] == 'f' ? 4 : type[0] == 'e' ? 5 : 6);
 	fen.players[uname].buildings[type].push({ list: keys, h: null });
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function test_add_building() {
 	let [A, fen, uname] = [Z.A, Z.fen, Z.uname];
 	let type = rChoose(['farm', 'estate', 'chateau']);
 	add_a_correct_building_to(fen, uname, type);
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function testSplitIntoNumbersAndWords() {
@@ -4969,7 +4969,7 @@ function test_skip_to_tax() {
 		pl.hand = pl.hand.concat(deck_deal(fen.deck, rNumber(0, 5)));
 	}
 
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function test_skip_to_actions() {
@@ -5000,7 +5000,7 @@ function test_skip_to_actions() {
 	fen.total_pl_actions = fen.num_actions = fen.players[Z.turn[0]].stall.length;
 	fen.action_number = 1;
 
-	turn_send_move_update();
+	take_turn_fen();
 
 }
 function testjourney0() {
@@ -5011,7 +5011,7 @@ function testjourney0() {
 	if (!plist.includes(uname)) {
 		set_nextplayer_after_journey(); //der macht ja auch find_players_with_potential_journey .....
 		console.log('Z.turn', Z.turn)
-		turn_send_move_update();
+		take_turn_fen();
 	}
 
 }

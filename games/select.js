@@ -40,7 +40,7 @@ function phpPostSimulate(o, cmd) {
 			//console.log('t', t);
 
 			let t1 = JSON.parse(t);
-			console.log('t1', t1);
+			//console.log('t1', t1);
 
 			handle_result(t, cmd); break;
 		default: break; //console.log('unknown command', cmd); break;
@@ -161,6 +161,9 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 			}, 1000);
 		} else { activate_ui(); }
 	} else { activate_ui(); }
+}
+function select_confirm_weiter(callback){
+	select_add_items(ui_get_string_items(['weiter']), callback, 'may click to continue', 1, 1, Z.mode == 'multi'); 
 }
 function select_last(item, callback, ev) {
 	//console.log('clicked',ev.target)

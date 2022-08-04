@@ -3,7 +3,7 @@ var SOCKETSERVER = 'http://localhost:5000'; //geht im spital
 var SERVER = "http://localhost:8080/aroot/simple"; // oder telecave!
 //var SOCKETSERVER = `https://eximple.herokuapp.com/5000/` geht nicht!!!!!!!
 var Pollmode = 'auto';
-var Info, ColorDi, Items = {}, DA = {}, Card = {}, TO = {}, Counter = {}, Socket = null;
+var Info, ColorDi, Items = {}, DA = {}, Card = {}, TO = {}, Counter = { server: 0 }, Socket = null;
 var uiActivated = false, Selected, Turn, Prevturn;
 var S = {}, Z, U = null, PL, G, UI = {}, Users, Tables, Basepath, Serverdata = {}, Clientdata = {};
 var dTable //, dTitle; //, dUsers, dGames, dTables, dLogo, dLoggedIn, dPlayerNames, dInstruction, dError, dMessage, dStatus, dTableName, dGameControls, dUserControls, dMoveControls, dSubmitMove, dPlayerStats;
@@ -250,6 +250,8 @@ const ARI = {
 		101: 'build end',
 		102: 'select building to upgrade',
 		103: 'select downgrade cards',
+		104: 'next_comm_setup_stage',
+		105: 'next_rumor_setup_stage',
 
 	}
 };
@@ -1105,7 +1107,10 @@ function miPic(item, dParent, styles, classes) {
 	let d = mDiv(dParent);
 	d.innerHTML = info.text;
 	if (nundef(styles)) styles = {};
-	addKeys({ family: info.family, fz: 50, display: 'inline-block' }, styles);
+
+	let family = info.family; // == 'emoNoto' && DA.isFirefox == true? 'emoNotoFF':info.family;
+
+	addKeys({ family: family, fz: 50, display: 'inline-block' }, styles);
 	mStyle(d, styles);
 	if (isdef(classes)) mClass(d, classes);
 	mCenterCenterFlex(d);
@@ -1133,7 +1138,10 @@ function mSymText(s, dParent, styles = {}, pos, classes) {
 function mSym(key, dParent, styles = {}, pos, classes) {
 	let info = Syms[key];
 	styles.display = 'inline-block';
-	styles.family = info.family;
+
+	let family = info.family; // == 'emoNoto' && DA.isFirefox == true? 'emoNotoFF':info.family;
+
+	styles.family = family;
 
 	//console.log('vorher: styles', jsCopy(styles))
 
@@ -1614,6 +1622,7 @@ function arr_get_min(arr, func) {
 function arrMax(arr, f) { return arr_get_max(arr, f); }
 function arrMin(arr, f) { return arr_get_min(arr, f); }
 function arrMinus(a, b) { if (isList(b)) return a.filter(x => !b.includes(x)); else return a.filter(x => x != b); }
+function arrPlus(a, b) { b.map(x => a.push(x)); return a; }
 function arrRange(from = 1, to = 10, step = 1) { let res = []; for (let i = from; i <= to; i += step)res.push(i); return res; }
 function arrRemove(arr, listweg) {
 	//ACHTUNG!!!! geht nur wenn array elements unique sind! removes FIRST OCCURRENCE of el in arr!!!!!!!!!!!!!	
@@ -1817,7 +1826,9 @@ function lookupSet(dict, keys, val) {
 	let d = dict;
 	let ilast = keys.length - 1;
 	let i = 0;
+	//console.log('val', val);
 	for (const k of keys) {
+		//console.log('dict', d, 'k', k, 'i', i, 'ilast', ilast);
 		if (nundef(k)) continue; //skip undef or null values
 		if (d[k] === undefined) d[k] = (i == ilast ? val : {});
 		if (nundef(d[k])) d[k] = (i == ilast ? val : {});
@@ -3960,6 +3971,9 @@ async function load_assets_fetch(basepath, baseminpath) {
 }
 function loader_on() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_on'; }
 function loader_off() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_off'; }
+function log_array(arr){
+	arr.map(x=>console.log(x));
+}
 function log_object(o = {}, msg = '', props = [], indent = 0) {
 	console.log(indent ? '.'.repeat(indent) : '____', msg, indent ? '' : `(caller:${getFunctionsNameThatCalledThisFunction()})`);
 
@@ -4024,6 +4038,21 @@ function range(f, t, st = 1) {
 		arr.push(i);
 	}
 	return arr;
+}
+function reverse(x) {
+	if (isString(x)) {
+		var newString = "";
+		for (var i = x.length - 1; i >= 0; i--) {
+			newString += x[i];
+		}
+		return newString;
+
+	}
+	if (isList(x)) return x.reverse();
+
+	if (isDict(x)) return dict2list(x, 'value').reverse();
+	return x;
+
 }
 function recConvertLists(o, maxlen = 25) {
 	for (const k in o) {

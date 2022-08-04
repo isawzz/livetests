@@ -32,6 +32,13 @@ function db_read($q) {
   $con->close();
   return $rows;
 }
+function db_write_close($q) {
+  $con = db_connect();
+	$res = mysqli_query($con, $q);
+	$id = mysqli_insert_id($con);
+  $con->close();
+	return $id;
+}	
 function db_write($q) {
   $con = db_connect();
 	$res = mysqli_query($con, $q);
@@ -41,6 +48,11 @@ function db_write($q) {
 function db_write_read($qw,$qr){
 	db_write($qw);
 	$res = db_read($qr)[0];
+	return $res;
+}
+function db_write_read_all($qw,$qr){
+	db_write($qw);
+	$res = db_read($qr);
 	return $res;
 }
 function get_now(){
