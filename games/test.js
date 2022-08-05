@@ -21,13 +21,22 @@ function start_tests() {
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	// ltest89_aristo_journey();
 	//#endregion
-	ltest90_bluff_ueberbiete();
+	ltest91_bluff_strategy(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
+
 
 }
-function bluff_start_bid(o){
-	let ranks = rChoose(BLUFF.rankstr,2).map(x=>BLUFF.toword[x]);
-	let b2=coin(10)?'_':rNumber(1,4);
-	o.fen.lastbid = [rNumber(1,4),ranks[0],b2,b2=='_'?'_':ranks[1]];
+
+function ltest91_bluff_strategy() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [bluff_start_bid], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+
+	let playernames = ['mimi', 'lauren', 'felix'];
+	let playermodes = ['human', 'bot', 'bot'];
+	let strategy = ['', 'random', 'clair_voyant'];
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playermodes[i++] }));
+	let options = { mode: 'hotseat' };
+	startgame('bluff', players, options);
 }
 function ltest90_bluff_ueberbiete() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [bluff_start_bid], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -1275,6 +1284,11 @@ function add_a_schwein(fen, uname) {
 	let type = rChoose(['farm', 'estate', 'chateau']);
 	let keys = deck_deal(fen.deck, type[0] == 'f' ? 4 : type[0] == 'e' ? 5 : 6);
 	fen.players[uname].buildings[type].push({ list: keys, h: null });
+}
+function bluff_start_bid(o){
+	let ranks = rChoose(BLUFF.rankstr,2).map(x=>BLUFF.toword[x]);
+	let b2=coin(10)?'_':rNumber(1,4);
+	o.fen.lastbid = [rNumber(1,4),ranks[0],b2,b2=='_'?'_':ranks[1]];
 }
 function each_hand_of_one(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];

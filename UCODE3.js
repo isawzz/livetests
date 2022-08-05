@@ -1,3 +1,82 @@
+function get_higher_ranks(rank, rankstr, except_list = []) {
+	if (rank == '_') return BLUFF.rankstr.split('');
+	let irank = rankstr.indexOf(rank);
+	let ranks = rankstr.split('');
+	return arrMinus(arrTake(ranks, 0, irank + 1), except_list);
+}
+function _ueberbiete(n, r, nreas, except_rank, definite = false) {
+	//hier ist r ein word (also 'six' anstatt '6')
+	let rankstr = BLUFF.rankstr.replace(BLUFF.torank[except_rank], '');
+	let hr = get_higher_ranks(BLUFF.torank[r], rankstr);
+	console.log('rankstr', rankstr, 'missing', except_rank);
+	if (n == '_') return [nreas, BLUFF.toword[rRank(rankstr)]];
+	else if (n <= nreas) return [n + 1, r];
+	else if (!isEmpty(hr)) {
+		console.log('higher ranks', hr);
+		return [n, BLUFF.toword[rChoose(hr)]];
+	}
+	else if (definite) return [n + 1, r];
+	else return [null, null];
+}
+
+function _bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
+	let ranks = rChoose(words, 2);
+	let b;
+	if (nundef(fen.lastbid)) b = [rNumber(1, nreas), ranks[0], rNumber(1, nreas), ranks[1]];
+	else if (fen.lastbid[0] > nreas + 2) {
+		return [null, handle_gehtHoch];
+	} else {
+		[n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
+
+		// if n1 or n2 is < nreas, just increase it
+		let done = true;
+		if (n1 <= nreas) n1++; else if (n2 <= nreas) n2++; else done = false;
+		if (done) return bluff_convert2words([n1, r1, n2, r2]);
+
+		//both are > nreas, so try changing ranks instead!
+		//remove r1 and r2 from BLUFF.rankstr
+		let rankstr = BLUFF.rankstr.replace(BLUFF.torank[r1], 'x').replace(BLUFF.torank[r2], 'x');
+
+		//compute indexOf r1, r2 in BLUFF.rankstr
+		let [i1, i2] = [BLUFF.rankstr.indexOf(r1), BLUFF.rankstr.indexOf(r2)];
+
+		//try increase i1: 
+		let s = '3456789TJQKA';
+		//split s into 4 parts: <min(i1,i2), between(i1,i2), between(i2,max), >max(i1,i2)
+		let [min, between, between2, max] = [s.substring(0, Math.min(i1, i2)), s.substring(Math.min(i1, i2), Math.max(i1, i2)), s.substring(Math.max(i1, i2), s.length), s.substring(Math.max(i1, i2) + 1, s.length)];
+
+		console.log('i1', i1, 'i2', i2, '\nmin', min, 'between', between, 'between2', between2, 'max', max);
+
+
+		// //find if higher index can be increased
+		// let hi = Math.max(i1, i2); let i = hi == i1 ? 1 : 2;
+		// if (hi < rankstr.length - 1) { hi = rNumber(hi + 1, BLUFF.rankstr.length - 1); } else done = false;
+		// if (done) return bluff_convert2words([n1, i == 1 ? BLUFF.rankstr[hi] : r1, n2, i == 2 ? BLUFF.rankstr[hi] : r2]);
+
+		// //lower rank index needs to be increased: use rankstr in order to avoid duplicates
+
+
+		// let [n2, r2] = ueberbiete(b[2], b[3], nreas, get_higher_ranks(b[3], BLUFF.rankstr, [b[1]]), get_higher_ranks('_', BLUFF.rankstr, [b[1]]), coin(25));
+		// if (!r2) [b[0], b[1]] = ueberbiete(b[0], b[1], nreas, get_higher_ranks(b[1], BLUFF.rankstr, [b[3]]), get_higher_ranks('_', BLUFF.rankstr, [b[3]]), true);
+		// else[b[2], b[3]] = [n2, r2];
+
+		// b = bluff_convert2words(b);
+	}
+
+	return [b, handle_bid]; //rChoose([handle_bid, handle_gehtHoch])];
+}
+function ueberbiete(n, r, nreas, higher, all, definite = false) {
+	if (n == '_') return [nreas, rChoose(higher)];
+	else if (n <= nreas) return [n + 1, rChoose(all)];
+	else if (!isEmpty(higher)) {
+		console.log('higher ranks', higher);
+		return [n, rChoose(higher)];
+	}
+	else if (definite) return [n + 1, r];
+	else return [null, null];
+}
+
+
 
 function _bluff_generate_random_bid() {
 	let [A, fen, uplayer] = [Z.A, Z.fen, Z.uplayer];

@@ -199,7 +199,7 @@ function ai_move(ms = 100) {
 
 		//testing 
 		let [newbid, handler] = bluff_ai(); 
-		console.log('newbid',newbid,'handler',handler);
+		//console.log('newbid',newbid,'handler',handler.name);
 		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } //console.log('newbid', newbid); }
 		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
 		A.callback = handler;

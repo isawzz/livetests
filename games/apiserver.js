@@ -177,7 +177,7 @@ function unpack_table(table) {
 	}
 	if (isdef(table.modified)) { table.timestamp = new Date(Number(table.modified)); table.stime = stringBeforeLast(table.timestamp.toString(), 'G').trim(); }
 
-	console.log('table as processed', jsCopy(table));
+	//console.log('table as processed', jsCopy(table));
 
 	assertion(isdef(window[table.game]), 'game function for ' + table.game + ' not defined in window');
 	if (isdef(table.game)) { table.func = window[table.game](); }

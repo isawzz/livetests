@@ -14,7 +14,7 @@ function bluff_ai() {
 	let rank_list = dict2list(byrank, 'rank');
 	let unique_ranks = sortByRank(get_keys(byrank));
 	let myranks = sortByRank(pl.hand.map(x => x[0]));
-	console.log('myranks', myranks);
+	//console.log('myranks', myranks);
 	let my_unique = unique_ranks.filter(x => myranks.includes(x));
 	rank_list.map(x => { x.mine = myranks.includes(x.rank); x.irank = rankstr.indexOf(x.rank); x.i = x.irank + 100 * x.value; });
 	sortByDescending(rank_list, 'i');
@@ -23,14 +23,14 @@ function bluff_ai() {
 
 
 	//console.log('all_hand_cards:', all_hand_cards, '\nno_twos:', no_twos, '\nrankstr:', rankstr, '\nbyrank:', byrank, '\nrank_list:', rank_list, '\nunique_ranks:', unique_ranks, '\nmyranks:', myranks, '\nmy_unique:', my_unique);
-	rank_list.map(x => console.log(x)); //console.log('rank_list:', rank_list);
-	console.log('maxcount:', maxcount, 'mymaxcount:', mymaxcount);
+	//rank_list.map(x => console.log(x)); //console.log('rank_list:', rank_list);
+	//console.log('maxcount:', maxcount, 'mymaxcount:', mymaxcount);
 
 	let expected = all_hand_cards.length / 13; // auch 2er gibt es soviele!
 	let nreason = Math.max(1, Math.round(expected * 2));
 	let n_twos = all_hand_cards.filter(x => x[0] == '2').length;
 	let have2 = firstCond(rank_list,x=>x.rank=='2' && x.mine);
-	console.log('expected:', expected, '\nnreason:', nreason, '\nn_twos:', n_twos, '\nhave 2:', have2);
+	//console.log('expected:', expected, '\nnreason:', nreason, '\nn_twos:', n_twos, '\nhave 2:', have2);
 
 	return botbest(rank_list, maxcount, mymaxcount, expected, nreason, n_twos, have2, words, fen);
 }

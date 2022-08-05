@@ -85,11 +85,12 @@ function onclick_logout() {
 	U = null;
 	show_users();
 }
-function onclick_random() {
+function onclick_random() {	
 	if (uiActivated && !DA.ai_is_moving) ai_move(300);
 	else if (!uiActivated) console.log('ui not activated...');
 	else if (DA.ai_is_moving) console.log('ai is moving...');
 }
+//function onclick_random() { bluff_ai();}
 function onclick_reload_after_switching() { DA.pollCounter = 0; DA.reloadColor = rColor(); onclick_reload(); }
 
 function onclick_reload() {

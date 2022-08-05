@@ -22,6 +22,7 @@ function start_with_assets() { start_tests(); }
 
 function phpPost(o, cmd) {
 	//console.log('..????????????????????????.phpPost', arguments);
+	//console.log('..phpPost', o, cmd);
 
 	clear_transaction();
 
@@ -31,12 +32,17 @@ function phpPost(o, cmd) {
 	if (nundef(o.options) && isdef(Z)) {
 		//console.log('_____________no options!!!', cmd, o, Z, '\nturn', 'o', o.turn, 'Z', Z.turn, 'fen', Z.fen.turn);
 		o.turn = Z.turn;
-		let fen = o.fen;
-		let expected = {}; fen.turn.map(x => expected[x] = { stage: fen.stage, step: Z.step });
 
-		o.expected = expected; //Z.expected;
+		//bei games:
+		// let fen = o.fen;
+		//let expected = {}; fen.turn.map(x => expected[x] = { stage: fen.stage, step: Z.step });
+		//o.expected = expected; //Z.expected;
+		//o.fen = Z.fen;
+		//console.log('fen', o.fen);
+
 		o.options = Z.options;
 		o.game = Z.game;
+
 	}
 	switch (cmd) {
 		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;

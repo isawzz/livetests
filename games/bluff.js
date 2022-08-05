@@ -1,5 +1,5 @@
 function bluff() {
-	function bluff_clear_ack() { if (Z.stage == 1) {bluff_change_to_turn_round();take_turn_fen(); } }
+	function bluff_clear_ack() { if (Z.stage == 1) { bluff_change_to_turn_round(); take_turn_fen(); } }
 	function bluff_check_gameover(Z) { let pls = get_keys(Z.fen.players); if (pls.length < 2) Z.fen.winners = pls; return valf(Z.fen.winners, false); }
 	function bluff_setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: {}, stage: 'move', phase: '' };
@@ -66,6 +66,7 @@ function bluff_present_new(dParent) {
 	if (stage == 1) {
 		show_waiting_for_ack_message();
 		let loser = fen.loser;
+		console.log('----loser', loser,);
 		let msg1 = fen.war_drin ? 'war drin!' : 'war NICHT drin!!!';
 		let msg2 = isdef(fen.players[loser]) ? `${capitalize(loser)} will get ${fen.players[loser].handsize} cards!` : `${capitalize(loser)} is out!`;
 		mText(`<span style="color:red">${msg1} ${msg2}</span>`, dt, { fz: 22 });
@@ -107,7 +108,7 @@ function bluff_state_new(dParent) {
 
 //#region turn changes
 function bluff_change_to_ack_round(fen, nextplayer) {
-	[Z.stage,Z.turn] = [1,[get_admin_player(fen.plorder)]];
+	[Z.stage, Z.turn] = [1, [get_admin_player(fen.plorder)]];
 	fen.keeppolling = true;
 	fen.nextturn = [nextplayer]; //next player after ack!
 }
@@ -120,7 +121,7 @@ function bluff_change_to_turn_round() {
 	Z.round += 1;
 	for (const k of ['bidder', 'loser', 'aufheber', 'lastbid', 'lastbidder']) delete fen[k];
 	for (const k of ['nextturn', 'keeppolling']) delete fen[k];
-	
+
 	for (const plname of fen.plorder) { delete fen.players[plname].lastbid; }
 }
 
@@ -228,9 +229,9 @@ function bluff_generate_random_bid() {
 
 			let rankstr = '3456789TJQKA';
 			let w1 = di2[b[1]];
-			let idx = isdef(w1)?rankstr.indexOf(w1):-1;
+			let idx = isdef(w1) ? rankstr.indexOf(w1) : -1;
 			if (idx >= 0 && idx < rankstr.length - 2) {
-				let r = rankstr[idx+1];
+				let r = rankstr[idx + 1];
 				b[1] = di[r];
 				done = true;
 			}
@@ -361,6 +362,7 @@ function handle_gehtHoch() {
 
 	//determine next player
 	let nextplayer;
+	console.log('max handsize',Z.options.max_handsize,loser_handsize);
 	if (loser_handsize > Z.options.max_handsize) {
 		nextplayer = get_next_player(Z, loser)
 		let plorder = fen.plorder = remove_player(fen, loser);
@@ -369,6 +371,7 @@ function handle_gehtHoch() {
 		nextplayer = loser;
 	}
 	fen.loser = loser; fen.bidder = bidder; fen.aufheber = aufheber;
+	console.log('set fen.loser to', fen.loser);
 
 	bluff_change_to_ack_round(fen, nextplayer);
 
@@ -383,30 +386,10 @@ function handle_bid() {
 
 	//first sort new bid so that the higher number component is first
 	let ranks = '23456789TJQKA';
-	let need_to_sort = bid[0] == '_' && bid[2] != '_'
-		|| bid[2] != '_' && bid[2] > bid[0]
-		|| bid[2] == bid[0] && is_higher_ranked_name(bid[3], bid[1]);
 
-	if (need_to_sort) {
-		//console.log('need_to_sort', need_to_sort);
-		let [h0, h1] = [bid[0], bid[1]];
-		[bid[0], bid[1]] = [bid[2], bid[3]];
-		[bid[2], bid[3]] = [h0, h1];
-		//console.log('bid sorted:', bid);
-	}
+	bid = normalize_bid(bid);
 
-	//replace all _ by 0
-	if (bid[0] == '_') bid[0] = 0;
-	if (bid[2] == '_') bid[2] = 0;
-	if (oldbid[0] == '_') oldbid[0] = 0;
-	if (oldbid[2] == '_') oldbid[2] = 0;
-
-	//check if newbid is higher than old bid
-	let higher = bid[0] > oldbid[0]
-		|| bid[0] == oldbid[0] && is_higher_ranked_name(bid[1], oldbid[1])
-		|| bid[0] == oldbid[0] && bid[1] == oldbid[1] && bid[2] > oldbid[2]
-		|| bid[0] == oldbid[0] && bid[1] == oldbid[1] && bid[2] == oldbid[2] && is_higher_ranked_name(bid[3], oldbid[3]);
-	//console.log('YES, new bid is higher!!!');
+	let higher = is_bid_higher_than(bid, oldbid);
 
 	//set fen.lastbid
 	if (!higher) {
@@ -414,8 +397,7 @@ function handle_bid() {
 		//console.log('oldbid', oldbid, '\nnewbid', bid)
 	} else {
 		//set lastbid
-		//convert 0 back to '_'
-		if (bid[2] == 0) bid[2] = '_';
+		//convert 0 back to '_'		if (bid[2] == 0) bid[2] = '_';
 		fen.lastbid = fen.players[uplayer].lastbid = bid; //fen.newbid;
 		fen.lastbidder = uplayer;
 		delete fen.oldbid; delete fen.newbid;
@@ -424,13 +406,13 @@ function handle_bid() {
 		//next person's turn
 	}
 }
-function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); } 
-function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); } 
+function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); }
+function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); }
 function inc_handsize(fen, uname) {
 	let pl = fen.players[uname];
 	//console.log('handsize',pl.handsize,typeof pl.handsize)
 	// deck_add(fen.deck,1,pl.hand);
-	pl.handsize += 1;
+	pl.handsize = Number(pl.handsize) + 1;
 	// pl.handsize = pl.hand.length;
 	return pl.handsize;
 	// let sz = .handsize;

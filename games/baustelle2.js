@@ -1,45 +1,66 @@
 function get_robot_personality(name) { return { erratic: 20, bluff: 20, random: 20, risk: 20, passive: 20, clairvoyant: 20, aggressive: 20 }; }
 function botbest(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	let bot = bot_random;
+	let bot = window[`bot_${Z.strategy}`];
 	let [b, f] = bot(list, max, mmax, exp, nreas, n2, have2, words, fen);
-	console.log('bot', stringAfter(bot.name, '_'), 'picked', b);
+	//console.log('bot', stringAfter(bot.name, '_'), 'picked', b);
+
+	//if (isdef(b) && isdef(fen.lastbid)) console.log('higher?',is_bid_higher_than(b, fen.lastbid));
+
 	return [b, f];
 }
 
 function bot_clairvoyant(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	if (nundef(fen.lastbid)) b = [list[1].value, BLUFF.toword[list[1].rank], list[2].value, BLUFF.toword[list[2].rank]];
 
-	return [b, null]; //rChoose([handle_bid, handle_gehtHoch])];
+	let i=0;while(list[i].rank == '2') i++;
+	let b = [list[i].value+n2, list[i].rank, list[i+1].value, list[i+1].rank];
+	list.map(x => console.log(x)); //
+	console.log('b:', b);
+	if (isdef(fen.lastbid)) {
+		//need to make sure that bid is high enough. if not, geht hoch!
+		let [n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
+		if (!is_bid_higher_than(bluff_convert2words(b), fen.lastbid)) {
+			return [null, handle_gehtHoch];
+		}
+		//if (b[0])
+	} 
+
+	return [bluff_convert2words(b), handle_bid];
 }
 function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	let ranks = rChoose(words, 2);
+	let ranks = rChoose('3456789TJQKA', 2);
 	let b;
 	if (nundef(fen.lastbid)) b = [rNumber(1, nreas), ranks[0], rNumber(1, nreas), ranks[1]];
-	else if (list[0].value > nreas+2) {
-		return [null,handle_gehtHoch];
-	}	else {
-		b = jsCopy(fen.lastbid);
+	else if (fen.lastbid[0] > nreas + 2) {
+		return [null, handle_gehtHoch];
+	} else {
 
-		let [n2, r2] = ueberbiete(b[2], b[3], nreas);
-		if (!r2) [b[0], b[1]] = ueberbiete(b[0], b[1], nreas, true); else[b[2], b[3]] = [n2, r2];
+		[n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
+
+		if ((n1 + n2) / 2 > nreas && coin(50)) {
+			return [null, handle_gehtHoch];
+		} else if ((n1 + n2) / 2 <= nreas + 1) b = n1 <= nreas + 1 ? [n1 + 1, r1, n2, r2] : [n1, r1, n2 + 1, r2];
+		else {
+			let [i1, i2] = [BLUFF.rankstr.indexOf(r1), BLUFF.rankstr.indexOf(r2)];
+
+			//try increase i1: 
+			let s = '3456789TJQKA';
+			//split s into 4 parts: <min(i1,i2), between(i1,i2), between(i2,max), >max(i1,i2)
+			let imin = Math.min(i1, i2); let imax = Math.max(i1, i2); let i = imax == i1 ? 1 : 2;
+			let [smin, between, smax] = [s.substring(0, imin), s.substring(imin + 1, imax), s.substring(imax + 1, s.length)];
+
+			//which one to be replaced?
+
+			if (!isEmpty(smax)) { if (i == 1) b = [n1, rChoose(smax), n2, r2]; else b = [n1, r1, n2, rChoose(smax)]; }
+			else if (!isEmpty(between)) { if (i == 2) b = [n1, rChoose(between), n2, r2]; else b = [n1, r1, n2, rChoose(between)]; }
+			else return [null, handle_gehtHoch];
+		}
 	}
 
-	return [b, handle_bid]; //rChoose([handle_bid, handle_gehtHoch])];
+	//console.log('b', b);
+	return [bluff_convert2words(b), handle_bid];
 }
-function ueberbiete(n, r, nreas, definite = false) {
-	if (n == '_') return [nreas, BLUFF.toword[rRank(BLUFF.rankstr)]];
-	else if (n <= nreas) return [n + 1, r];
-	else if (r != 'ace') {
-		let hr = get_higher_ranks(BLUFF.torank[r], BLUFF.rankstr);
-		console.log('higher ranks', hr);
-		return [n, BLUFF.toword[rChoose(hr)]];
-	}
-	else if (definite) return [n + 1, r];
-	else return [null, null];
-}
-function get_higher_ranks(rank, rankstr) {
-	let irank = rankstr.indexOf(rank);
-	let ranks = rankstr.split('');
-	return arrTake(ranks,0, irank + 1);
-}
+function bluff_convert2ranks(b) { return [b[0], BLUFF.torank[b[1]], b[2], BLUFF.torank[b[3]]]; }
+function bluff_convert2words(b) { return [b[0], BLUFF.toword[b[1]], b[2], BLUFF.toword[b[3]]]; }
+
+
 
