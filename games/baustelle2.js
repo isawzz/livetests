@@ -15,14 +15,16 @@ function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	let ranks = rChoose(words, 2);
 	let b;
 	if (nundef(fen.lastbid)) b = [rNumber(1, nreas), ranks[0], rNumber(1, nreas), ranks[1]];
-	else {
+	else if (list[0].value > nreas+2) {
+		return [null,handle_gehtHoch];
+	}	else {
 		b = jsCopy(fen.lastbid);
 
 		let [n2, r2] = ueberbiete(b[2], b[3], nreas);
 		if (!r2) [b[0], b[1]] = ueberbiete(b[0], b[1], nreas, true); else[b[2], b[3]] = [n2, r2];
 	}
 
-	return [b, null]; //rChoose([handle_bid, handle_gehtHoch])];
+	return [b, handle_bid]; //rChoose([handle_bid, handle_gehtHoch])];
 }
 function ueberbiete(n, r, nreas, definite = false) {
 	if (n == '_') return [nreas, BLUFF.toword[rRank(BLUFF.rankstr)]];
