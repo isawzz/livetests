@@ -11,9 +11,9 @@ function botbest(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	return [b, f];
 }
 function bot_clairvoyant(list, maxvalue, mmax, exp, nreas, n2, have2, words, fen) {
-	list = list.filter(x=>x.value == list[0].value || x.mine);
-	assertion(list.length>=2, 'list.length is < 2!!!!!');
-	let res=rChoose(list,2);
+	let reduced_list = list.filter(x=>x.value == list[0].value || x.mine);
+	//assertion(list.length>=2, 'list.length is < 2!!!!!'); NEIN, es kann 1 el haben wenn mine cards gleicher rank!
+	let res=reduced_list.length>=2?rChoose(list,2):[reduced_list[0],{value:0,rank:'_'}];
 	let max=res[0].value>=res[1].value?res[0]:res[1];let min=res[0].value<res[1].value?res[0]:res[1];
 	let b=[max.value,max.rank,min.value,min.rank];
 	list.map(x => console.log(x)); //
@@ -56,8 +56,8 @@ function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	else if (fen.lastbid[0] > nreas + 2) {
 		return [null, handle_gehtHoch];
 	} else {
-
 		[n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
+		assertion(isNumber(n1) && n1>0 && isNumber(n2), 'bot_random: n1 or n2 is not a number OR n1<=0!!!!!!!',n1,n2);
 
 		if ((n1 + n2) / 2 > nreas && coin(50)) {
 			return [null, handle_gehtHoch];
@@ -82,8 +82,8 @@ function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	//console.log('b', b);
 	return [bluff_convert2words(b), handle_bid];
 }
-function bluff_convert2ranks(b) { return [b[0], BLUFF.torank[b[1]], b[2], BLUFF.torank[b[3]]]; }
-function bluff_convert2words(b) { return [b[0], BLUFF.toword[b[1]], b[2], BLUFF.toword[b[3]]]; }
+function bluff_convert2ranks(b) { return [b[0], BLUFF.torank[b[1]], b[2]=='_'?0:b[2], BLUFF.torank[b[3]]]; }
+function bluff_convert2words(b) { return [b[0], BLUFF.toword[b[1]], b[2]<1?'_':b[2], BLUFF.toword[b[3]]]; }
 
 
 
