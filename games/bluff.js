@@ -75,7 +75,7 @@ function bluff_present_new(dParent) {
 }
 function bluff_activate_new() {
 	let [z, A, fen, stage, uplayer, ui, dt] = [Z, Z.A, Z.fen, Z.stage, Z.uplayer, UI, UI.dOpenTable];
-	if (stage == 1) bluff_activate_stage1(); else { bluff_activate_stage0(); if (is_ai_player()) ai_move(); }
+	if (stage == 1) bluff_activate_stage1(); else { bluff_activate_stage0(); if (is_ai_player()) ai_move(1000); }
 }
 function bluff_stats_new(dParent) {
 	let player_stat_items = UI.player_stat_items = ui_player_info(Z, dParent, {}, { 'border-width': 1, margin: 10, wmax: 180 });
@@ -354,6 +354,7 @@ function handle_gehtHoch() {
 	let diff = calc_bid_minus_cards(fen, bid); // hier wird schon der akku gemacht!!! ich kann also jetzt die cards renewen!!!
 	let aufheber = uplayer;
 	let loser = diff > 0 ? bidder : aufheber;
+	console.log('diff', diff,'bidder', bidder, 'aufheber', aufheber, 'loser', loser);
 
 	let war_drin = fen.war_drin = diff <= 0;
 
@@ -410,6 +411,7 @@ function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); }
 function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); }
 function inc_handsize(fen, uname) {
 	let pl = fen.players[uname];
+	console.log('pl', pl, uname);
 	//console.log('handsize',pl.handsize,typeof pl.handsize)
 	// deck_add(fen.deck,1,pl.hand);
 	pl.handsize = Number(pl.handsize) + 1;

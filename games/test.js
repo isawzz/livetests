@@ -21,19 +21,31 @@ function start_tests() {
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	// ltest89_aristo_journey();
 	//#endregion
-	ltest91_bluff_strategy(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
+	ltest92_bluff_bots(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 
 
 }
 
+function ltest92_bluff_bots() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+
+	let playernames = ['mimi', 'lauren', 'felix'];
+	let playermodes = ['bot', 'bot', 'bot'];
+	let strategy = ['random', 'perfect', 'clairvoyant'];
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playermodes[i++] }));
+	let options = { mode: 'hotseat' };
+	startgame('bluff', players, options);
+}
 function ltest91_bluff_strategy() {
-	TESTING = true; DA.testing = true; DA.test = { mods: [bluff_start_bid], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 
 	let playernames = ['mimi', 'lauren', 'felix'];
 	let playermodes = ['human', 'bot', 'bot'];
-	let strategy = ['', 'random', 'clair_voyant'];
+	let strategy = ['', 'random', 'clairvoyant'];
 	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playermodes[i++] }));
 	let options = { mode: 'hotseat' };
 	startgame('bluff', players, options);

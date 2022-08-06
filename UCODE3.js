@@ -1,3 +1,84 @@
+
+
+function ai_move(ms = 100) {
+
+	//mFade(dTable,100); //mAnimateTo(dTable, 'opacity', .2, 100); //irgendwie muss ich table hiden!
+
+	DA.ai_is_moving = true;
+	let [A, fen] = [valf(Z.A, {}), Z.fen];
+	let selitems;
+
+	if (Z.game == 'ferro') {
+		//console.log('ferro ai_move', A.items);
+		if (Z.stage == 'card_selection') {
+			let uplayer = Z.uplayer;
+			let i1 = firstCond(A.items, x => x.path.includes(`${uplayer}.hand`));
+			let i2 = firstCond(A.items, x => x.key == 'discard');
+			selitems = [i1, i2];
+
+		} else if (Z.stage == 'buy_or_pass') {
+			selitems = [A.items[1]]; //waehlt immer pass
+		} else selitems = [A.items[0]];
+		//console.log('A', A)
+	} else if (Z.game == 'bluff') {
+
+		//testing 
+		let [newbid, handler] = bluff_ai(); 
+		//console.log('newbid',newbid,'handler',handler.name);
+		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } //console.log('newbid', newbid); }
+		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
+		A.callback = handler;
+
+		selitems = [];
+		// if (isdef(fen.lastbid)) {
+		// 	if (coin(25)) A.callback = handle_gehtHoch; else { if (!newbid) bluff_generate_random_bid(); A.callback = handle_bid; }
+		// } else {
+		// 	if (!newbid) bluff_generate_random_bid();
+		// 	A.callback = handle_bid;
+		// }
+
+		//console.log('bluff ai_move selitems', selitems, 'callback', A.callback.name);
+
+	} else if (A.command == 'trade') {
+		selitems = ai_pick_legal_trade();
+	} else if (A.command == 'exchange') {
+		selitems = ai_pick_legal_exchange();
+	} else if (A.command == 'upgrade') {
+		selitems = [rChoose(A.items)];
+	} else if (A.command == 'rumor') {
+		selitems = [];
+		let buildings = A.items.filter(x => x.path.includes('building'));
+		let rumors = A.items.filter(x => !x.path.includes('building'));
+		selitems = [rChoose(buildings), rChoose(rumors)];
+	} else if (ARI.stage[Z.stage] == 'rumors_weitergeben') {
+		let players = A.items.filter(x => Z.plorder.includes(x.key))
+		let rumors = A.items.filter(x => !Z.plorder.includes(x.key))
+		selitems = [rChoose(players), rChoose(rumors)];
+	} else if (ARI.stage[Z.stage] == 'journey') {
+		//console.log('bot should be picking a correct journey!!!! wie geht das?');
+		selitems = []; // always pass!
+	} else {
+		let items = A.items;
+		//console.log('items',items);
+		let nmin = A.minselected;
+		let nmax = Math.min(A.maxselected, items.length);
+		let nselect = rNumber(nmin, nmax);
+		selitems = rChoose(items, nselect); if (!isList(selitems)) selitems = [selitems];
+
+	}
+
+	for (const item of selitems) {
+		select_last(item, select_toggle);
+
+		//submit on enter item muss als letztes ausgewahehlt werden, und nach dem select_toggle aus A.selected entfernt werden!!!
+		//da submit on enter sowieso A.callback aufruft => verify! JA
+		if (isdef(item.submit_on_click)) A.selected.pop();
+	}
+	clearTimeout(TO.ai);
+	loader_on();
+	TO.ai = setTimeout(() => { if (isdef(A.callback)) A.callback(); loader_off(); }, ms);
+}
+
 function get_higher_ranks(rank, rankstr, except_list = []) {
 	if (rank == '_') return BLUFF.rankstr.split('');
 	let irank = rankstr.indexOf(rank);

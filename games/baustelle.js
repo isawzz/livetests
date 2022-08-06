@@ -17,6 +17,7 @@ function bluff_ai() {
 	//console.log('myranks', myranks);
 	let my_unique = unique_ranks.filter(x => myranks.includes(x));
 	rank_list.map(x => { x.mine = myranks.includes(x.rank); x.irank = rankstr.indexOf(x.rank); x.i = x.irank + 100 * x.value; });
+	rank_lists = rank_list.filter(x=>x.rank != '2');
 	sortByDescending(rank_list, 'i');
 	let maxcount = rank_list[0].value;
 	let mymaxcount = rank_list.filter(x => x.mine)[0].value;

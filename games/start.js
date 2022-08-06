@@ -46,8 +46,8 @@ function startgame(game, players, options = {}) {
 	if (nundef(fen.step)) fen.step = 0;
 	if (nundef(fen.turn)) fen.turn = [fen.plorder[0]];
 
-	//set playmode for each player
-	players.map(x => fen.players[x.name].playmode = x.playmode);
+	//set playmode and strategy for each player
+	players.map(x => {let pl = fen.players[x.name];pl.playmode = x.playmode;pl.strategy = x.strategy;});
 	//correct playmode settings for solo mode: host is human, all others are bots!
 	if (options.mode == 'solo') {
 		let me = isdef(U) && isdef(fen.players[U.name]) ? U.name : rChoose(playernames);
@@ -197,22 +197,12 @@ function ai_move(ms = 100) {
 		//console.log('A', A)
 	} else if (Z.game == 'bluff') {
 
-		//testing 
 		let [newbid, handler] = bluff_ai(); 
 		//console.log('newbid',newbid,'handler',handler.name);
-		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } //console.log('newbid', newbid); }
+		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } 
 		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
 		A.callback = handler;
-
 		selitems = [];
-		// if (isdef(fen.lastbid)) {
-		// 	if (coin(25)) A.callback = handle_gehtHoch; else { if (!newbid) bluff_generate_random_bid(); A.callback = handle_bid; }
-		// } else {
-		// 	if (!newbid) bluff_generate_random_bid();
-		// 	A.callback = handle_bid;
-		// }
-
-		//console.log('bluff ai_move selitems', selitems, 'callback', A.callback.name);
 
 	} else if (A.command == 'trade') {
 		selitems = ai_pick_legal_trade();

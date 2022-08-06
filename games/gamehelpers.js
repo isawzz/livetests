@@ -365,7 +365,7 @@ function show_games(ms = 500) {
 	mText(`<h2>start new game</h2>`, dParent, { maleft: 12 });
 
 	let d = mDiv(dParent, { fg: 'white', animation: 'appear 1s ease both' }, 'game_menu'); mFlexWrap(d);
-	let gamelist = 'a_game aristo bluff spotit ferro fritz';
+	let gamelist = 'aristo bluff spotit ferro fritz'; if (DA.TEST0) gamelist += ' a_game';
 	for (const g of dict2list(Config.games)) {
 		if (gamelist.includes(g.id)) {
 			let [sym, bg, color, id] = [Syms[g.logo], g.color, null, getUID()];
