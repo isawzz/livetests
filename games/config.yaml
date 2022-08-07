@@ -53,6 +53,7 @@ games:
       # mode: 'solo,multi,hotseat'
       min_handsize: '1,3,2'
       max_handsize: '4,5,6,7'
+      strategy: 'random,clairvoyant'
   fritz:
     friendly: "A L'Honneur!"
     logo: fencing #weary face

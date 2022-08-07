@@ -30,12 +30,13 @@ function startgame(game, players, options = {}) {
 	//game ... name of game, players ... list of {name:x,playmode:y}, options ... {some or all poss options}
 	//ensure game
 	if (nundef(game)) game = 'a_game';
-	//ensure players & playernames
-	if (nundef(players)) players = rChoose(Serverdata.users, 2).map(x => ({ name: x.name, playmode: 'human' })); //ensure players
-	let playernames = players.map(x => x.name);
 	//ensure options
 	let default_options = {}; for (const k in Config.games[game].options) default_options[k] = arrLast(Config.games[game].options[k].split(','));
 	addKeys(default_options, options); //ensure options
+	//console.log('options', options);
+	//ensure players & playernames
+	if (nundef(players)) players = rChoose(Serverdata.users, 2).map(x => ({ name: x.name })); //, playmode: 'human', strategy:valf(options.strategy,'random') })); //ensure players
+	let playernames = players.map(x => x.name);
 
 	let fen = window[game]().setup(playernames, options);
 
@@ -46,8 +47,8 @@ function startgame(game, players, options = {}) {
 	if (nundef(fen.step)) fen.step = 0;
 	if (nundef(fen.turn)) fen.turn = [fen.plorder[0]];
 
-	//set playmode and strategy for each player
-	players.map(x => {let pl = fen.players[x.name];pl.playmode = x.playmode;pl.strategy = x.strategy;});
+	//ensure playmode and strategy for each player in fen.players (players abandoned here!!!)
+	players.map(x => {let pl = fen.players[x.name];pl.playmode = valf(x.playmode,'human');pl.strategy = valf(x.strategy,valf(options.strategy,'random'));});
 	//correct playmode settings for solo mode: host is human, all others are bots!
 	if (options.mode == 'solo') {
 		let me = isdef(U) && isdef(fen.players[U.name]) ? U.name : rChoose(playernames);
@@ -58,6 +59,9 @@ function startgame(game, players, options = {}) {
 		options.mode = 'hotseat';
 	}
 
+	//console.log('players', fen.players);
+
+	//console.log('start fen players',fen.players.mimi)
 	//transform number options
 	for (const k in options) { if (isNumber(options[k])) options[k] = parseInt(options[k]); }
 

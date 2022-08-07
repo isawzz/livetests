@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; } //onclick_random(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -19,22 +19,30 @@ function start_tests() {
 	//ltest69_ferro_is_group(); //
 	//ltest70_aristo_church(); //ltest57_aristo();
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
-	// ltest89_aristo_journey();
+	//ltest89_aristo_journey();
 	//#endregion
-	ltest92_bluff_bots(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
+	ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 
 
 }
 
+function ltest93_bluff() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
+
+	startgame('bluff', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
 function ltest92_bluff_bots() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 
 	let playernames = ['mimi', 'lauren', 'felix'];
-	let playermodes = ['bot', 'bot', 'bot'];
+	let playmodes = ['bot', 'bot', 'bot'];
 	let strategy = ['random', 'perfect', 'clairvoyant'];
-	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playermodes[i++] }));
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playmodes[i++] }));
 	let options = { mode: 'hotseat' };
 	startgame('bluff', players, options);
 }
@@ -44,9 +52,9 @@ function ltest91_bluff_strategy() {
 	DA.auto_moves = [];//[['random']];
 
 	let playernames = ['mimi', 'lauren', 'felix'];
-	let playermodes = ['human', 'bot', 'bot'];
+	let playmodes = ['human', 'bot', 'bot'];
 	let strategy = ['', 'random', 'clairvoyant'];
-	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playermodes[i++] }));
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategy[i], playmode: playmodes[i++] }));
 	let options = { mode: 'hotseat' };
 	startgame('bluff', players, options);
 }

@@ -514,7 +514,7 @@ function show_options_popup(options) {
 function show_polling_signal() {
 	if (DA.TEST0 != true) return;
 	let d1 = mDiv(mBy('dAdmin'), { position: 'fixed', top: 10, left: 73 });
-	let bg = Z.skip_presentation==true?'grey':'green'; //valf(DA.reloadColor, 'green')
+	let bg = Z.skip_presentation == true ? 'grey' : 'green'; //valf(DA.reloadColor, 'green')
 	let d2 = mDiv(d1, { width: 20, height: 20, bg: bg, rounding: 10, display: 'inline-block' });
 	//let d3 = mDiv(d1, { display: 'inline-block' }, null, Z.skip_presentation==true ? 'SKIP' : 'REDRAW');
 	mFadeRemove(d1, 1000);
@@ -558,19 +558,25 @@ function show_settings(dParent) {
 	mFlex(dParent);
 	mStyle(dParent, { 'justify-content': 'end', gap: 12, paright: 10 })
 	//console.log('dParent', dParent)
-	let playermode = get_playmode(uplayer); //console.log('playermode',playermode)
+	let playmode = get_playmode(uplayer); //console.log('playmode',playmode,'uplayer',uplayer);
 	let game_mode = Z.mode;
-	// let dplaymode = mDiv(dParent, { fg: 'blue' }, null, playermode); // playermode == 'bot' ? 'bot' : '');
+	// let dplaymode = mDiv(dParent, { fg: 'blue' }, null, playmode); // playmode == 'bot' ? 'bot' : '');
 	// let dgamemode = mDiv(dParent, { fg: 'red' }, null, Z.mode); //Z.mode == 'hotseat' ? 'h' : '');
 	// let st = { fz: 20, padding: 6, h: 40, box: true, matop: 2, rounding: '50%', cursor: 'pointer' };
 	let st = { fz: 20, padding: 0, h: 40, box: true, matop: 2, rounding: '50%', cursor: 'pointer' };
 	let dHistoryButton = miPic('scroll', dParent, st);
+	dHistoryButton.onclick = show_history_popup;
+
+	if (isdef(Config.games[Z.game].options.strategy)) {
+		let dStrategy = miPic('chess pawn', dParent, st);
+		dStrategy.onclick = show_strategy_popup;
+	}
+
 	let d = miPic('gear', dParent, st);
-	options.playermode = playermode;
+	options.playmode = playmode;
 	d.onmouseenter = () => show_options_popup(options);
 	d.onmouseleave = hide_options_popup;
 
-	dHistoryButton.onclick = show_history_popup;
 
 	//dHistoryButton.onmouseleave = hide_options_popup;
 }
@@ -590,6 +596,7 @@ function show_status(s) {
 		if (!TESTING && !s.includes('reload')) show_fleeting_message(s, 'dTest', { fz: 14, position: 'absolute', top: 5, right: 10 }, 'dStatus');
 	}
 }
+
 function show_tables(ms = 500) {
 
 	clear_screen();
@@ -627,7 +634,7 @@ function show_username() {
 	mAppend(d, get_logout_button());
 	mAppend(d, dpic);
 
-	if (is_advanced_user()) {  show('dAdvanced1'); } else { hide('dAdvanced'); hide('dAdvanced1'); }
+	if (is_advanced_user()) { show('dAdvanced1'); } else { hide('dAdvanced'); hide('dAdvanced1'); }
 	//if (TESTING) show('dAdvanced');
 
 	phpPost({ app: 'easy' }, 'tables');
@@ -635,9 +642,11 @@ function show_username() {
 function show_users(ms = 300) {
 	let dParent = mBy('dUsers');
 	mClear(dParent);
+
 	//mStyle(dParent, { gap: 10, padding: 10 });
 	for (const u of Serverdata.users) {
 		if (['ally', 'bob', 'leo'].includes(u.name)) continue;
+		//console.log('u',u)
 		let d = get_user_pic_and_name(u.name, dParent);
 		d.onclick = () => onclick_user(u.name);
 		mStyle(d, { cursor: 'pointer' });

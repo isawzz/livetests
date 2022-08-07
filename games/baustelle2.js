@@ -1,7 +1,7 @@
 function get_robot_personality(name) { return { erratic: 20, bluff: 20, random: 20, risk: 20, passive: 20, clairvoyant: 20, aggressive: 20 }; }
 function botbest(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	console.log('uplayer',Z.uplayer)
-	console.log('strategy',Z.strategy)
+	//console.log('uplayer',Z.uplayer)
+	//console.log('strategy',Z.strategy)
 	let bot = window[`bot_${Z.strategy}`];
 	let [b, f] = bot(list, max, mmax, exp, nreas, n2, have2, words, fen);
 	//console.log('bot', stringAfter(bot.name, '_'), 'picked', b);
@@ -16,8 +16,8 @@ function bot_clairvoyant(list, maxvalue, mmax, exp, nreas, n2, have2, words, fen
 	let res=reduced_list.length>=2?rChoose(list,2):[reduced_list[0],{value:0,rank:'_'}];
 	let max=res[0].value>=res[1].value?res[0]:res[1];let min=res[0].value<res[1].value?res[0]:res[1];
 	let b=[max.value,max.rank,min.value,min.rank];
-	list.map(x => console.log(x)); //
-	console.log('chose b:', b);
+	//list.map(x => console.log(x)); //
+	//console.log('chose b:', b);
 	if (isdef(fen.lastbid)) {
 		//need to make sure that bid is high enough. if not, geht hoch!
 		let [n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
@@ -30,7 +30,6 @@ function bot_clairvoyant(list, maxvalue, mmax, exp, nreas, n2, have2, words, fen
 
 	return [bluff_convert2words(b), handle_bid];
 }
-
 function bot_perfect(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 
 
@@ -82,8 +81,6 @@ function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	//console.log('b', b);
 	return [bluff_convert2words(b), handle_bid];
 }
-function bluff_convert2ranks(b) { return [b[0], BLUFF.torank[b[1]], b[2]=='_'?0:b[2], BLUFF.torank[b[3]]]; }
-function bluff_convert2words(b) { return [b[0], BLUFF.toword[b[1]], b[2]<1?'_':b[2], BLUFF.toword[b[3]]]; }
 
 
 

@@ -66,7 +66,7 @@ function bluff_present_new(dParent) {
 	if (stage == 1) {
 		show_waiting_for_ack_message();
 		let loser = fen.loser;
-		console.log('----loser', loser,);
+		//console.log('----loser', loser,);
 		let msg1 = fen.war_drin ? 'war drin!' : 'war NICHT drin!!!';
 		let msg2 = isdef(fen.players[loser]) ? `${capitalize(loser)} will get ${fen.players[loser].handsize} cards!` : `${capitalize(loser)} is out!`;
 		mText(`<span style="color:red">${msg1} ${msg2}</span>`, dt, { fz: 22 });
@@ -209,6 +209,8 @@ function bluff_clear_panel() {
 	}
 	Z.fen.newbid = ['_', '_', '_', '_'];
 }
+function bluff_convert2ranks(b) { return [b[0], BLUFF.torank[b[1]], b[2]=='_'?0:b[2], BLUFF.torank[b[3]]]; }
+function bluff_convert2words(b) { return [b[0], BLUFF.toword[b[1]], b[2]<1?'_':b[2], BLUFF.toword[b[3]]]; }
 function bluff_generate_random_bid() {
 	let [A, fen, uplayer] = [Z.A, Z.fen, Z.uplayer];
 	const di2 = { _: '_', three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
@@ -354,7 +356,7 @@ function handle_gehtHoch() {
 	let diff = calc_bid_minus_cards(fen, bid); // hier wird schon der akku gemacht!!! ich kann also jetzt die cards renewen!!!
 	let aufheber = uplayer;
 	let loser = diff > 0 ? bidder : aufheber;
-	console.log('diff', diff,'bidder', bidder, 'aufheber', aufheber, 'loser', loser);
+	//console.log('diff', diff,'bidder', bidder, 'aufheber', aufheber, 'loser', loser);
 
 	let war_drin = fen.war_drin = diff <= 0;
 
@@ -363,7 +365,7 @@ function handle_gehtHoch() {
 
 	//determine next player
 	let nextplayer;
-	console.log('max handsize',Z.options.max_handsize,loser_handsize);
+	//console.log('max handsize',Z.options.max_handsize,loser_handsize);
 	if (loser_handsize > Z.options.max_handsize) {
 		nextplayer = get_next_player(Z, loser)
 		let plorder = fen.plorder = remove_player(fen, loser);
@@ -372,7 +374,7 @@ function handle_gehtHoch() {
 		nextplayer = loser;
 	}
 	fen.loser = loser; fen.bidder = bidder; fen.aufheber = aufheber;
-	console.log('set fen.loser to', fen.loser);
+	//console.log('set fen.loser to', fen.loser);
 
 	bluff_change_to_ack_round(fen, nextplayer);
 
@@ -411,7 +413,7 @@ function iHigh(item) { let d = iDiv(item); mStyle(d, { bg: 'darkgray' }); }
 function iUnhigh(item) { let d = iDiv(item); mStyle(d, { bg: 'transparent' }); }
 function inc_handsize(fen, uname) {
 	let pl = fen.players[uname];
-	console.log('pl', pl, uname);
+	//console.log('pl', pl, uname);
 	//console.log('handsize',pl.handsize,typeof pl.handsize)
 	// deck_add(fen.deck,1,pl.hand);
 	pl.handsize = Number(pl.handsize) + 1;
@@ -471,6 +473,24 @@ function is_higher_ranked_name(f1, f2) {
 	let di2 = { _: 0, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, jack: 11, queen: 12, king: 13, ace: 14 };
 	return di2[f1] > di2[f2];
 }
+function is_bid_higher_than(bid, oldbid) {
+	//replace all _ by 0
+	bid = jsCopy(bid);
+	//console.log('bid:', bid, 'oldbid:', oldbid);	
+	if (bid[0] == '_') bid[0] = 0;
+	if (bid[2] == '_') bid[2] = 0;
+	if (oldbid[0] == '_') oldbid[0] = 0;
+	if (oldbid[2] == '_') oldbid[2] = 0;
+
+	//check if newbid is higher than old bid
+	let higher = bid[0] > oldbid[0]
+		|| bid[0] == oldbid[0] && is_higher_ranked_name(bid[1], oldbid[1])
+		|| bid[0] == oldbid[0] && bid[1] == oldbid[1] && bid[2] > oldbid[2]
+		|| bid[0] == oldbid[0] && bid[1] == oldbid[1] && bid[2] == oldbid[2] && is_higher_ranked_name(bid[3], oldbid[3]);
+	//console.log('YES, new bid is higher!!!');
+
+	return higher;
+}
 function new_deal(fen) {
 	//console.log('new deal!!!!!!!!!!!!!', Z.uplayer)
 	let deck = fen.deck = create_fen_deck('n', fen.num_decks);
@@ -480,6 +500,20 @@ function new_deal(fen) {
 		let handsize = pl.handsize;
 		pl.hand = deck_deal(deck, handsize);
 	}
+}
+function normalize_bid(bid) {
+	let need_to_sort = bid[0] == '_' && bid[2] != '_'
+		|| bid[2] != '_' && bid[2] > bid[0]
+		|| bid[2] == bid[0] && is_higher_ranked_name(bid[3], bid[1]);
+
+	if (need_to_sort) {
+		//console.log('need_to_sort', need_to_sort);
+		let [h0, h1] = [bid[0], bid[1]];
+		[bid[0], bid[1]] = [bid[2], bid[3]];
+		[bid[2], bid[3]] = [h0, h1];
+		//console.log('bid sorted:', bid);
+	}
+	return bid;
 }
 
 

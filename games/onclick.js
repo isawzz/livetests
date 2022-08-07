@@ -2,18 +2,22 @@ function test_start_ferro(mode = 'multi') {
 	let game = 'ferro';
 	// let playernames = ['felix', 'lauren', 'mimi'];
 	let playernames = ['mimi', 'lauren', 'felix'];
-	let playermodes = ['human', 'human', 'human'];
-	let i = 0; let players = playernames.map(x => ({ name: x, playmode: playermodes[i++] }));
+	let playmodes = ['human', 'human', 'human'];
+	let strategies = ['random', 'random', 'random'];
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
+	// let i = 0; let players = playernames.map(x => ({ name: x, playmode: playmodes[i++] }));
 	let options = { mode: mode, thinking_time: 20 };
 	startgame(game, players, options);
 }
-function test_start_aristo(n=3,mode = 'multi') {
+function test_start_aristo(n = 3, mode = 'multi') {
 	let game = 'aristo';
 	// let playernames = ['felix', 'lauren', 'mimi'];
-	let playernames = arrTake(['mimi', 'felix', 'amanda', 'lauren', 'gul', 'nasi'],n);
-	let playermodes = ['human', 'human', 'human', 'human', 'human', 'human'];
-	let i = 0; let players = playernames.map(x => ({ name: x, playmode: playermodes[i++] }));
-	let options = { mode: mode, commission:'no' };
+	let playernames = arrTake(['mimi', 'felix', 'amanda', 'lauren', 'gul', 'nasi'], n);
+	let playmodes = ['human', 'human', 'human', 'human', 'human', 'human'];
+	let strategies = ['random', 'random', 'random', 'random', 'random', 'random', 'random'];
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
+	// let i = 0; let players = playernames.map(x => ({ name: x, playmode: playmodes[i++] }));
+	let options = { mode: mode, commission: 'no' };
 	startgame(game, players, options);
 }
 
@@ -49,9 +53,9 @@ function onclick_game_menu_item(ev) {
 	let params = [gamename, DA.playerlist];
 	let funcs = [style_not_playing, style_playing_as_human, style_playing_as_bot];
 	for (const u of Serverdata.users) {
-		if (['ally', 'bob', 'leo'].includes(u.name)) continue;
+		if (['ally', 'bob', 'leo'].includes(u.name)) continue; //lass die aus!!!!
 		let d = get_user_pic_and_name(u.name, dParent, 40); mStyle(d, { w: 60 })
-		let item = { uname: u.name, div: d, state: 0, inlist: false, isSelected: false };
+		let item = { uname: u.name, div: d, state: 0, strategy: '', inlist: false, isSelected: false };
 
 		//host spielt als human mit per default
 		if (isdef(U) && u.name == U.name) { toggle_select(item, funcs, gamename, DA.playerlist); }
@@ -70,6 +74,7 @@ function onclick_game_menu_item(ev) {
 		//console.log('players are', players);
 		let game = gamename;
 		let options = collect_game_specific_options(game);
+		for (const pl of players) { if (isEmpty(pl.strategy)) pl.strategy = valf(options.strategy, 'random'); }
 		//console.log('options nach collect',options)
 		startgame(game, players, options); hide('dMenu');
 	};
@@ -85,7 +90,7 @@ function onclick_logout() {
 	U = null;
 	show_users();
 }
-function onclick_random() {	
+function onclick_random() {
 	if (uiActivated && !DA.ai_is_moving) ai_move(300);
 	else if (!uiActivated) console.log('ui not activated...');
 	else if (DA.ai_is_moving) console.log('ai is moving...');
@@ -121,8 +126,9 @@ function onclick_restart_long() {
 	//new code: startgame mit selben players und options
 	let game = Z.game;
 	let playernames = [Z.host].concat(Z.plorder.filter(x => x != Z.host));
-	let playermodes = playernames.map(x => Z.fen.players[x].playmode);
-	let i = 0; let players = playernames.map(x => ({ name: x, playmode: playermodes[i++] }));
+	let playmodes = playernames.map(x => Z.fen.players[x].playmode);
+	let strategies = playernames.map(x => Z.fen.players[x].strategy);
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
 	let options = Z.options;
 	stopgame();
 	startgame(game, players, options);
@@ -134,15 +140,17 @@ function onclick_restart() {
 	if (nundef(fen.original_players)) fen.original_players = fen.players;
 	//if (isdef(fen.original_players)) plorder=fen.original_players;
 	let playernames = [host].concat(get_keys(fen.original_players).filter(x => x != host));
-	let playermodes = playernames.map(x => fen.original_players[x].playmode);
+	let playmodes = playernames.map(x => fen.original_players[x].playmode);
+	let strategies = playernames.map(x => fen.original_players[x].strategy);
 
 	let default_options = {}; for (const k in Config.games[game].options) default_options[k] = arrLast(Config.games[game].options[k].split(','));
 	addKeys(default_options, Z.options);
 
-	//console.log('playernames',playernames,'playermodes',playermodes)
+	//console.log('playernames',playernames,'playmodes',playmodes)
 	fen = Z.fen = Z.func.setup(playernames, Z.options);
 	[Z.stage, Z.turn, Z.round, Z.step, Z.phase] = [fen.stage, fen.turn, 1, 1, fen.phase];
-	let i = 0; playernames.map(x => fen.players[x].playmode = playermodes[i++]); //restore playmode
+	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
+	// let i = 0; playernames.map(x => fen.players[x].playmode = playmodes[i++]); //restore playmode
 	//if (Z.game == 'spotit') spotit_clear_score();
 	//console.log('neue fen',Z.fen.plorder.map(x=>fen.players[x].time_left))
 	take_turn_fen_clear();

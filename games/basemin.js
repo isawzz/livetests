@@ -1259,6 +1259,13 @@ function mText(text, dParent, styles, classes) {
 	if (isdef(classes)) mClass(d, classes);
 	return d;
 }
+function mTextArea(rows, cols, dParent, styles = {}, id) {
+	let html = `<textarea id="${id}" rows="${rows}" cols="${cols}" wrap="hard"></textarea>`;
+	let t = mCreateFrom(html);
+	mAppend(dParent, t);
+	mStyle(t, styles);
+	return t;
+}
 function mYaml(d, js) {
 	d.innerHTML = '<pre>' + jsonToYaml(js) + '</pre>';
 	return d;

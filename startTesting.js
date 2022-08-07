@@ -3,7 +3,7 @@ async function start() {
 
 	//DB = await route_path_yaml_dict('./base/DB.yaml');	console.log('DB',DB);	return;
 
-	Serverdata = await load_assets_fetch('./base/', './easy/');
+	Serverdata = await load_assets_fetch('./base/', './games/'); //war vorher './easy/' !!!!!!!!!!!!!!!!!!!!!!!! 
 	//console.log('Serverdata',Serverdata);
 	let uname = localStorage.getItem('uname');
 	//console.log('uname',uname);
