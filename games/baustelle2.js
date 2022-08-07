@@ -1,7 +1,7 @@
 function get_robot_personality(name) { return { erratic: 20, bluff: 20, random: 20, risk: 20, passive: 20, clairvoyant: 20, aggressive: 20 }; }
 function botbest(list, max, mmax, exp, nreas, n2, have2, words, fen) {
 	//console.log('uplayer',Z.uplayer)
-	//console.log('strategy',Z.strategy)
+	console.log('using strategy',Z.strategy)
 	let bot = window[`bot_${Z.strategy}`];
 	let [b, f] = bot(list, max, mmax, exp, nreas, n2, have2, words, fen);
 	//console.log('bot', stringAfter(bot.name, '_'), 'picked', b);

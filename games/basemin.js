@@ -256,8 +256,8 @@ const ARI = {
 	}
 };
 const BLUFF = {
-	torank : { _: '_', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' },
-	toword : { _: '_', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' },
+	torank: { _: '_', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' },
+	toword: { _: '_', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' },
 	rankstr: '3456789TJQKA',
 
 };
@@ -793,13 +793,16 @@ function mRadio(label, val, name, dParent, styles = {}, handler, group_id, is_on
 
 	return d;
 }
-function mRadioGroup(dParent, styles, id, legend) {
+function mRadioGroup(dParent, styles, id, legend, legendstyles) {
 	let f = mCreate('fieldset');
 	f.id = id;
 	if (isdef(styles)) mStyle(f, styles);
-	let l = mCreate('legend');
-	l.innerHTML = legend;
-	mAppend(f, l);
+	if (isdef(legend)) {
+		let l = mCreate('legend');
+		l.innerHTML = legend;
+		mAppend(f, l);
+		if (isdef(legendstyles)) {mStyle(l, legendstyles);}
+	}
 	mAppend(dParent, f);
 	return f;
 }
@@ -1691,8 +1694,8 @@ function arrSwap(arr, i, j) { let h = arr[i]; arr[i] = arr[j]; arr[j] = h; }
 function arrTake(arr, n = 0, from = 0) {
 	if (isDict(arr)) {
 		let keys = Object.keys(arr);
-		return n>0? keys.slice(from, from + n).map(x => (arr[x])):keys.slice(from).map(x => (arr[x]));
-	} else return n>0? arr.slice(from, from + n):arr.slice(from);
+		return n > 0 ? keys.slice(from, from + n).map(x => (arr[x])) : keys.slice(from).map(x => (arr[x]));
+	} else return n > 0 ? arr.slice(from, from + n) : arr.slice(from);
 
 }
 function arrTakeLast(arr, n, from = 0) {
@@ -3984,8 +3987,8 @@ async function load_assets_fetch(basepath, baseminpath) {
 }
 function loader_on() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_on'; }
 function loader_off() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_off'; }
-function log_array(arr){
-	arr.map(x=>console.log(x));
+function log_array(arr) {
+	arr.map(x => console.log(x));
 }
 function log_object(o = {}, msg = '', props = [], indent = 0) {
 	console.log(indent ? '.'.repeat(indent) : '____', msg, indent ? '' : `(caller:${getFunctionsNameThatCalledThisFunction()})`);

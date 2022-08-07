@@ -182,6 +182,7 @@ function intersection(arr1, arr2) {
 function ai_move(ms = 100) {
 
 	//mFade(dTable,100); //mAnimateTo(dTable, 'opacity', .2, 100); //irgendwie muss ich table hiden!
+	//console.log('ai_move');
 
 	DA.ai_is_moving = true;
 	let [A, fen] = [valf(Z.A, {}), Z.fen];

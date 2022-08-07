@@ -330,6 +330,12 @@ function set_player(name, fen) {
 	copyKeys(fen.players[name], PL);
 	Z.uplayer = name;
 }
+function set_player_strategy(val) {
+	Z.strategy = Clientdata.strategy = Z.pl.strategy = val;
+	mRemove('dOptions')
+
+
+}
 function shield_on() {
 	mShield(dTable.firstChild.childNodes[1]);
 	mStyle('dAdmin', { bg: 'silver' });
@@ -596,7 +602,23 @@ function show_status(s) {
 		if (!TESTING && !s.includes('reload')) show_fleeting_message(s, 'dTest', { fz: 14, position: 'absolute', top: 5, right: 10 }, 'dStatus');
 	}
 }
+function show_strategy_popup() {
+	//console.log('options', options);
+	let dpop = mPopup('', dTable, { fz: 16, fg: 'white', top: 0, right: 0, border: 'white', padding: 10, bg: 'dimgray' }, 'dOptions');
+	mAppend(dpop, mCreateFrom(`<div style="text-align:center;width:100%;font-family:Algerian;font-size:22px;">${Z.game}</div>`));
+	mDiv(dpop, { matop: 5, maleft: 10 }, null, `choose strategy:`);
 
+	let vals = Config.games[Z.game].options.strategy.split(',');
+	//console.log('vals', vals);
+	let key = 'strategy';
+	let fs = mRadioGroup(dpop, { fg: 'white' }, `d_${key}`); //,`${key}`, {fg:'white',border:'1px solid red'});
+	for (const v of vals) { mRadio(v, isNumber(v) ? Number(v) : v, key, fs, { cursor: 'pointer' }, set_player_strategy, key, v == Z.strategy); }
+	measure_fieldset(fs);
+
+	//UI.dStrategyContent = mTextArea(10, 20, dpop, { margin: 10, padding: 10 }, 'dStrategyContent');
+
+	//console.log('popup', dpop);
+}
 function show_tables(ms = 500) {
 
 	clear_screen();

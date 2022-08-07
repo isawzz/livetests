@@ -1,5 +1,6 @@
 
 function bluff_ai() {
+	//console.log('bluff_ai');
 	let [A, fen, uplayer, pl] = [Z.A, Z.fen, Z.uplayer, Z.pl];
 	const torank = { _: '_', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
 	const toword = { _: '_', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' };

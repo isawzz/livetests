@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')

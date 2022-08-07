@@ -227,7 +227,7 @@ function update_table() {
 	//set playmode and strategy
 	let pl = Z.pl;
 	Z.playmode = pl.playmode; //could be human | ai | hybrid (that's for later!!!)
-	Z.strategy = pl.strategy; //humans are really hybrids: they have default strategy 'random'
+	Z.strategy = valf(Clientdata.strategy,pl.strategy); //humans are really hybrids: they have default strategy 'random'
 	//if (Z.playmode != 'human') Z.strategy = pl.strategy;
 
 	//determine wheather have to present game state!
