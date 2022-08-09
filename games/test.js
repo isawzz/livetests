@@ -22,18 +22,85 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest98_weired_blatt_aendern(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest102_luxurycard(); //ltest98_weired_blatt_aendern(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
 }
-function ltest101_commission(){
-	TESTING = true; DA.testing = true; DA.test = { mods: [set_queen_phase,give_player_multiple_commission_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+function ltest102_luxurycard() {
+	let dTable = mBy('dTable'); clearElement(dTable); mStyle(dTable, { hmin: 400 });
+	drawcard('AHl', dTable, 300);
+	drawcard('AHl', dTable, 200);
+	drawcard('AHl', dTable, 100);
+}
+function drawcard(key,dParent,sz){
+	let d1;
+	let card = ari_get_card(key, sz);
+	mAppend(dParent, iDiv(card));
+	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
+	let h=sz*.5;
+
+	let w=h/6.5;
+
+	//let left=2 - sz>=300?2:sz>=24?1:sz>=180?0:sz>=120?-1:2;
+
+
+	let matop=(sz-h)/2;
+	let html = `<img height=${h} src="./base/assets/images/icons/deco_v.png">`;
+	d1 = mDiv(d, {position:'absolute',top:matop,left:5}, null, html); 
+
+
+
+	// let wc=sz*0.6;
+	// let hc=wc/5; 
+	// let offx=card.w-hc;
+	// console.log('wc',wc,'hc',hc);
+	// let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
+	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
+	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
+	//d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
+
+
+
+	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
+	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
+	// let rect=getRect(d1);
+	//mPlace(d1, 'cc');
+
+}
+function _drawcard(key,dParent,sz){
+	let d1;
+	let card = ari_get_card(key, sz);
+	mAppend(dParent, iDiv(card));
+	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
+	let wc=sz*0.6;
+	let hc=wc/5; 
+	let offx=card.w-hc;
+	console.log('wc',wc,'hc',hc);
+	let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
+	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
+	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
+	d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
+
+
+
+	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
+	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
+	// let rect=getRect(d1);
+	//mPlace(d1, 'cc');
+
+}
+function ltest101_commission() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_queen_phase, give_player_multiple_commission_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
 
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'yes', rumors: 'no' });
 }
-function ltest100_auction(){
+function ltest100_auction() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_auction_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
@@ -41,7 +108,7 @@ function ltest100_auction(){
 
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
-function ltest99_fritz(){
+function ltest99_fritz() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
@@ -49,7 +116,7 @@ function ltest99_fritz(){
 
 	startgame('fritz', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
-function ltest98_weired_blatt_aendern(){
+function ltest98_weired_blatt_aendern() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_hand_A2], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
@@ -58,20 +125,20 @@ function ltest98_weired_blatt_aendern(){
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
 function ltest97_find_sequences() {
-	let x=follows_in_rank('ACn', '2Cn', 'A23456789TJQK');
-	console.log('follows',x);
-	x=find_sequences(['ACn','2Cn','3Hn','5Hn','7Hn','7Sn','7Cn','7Dn'], 2, 'A23456789TJQK');
-	console.log('follows',x);
+	let x = follows_in_rank('ACn', '2Cn', 'A23456789TJQK');
+	console.log('follows', x);
+	x = find_sequences(['ACn', '2Cn', '3Hn', '5Hn', '7Hn', '7Sn', '7Cn', '7Dn'], 2, 'A23456789TJQK');
+	console.log('follows', x);
 }
 function ltest96_aristo_visit() {
-	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein,set_queen_phase,give_player_queen], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein, set_queen_phase, give_player_queen], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
 function ltest95_aristo_rumor_action() {
-	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings_plus,set_queen_phase,give_player_king], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings_plus, set_queen_phase, give_player_king], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
@@ -1366,10 +1433,10 @@ function add_a_schwein(fen, uname) {
 	let keys = deck_deal(fen.deck, type[0] == 'f' ? 4 : type[0] == 'e' ? 5 : 6);
 	fen.players[uname].buildings[type].push({ list: keys, h: null });
 }
-function bluff_start_bid(o){
-	let ranks = rChoose(BLUFF.rankstr,2).map(x=>BLUFF.toword[x]);
-	let b2=coin(10)?'_':rNumber(1,4);
-	o.fen.lastbid = [rNumber(1,4),ranks[0],b2,b2=='_'?'_':ranks[1]];
+function bluff_start_bid(o) {
+	let ranks = rChoose(BLUFF.rankstr, 2).map(x => BLUFF.toword[x]);
+	let b2 = coin(10) ? '_' : rNumber(1, 4);
+	o.fen.lastbid = [rNumber(1, 4), ranks[0], b2, b2 == '_' ? '_' : ranks[1]];
 }
 function each_hand_of_one(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1514,7 +1581,7 @@ function give_players_buildings(o) {
 function give_players_schwein(o, isOpen = true) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let b = stage_building(fen, 1, 'farm');
-	b.h='KHn';
+	b.h = 'KHn';
 	if (isOpen) b.schwein = b.list[2];
 	fen.stage = 5;
 	fen.phase = 'king';
@@ -1559,21 +1626,21 @@ function give_player_multiple_commission_cards(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let pl = fen.players[uplayer];
 	pl.hand.push('QCn', 'QHn');
-	pl.stall.push('QDn','QSn');
+	pl.stall.push('QDn', 'QSn');
 	pl.commissions.push('QCc');
 }
 function give_players_hand_journey(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	for (const plname of fen.plorder) { 
+	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];
-		arrExtend(pl.hand,['ACn','2Cn','3Cn']);
+		arrExtend(pl.hand, ['ACn', '2Cn', '3Cn']);
 	}
 }
 function give_players_hand_A2(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	for (const plname of fen.plorder) { 
+	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];
-		pl.hand=['ACn','2Cn','3Cn','5Hn','7Hn','7Sn','7Cn','7Dn'];
+		pl.hand = ['ACn', '2Cn', '3Cn', '5Hn', '7Hn', '7Sn', '7Cn', '7Dn'];
 	}
 	[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, o.options, fen.phase);
 }
