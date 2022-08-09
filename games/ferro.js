@@ -2,6 +2,7 @@
 
 
 function ferro() {
+	const rankstr ='23456789TJQKA*';
 	function clear_ack() {
 		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
 		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
@@ -52,7 +53,7 @@ function ferro() {
 	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
 	function stats(Z, dParent) { ferro_stats_new(dParent); }
 	function activate_ui() { ferro_activate_ui(); }
-	return { clear_ack, state_info, setup, present, present_player, check_gameover, stats, activate_ui };
+	return { rankstr, clear_ack, state_info, setup, present, present_player, check_gameover, stats, activate_ui };
 }
 
 function ferro_pre_action() {
@@ -877,7 +878,8 @@ function onclick_by_rank_ferro() {
 	let cardcont = h.cardcontainer;
 	let ch = arrChildren(cardcont);
 	ch.map(x => x.remove());
-	let sorted = sortCardItemsByRank(items, '23456789TJQKA*');
+	//console.log('rankstr',Z.func.rankstr);
+	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //window[Z.game.toUpperCase()].rankstr); //'23456789TJQKA*');
 	h.sortedBy = 'rank';
 	for (const item of sorted) {
 		mAppend(cardcont, iDiv(item));
@@ -893,7 +895,7 @@ function onclick_by_suit_ferro() {
 	let cardcont = h.cardcontainer;
 	let ch = arrChildren(cardcont);
 	ch.map(x => x.remove());
-	let sorted = sortCardItemsByRank(items, '23456789TJQKA*');
+	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //'23456789TJQKA*');
 	sorted = sortCardItemsBySuit(sorted);
 	h.sortedBy = 'suit';
 	for (const item of sorted) {

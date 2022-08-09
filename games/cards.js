@@ -1,10 +1,21 @@
 
 //#region get_card and card assets
+
+
 function ari_get_card(ckey, h, w, ov = .2) {
 	//console.log('ckey', ckey);
 	let type = ckey[2];
 	let info = type == 'n' ? to_aristocard(ckey) : type == 'l' ? to_luxurycard(ckey) : to_commissioncard(ckey);
 	let card = cardFromInfo(info, h, w, ov);
+	// if (type == 'l') {
+	// 	let d=iDiv(card);
+	// 	let sym=mSym('crow',d,{bg:'green',h:100,w:5},'tl');
+
+
+	// 	//symbolcolor(card, 'royalblue');
+	// 	//set_card_border(card, 10, 'orangered', "20,10,5,5,5,10"); 
+	// 	//set_card_style(card, { bg: 'gold' }) }
+	// }
 	return card;
 }
 function ferro_get_card(ckey, h, w, ov = .25) {
@@ -93,7 +104,7 @@ function to_aristocard(ckey, color = RED, sz = 100, w) {
 	info.isort = info.isuit * 13 + info.irank;
 	return info;
 }
-function to_luxurycard(ckey, color = 'gold', sz = 100, w) { return to_aristocard(ckey, color); }
+function to_luxurycard(ckey, color = 'gold', sz = 100, w) { return to_aristocard(ckey, color, sz); }
 function to_commissioncard(ckey, color = GREEN, sz = 40, w) { return to_aristocard(ckey, color, sz); }
 
 //#region card face up or down
@@ -472,13 +483,13 @@ function is_overlapping_set(cards, max_jollies_allowed = 1, seqlen = 7, group_sa
 
 	if (cards.length < lmin) return false;
 
-	while (legal && istart<=cards.length-lmin) {
+	while (legal && istart <= cards.length - lmin) {
 		let cl = cards.slice(istart, istart + lmin);
 		//console.log('istart',istart,'looking at',cl.map(x=>x.key).join(','));
 		//check that cl is a ferro set
 		let set = ferro_is_set(cl, max_jollies_allowed, seqlen, group_same_suit_allowed);
 
-		if (set) { istart++; inextstart = Math.min(istart + lmin,cards.length-3); }
+		if (set) { istart++; inextstart = Math.min(istart + lmin, cards.length - 3); }
 		else if (!set && inextstart == istart) return false;
 		else istart++;
 
@@ -518,7 +529,22 @@ function replace_jolly(key, j) {
 	j[jolly_idx] = key;
 }
 function remove_card_shadow(c) { iDiv(c).firstChild.setAttribute('class', null); }
-function set_card_border(item, thickness = 1, color = 'black') {
+
+function symbolcolor(card, color) {
+	let d = iDiv(card);
+	//get all symbol elements
+	//let symbols = d.getElementsByClassName('symbol');
+	let els = d.getElementsByTagName('symbol'); // findDescendantOfType('symbol', d);
+	console.log('list',els)
+	for (const el of els) {
+		let html = el.innerHTML;
+		let html1 = replaceAll(html, 'red', color);
+		let html2 = replaceAll(html1, 'black', color);
+		el.innerHTML = html2;
+	}
+
+}
+function set_card_border(item, thickness = 1, color = 'black', dasharray) {
 	//console.log('set_card_border', item, thickness, color);
 	let d = iDiv(item);
 	let rect = lastDescendantOfType('rect', d);
@@ -526,10 +552,11 @@ function set_card_border(item, thickness = 1, color = 'black') {
 	if (rect) {
 		rect.setAttribute('stroke-width', thickness);
 		rect.setAttribute('stroke', color);
+		if (isdef(dasharray)) rect.setAttribute('stroke-dasharray', dasharray);
 	}
 }
 function set_card_style(item, styles = {}, className) {
-	//console.log('set_card_border', item, thickness, color);
+	console.log('set_card_style', item, styles);
 	let d = iDiv(item);
 	let svg = findDescendantOfType('svg', d);
 	let rect = findDescendantOfType('rect', svg);
@@ -542,7 +569,8 @@ function set_card_style(item, styles = {}, className) {
 		svg.style.filter = `drop-shadow(4px 5px 2px ${hexcolor})`;
 	}
 	if (isdef(styles.bg)) {
-
+		let hexcolor = colorFrom(styles.bg);
+		rect.setAttribute('stroke-width', 14); rect.setAttribute('stroke', hexcolor);
 	}
 
 	assertion(rect, 'NO RECT FOUND IN ELEM', d);

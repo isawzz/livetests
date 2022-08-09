@@ -1,4 +1,61 @@
 
+function to_luxurycard(ckey, color = 'gold', sz = 100, w) { 
+	let card = to_aristocard(ckey, color); 
+
+	console.log('card', card);
+	set_card_style(card,{bg:'lightgoldenrodyellow'});
+
+
+	return card;
+}
+function post_commission() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+
+	let comm_selected = A.items[A.selected[0]];
+	
+	//console.log('process_commission:', comm_selected);
+
+	//1. berechne wieviel der player bekommt!
+	//first check N1 = wie oft im fen.commissioned der rank von A.commission schon vorkommt
+	//fen.commissioned koennte einfach sein: array of {rank:rank,count:count} und sorted by latest
+	let rank = A.commission.key[0];
+	if (nundef(fen.commissioned)) fen.commissioned = [];
+	let x = firstCond(fen.commissioned, x => x.rank == rank);
+	if (x) { removeInPlace(fen.commissioned, x); }
+	else { x = { key: A.commission.key, rank: rank, count: 0 }; }
+
+	//console.log('x', x)
+
+	x.count += 1;
+
+	//is the rank >= that the rank of the topmost commissioned card
+	let pl = fen.players[uplayer];
+	let top = isEmpty(fen.commissioned) ? null : arrLast(fen.commissioned);
+	let rankstr = 'A23456789TJQK';
+	let points = !top || get_rank_index(rank, rankstr) >= get_rank_index(top.rank, rankstr) ? 1 : 0;
+	points += Number(x.count);
+	pl.coins += points;
+	fen.commissioned.push(x);
+
+	let key = A.commission.similar.key;
+	removeInPlace(pl.stall, key); // das muss aendern!!!!!!!!!!!!!
+
+	if (comm_selected.path == 'open_commissions') {
+		//top comm deck card goes to open commissions
+		removeInPlace(fen.open_commissions, comm_selected.key);
+		top_elem_from_to(fen.deck_commission, fen.open_commissions);
+	} else {
+		removeInPlace(fen.deck_commission, comm_selected.key);
+	}
+
+	//console.log('pl', pl, pl.commissions);
+	arrReplace(pl.commissions, [A.commission.key], [comm_selected.key]);
+
+	ari_history_list([`${uplayer} replaced commission card ${A.commission.key} by ${comm_selected.key}`, `${uplayer} gets ${points} for commissioning ${A.commission.key}`], 'commission');
+
+	ari_next_action();
+}
+
 
 function ai_move(ms = 100) {
 

@@ -240,14 +240,14 @@ function onclick_user(uname) {
 
 }
 function onclick_tables() { phpPost({ app: 'simple' }, 'tables'); }
-function onclick_tide_all() {
+function onclick_tithe_all() {
 
-	//each player must get tides={val:x};
+	//each player must get tithes={val:x};
 	let [game, fen, uplayer, turn, stage] = [Z.game, Z.fen, Z.uplayer, Z.turn, Z.stage];
 	for (const plname in fen.players) {
 		let pl = fen.players[plname];
-		if (isdef(pl.tides)) { continue; }
-		pl.tides = { val: rNumber(8, 10) };
+		if (isdef(pl.tithes)) { continue; }
+		pl.tithes = { val: rNumber(8, 10) };
 	}
 
 	proceed_to_newcards_selection();

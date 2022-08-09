@@ -207,13 +207,13 @@ const ARI = {
 		15: 'commission',
 		16: 'commission new',
 		17: 'church',
-		18: 'church_minplayer_tide',
+		18: 'church_minplayer_tithe',
 		//180: 'downgrade_cards_church', ***geht zu downgrade!
 		19: 'church_newcards',
 
 		20: 'payment action',
-		21: 'church_minplayer_tide_add',
-		22: 'church_minplayer_tide_downgrade',
+		21: 'church_minplayer_tithe_add',
+		22: 'church_minplayer_tithe_downgrade',
 		23: 'comm_weitergeben',
 		24: 'rumors_weitergeben',
 		25: 'rumor',
@@ -232,6 +232,7 @@ const ARI = {
 		34: 'accept_blackmail',
 		35: 'blackmail_complete',
 		36: 'reject_blackmail',
+		37: 'commission_stall',
 
 		40: 'trade',
 		41: 'build',
@@ -1160,7 +1161,7 @@ function mSym(key, dParent, styles = {}, pos, classes) {
 	else if (isdef(styles.fz)) { sizes = mSymSizeToFz(info, styles.fz); }
 	else if (isdef(styles.h)) { sizes = mSymSizeToH(info, styles.h); }
 	else if (isdef(styles.w)) { sizes = mSymSizeToW(info, styles.w); }
-	else { sizes = mSymSizeToFz(info, CSZ / 8); }
+	else { sizes = mSymSizeToFz(info, 25); }
 
 	styles.fz = sizes.fz;
 	styles.w = sizes.w;
@@ -1558,6 +1559,7 @@ function arrBuckets(arr, func, sortbystr) {
 }
 function arrClear(arr) { arr.length = 0; }
 function arrChildren(elem) { return [...toElem(elem).children]; }
+function arrCount(arr,func){ return arr.filter(func).length; }
 function arrCycle(arr, count) { return arrRotate(arr, count); }
 function arrExtend(arr, list) { list.map(x => arr.push(x)); return arr; }
 function arrFirst(arr) { return arr.length > 0 ? arr[0] : null; }

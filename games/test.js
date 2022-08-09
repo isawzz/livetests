@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; onclick_by_rank_ferro(); } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -22,10 +22,47 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest94_aristo_journey(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest98_weired_blatt_aendern(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
 }
+function ltest101_commission(){
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_queen_phase,give_player_multiple_commission_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
 
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'yes', rumors: 'no' });
+}
+function ltest100_auction(){
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_auction_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
+}
+function ltest99_fritz(){
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('fritz', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
+}
+function ltest98_weired_blatt_aendern(){
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_hand_A2], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
+}
+function ltest97_find_sequences() {
+	let x=follows_in_rank('ACn', '2Cn', 'A23456789TJQK');
+	console.log('follows',x);
+	x=find_sequences(['ACn','2Cn','3Hn','5Hn','7Hn','7Sn','7Cn','7Dn'], 2, 'A23456789TJQK');
+	console.log('follows',x);
+}
 function ltest96_aristo_visit() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein,set_queen_phase,give_player_queen], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -450,7 +487,7 @@ function ltest50_aristo_church() {
 }
 function ltest49_aristo_church() {
 	TESTING = true; DA.testing = true; DA.test = {
-		mods: [give_players_stalls, make_church, set_player_tides], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0]
+		mods: [give_players_stalls, make_church, set_player_tithes], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0]
 	};
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
@@ -1518,12 +1555,27 @@ function give_player_queen(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.players[uplayer].hand.push('QHn');
 }
+function give_player_multiple_commission_cards(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let pl = fen.players[uplayer];
+	pl.hand.push('QCn', 'QHn');
+	pl.stall.push('QDn','QSn');
+	pl.commissions.push('QCc');
+}
 function give_players_hand_journey(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	for (const plname of fen.plorder) { 
 		let pl = fen.players[plname];
 		arrExtend(pl.hand,['ACn','2Cn','3Cn']);
 	}
+}
+function give_players_hand_A2(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	for (const plname of fen.plorder) { 
+		let pl = fen.players[plname];
+		pl.hand=['ACn','2Cn','3Cn','5Hn','7Hn','7Sn','7Cn','7Dn'];
+	}
+	[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, o.options, fen.phase);
 }
 function give_players_buildings_plus(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1618,36 +1670,45 @@ function set_blackmail_owner_stage(o) {
 	// console.log('blackmail',fen.blackmail);
 	fen.stage = o.stage = 33;
 }
-function set_player_tides(o) {
+function set_player_tithes(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let min = 1000, minplayer = null;
 	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];
 		let hkey = pl.hand[0];
 		let val = ari_get_card(hkey).val;
-		pl.tides = { keys: [hkey], val: val };
+		pl.tithes = { keys: [hkey], val: val };
 		if (val < min) { min = val; minplayer = plname; }
 
-		console.log('player', plname, 'tides', pl.tides);
+		console.log('player', plname, 'tithes', pl.tithes);
 	}
-	let sorted = sortByDescending(fen.plorder, x => fen.players[x].tides.val);
+	let sorted = sortByDescending(fen.plorder, x => fen.players[x].tithes.val);
 	fen.church_order = jsCopy(fen.plorder);
-	fen.tide_minimum =
+	fen.tithe_minimum =
 		//fen.selection_order = sorted;
 
 		fen.stage = 21;
 }
+function set_auction_phase(o) {
+	fen = o.fen;
+	fen.phase = o.phase = 'jack';
+	fen.turn = [fen.plorder[0]];
+	fen.stage = 12;
+	ensure_market(fen, 3);
+
+	//fen.market=['2Hn','2Hn','2Hn'];  //test uniqueness wenn mehrere cards gleich sind: sollte KAUFEN koennen!!!!
+	// arisim_stage_3(fen);
+	// arisim_stage_4_all(fen, 3, false);
+	// ensure_actions(fen);
+
+}
 function set_queen_phase(o) {
-	//console.log('deck', jsCopy(otree.deck));
 	fen = o.fen;
 	fen.phase = o.phase = 'queen';
 	arisim_stage_3(fen);
 	arisim_stage_4_all(fen, 3, false);
 	ensure_actions(fen);
-	fen.stage;
 	fen.turn = [fen.plorder[0]];
-	//[o.stage, fen.turn] = [fen.stage, o.turn];
-	//fen.stage = o.stage = 5;
 }
 function small_hands(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];

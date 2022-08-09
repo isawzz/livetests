@@ -1,5 +1,6 @@
 
 function fritz() {
+	const rankstr = 'A23456789TJQK*';
 	function state_info(dParent) { fritz_state_info(dParent); }
 	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: [], maxrounds: options.cycles * players.length };
@@ -33,7 +34,7 @@ function fritz() {
 	function present(z, dParent, uplayer) { fritz_present_new(z, dParent, uplayer); }
 	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
 	function activate_ui() { fritz_activate_ui(); }
-	return { state_info, setup, present, check_gameover, activate_ui };
+	return { rankstr, state_info, setup, present, check_gameover, activate_ui };
 }
 
 function fritz_present_new(z, dParent, uplayer) {
@@ -129,7 +130,7 @@ function fritz_present_player(playername, dMiddle) {
 	if (isdef(pl.handsorting)) {
 		let bysuit = pl.handsorting.by == 'suit';
 		let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
-		pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, '23456789TJQKA*').concat(arr2);
+		pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, 'A23456789TJQK*').concat(arr2);
 	}
 	let upl = ui.players[playername] = { div: d };
 	upl.hand = ui_type_hand(pl.hand, d, {}, `players.${playername}.hand`, 'hand', fritz_get_card);

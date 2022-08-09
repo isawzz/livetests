@@ -51,7 +51,7 @@ function aristo() {
 		} else if (exp_rumors(options) && fen.plorder.length > 2) {
 			ari_history_list([`gossiping starts`], 'rumors', fen);
 			[fen.stage, fen.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
-		} else[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
+		} else [fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
 
 		return fen;
 	}
@@ -186,8 +186,8 @@ function aristo() {
 				mSym('tied-scroll', d, { fg: 'gold', fz: 24, padding: 4 }, 'TR');
 			}
 			if (exp_church(z.options)) {
-				if (isdef(pl.tides)) {
-					player_stat_count('cross', pl.tides.val, d);
+				if (isdef(pl.tithes)) {
+					player_stat_count('cross', pl.tithes.val, d);
 
 				}
 			}
@@ -299,19 +299,19 @@ function ari_pre_action() {
 				if (check_if_church()) ari_start_church_stage(); else ari_start_action_stage();
 			} else select_add_items(ui_get_hand_items(uplayer), post_stall_selected, 'must select your stall'); break;
 		case 'stall selection': select_add_items(ui_get_hand_items(uplayer), post_stall_selected, 'must select cards for stall'); break;
-		case 'church': select_add_items(ui_get_hand_and_stall_items(uplayer), post_tide, `must select cards to tide ${isdef(fen.tidemin) ? `(current minimum is ${fen.tidemin})` : ''}`, 1, 100); break;
-		case 'church_minplayer_tide_add': select_add_items(ui_get_hand_and_stall_items(uplayer), post_tide_minimum, `must select cards to reach at least ${fen.tide_minimum}`, 1, 100); break;
-		case 'church_minplayer_tide_downgrade': select_add_items(ui_get_building_items(uplayer, A.payment), process_downgrade, 'must select a building to downgrade', 1, 1); break;
-		case 'church_minplayer_tide': console.log('NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO');
-			//fen.tide_minimum is what fen.minplayer (=uplayer) must reach to tide
+		case 'church': select_add_items(ui_get_hand_and_stall_items(uplayer), post_tithe, `must select cards to tithe ${isdef(fen.tithemin) ? `(current minimum is ${fen.tithemin})` : ''}`, 1, 100); break;
+		case 'church_minplayer_tithe_add': select_add_items(ui_get_hand_and_stall_items(uplayer), post_tithe_minimum, `must select cards to reach at least ${fen.tithe_minimum}`, 1, 100); break;
+		case 'church_minplayer_tithe_downgrade': select_add_items(ui_get_building_items(uplayer, A.payment), process_downgrade, 'must select a building to downgrade', 1, 1); break;
+		case 'church_minplayer_tithe': console.log('NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO');
+			//fen.tithe_minimum is what fen.minplayer (=uplayer) must reach to tithe
 			//first compute if hand and stall cards can get up to minimum
-			//console.log('church_minplayer_tide!', Z.stage, fen.stage);
+			//console.log('church_minplayer_tithe!', Z.stage, fen.stage);
 			let pl = fen.players[uplayer];
 			let hst = pl.hand.concat(pl.stall);
 			let vals = hst.map(x => ari_get_card(x).val);
 			let sum = arrSum(vals);
 			//console.log('gesamtes minplayer blatt + stall', sum);
-			let min = fen.tide_minimum;
+			let min = fen.tithe_minimum;
 			if (sum < min) {
 				//jetzt gibt es ein problem! player muss ein building downgraden!
 				//fahre fort wie bei downgrade!
@@ -319,12 +319,12 @@ function ari_pre_action() {
 
 				//uplayer looses all hand and stall cards!!!
 
-				ari_history_list([`${uplayer} must downgrade a building to tide ${min}!`], 'downgrade');
+				ari_history_list([`${uplayer} must downgrade a building to tithe ${min}!`], 'downgrade');
 				select_add_items(ui_get_building_items(uplayer, A.payment), process_downgrade, 'must select a building to downgrade', 1, 1);
 			} else {
-				//must select more cards to tide!
-				ari_history_list([`${uplayer} must tide more cards to reach ${min}!`], 'tide');
-				select_add_items(ui_get_hand_and_stall_items(uplayer), post_tide_minimum, `must select cards to reach at least ${fen.tide_minimum}`, 1, 100);
+				//must select more cards to tithe!
+				ari_history_list([`${uplayer} must tithe more cards to reach ${min}!`], 'tithe');
+				select_add_items(ui_get_hand_and_stall_items(uplayer), post_tithe_minimum, `must select cards to reach at least ${fen.tithe_minimum}`, 1, 100);
 			}
 
 
@@ -340,7 +340,7 @@ function ari_pre_action() {
 		case 'complementing_market_after_church':
 			select_add_items(ui_get_hand_items(uplayer), post_complementing_market_after_church, 'may complement stall'); break;
 		case 'action: command': Z.stage = 6; select_add_items(ui_get_commands(uplayer), process_command, 'must select an action', 1, 1); break; //5
-		case 'tax': let n = fen.pl_tax[uplayer]; select_add_items(ui_get_hand_items(uplayer), post_tax, 'must pay tax', n, n); break;
+		case 'tax': let n = fen.pl_tax[uplayer]; select_add_items(ui_get_hand_items(uplayer), post_tax, `must pay ${n} card${if_plural(n)} tax`, n, n); break;
 		case 'action step 2':
 			switch (A.command) {
 				case 'trade': select_add_items(ui_get_trade_items(uplayer), post_trade, 'must select 2 cards to trade', 2, 2); break;
@@ -365,6 +365,7 @@ function ari_pre_action() {
 			}
 			break;
 		case 'build': select_add_items(ui_get_build_items(uplayer, A.payment), post_build, 'must select cards to build (first card determines rank)', 4, 6); break;
+		case 'commission_stall': select_add_items(ui_get_commission_stall_items(), process_commission_stall, 'must select matching stall card to discard', 1, 1); break;
 		case 'commission new': select_add_items(ui_get_commission_new_items(uplayer), post_commission, 'must select a new commission', 1, 1); break;
 		case 'upgrade': select_add_items(ui_get_build_items(uplayer, A.payment), process_upgrade, 'must select card(s) to upgrade a building', 1); break;
 		case 'select building to upgrade': select_add_items(ui_get_farms_estates_items(uplayer), post_upgrade, 'must select a building', 1, 1); break;
@@ -387,8 +388,8 @@ function ari_pre_action() {
 function ari_get_actions(uplayer) {
 	let fen = Z.fen;
 	//actions include market card exchange
-	let actions = exp_rumors(Z.options) ? ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'buy rumor', 'rumor', 'inspect', 'blackmail', 'harvest', 'pickup', 'sell', 'tide', 'commission']
-		: ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'visit', 'harvest', 'pickup', 'sell', 'tide', 'commission'];
+	let actions = exp_rumors(Z.options) ? ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'buy rumor', 'rumor', 'inspect', 'blackmail', 'harvest', 'pickup', 'sell', 'tithe', 'commission']
+		: ['trade', 'exchange', 'build', 'upgrade', 'downgrade', 'buy', 'visit', 'harvest', 'pickup', 'sell', 'tithe', 'commission'];
 	if (Config.autosubmit) actions.push('pass'); ////, 'pass'];
 	let avail_actions = [];
 	for (const a of actions) {
@@ -482,7 +483,8 @@ function ari_check_action_available(a, fen, uplayer) {
 		//muss dieselbe rank in pl.commissions und pl.hand or pl.stall haben!
 		for (const c of pl.commissions) {
 			let rank = c[0];
-			if (firstCond(pl.hand, x => x[0] == rank) || firstCond(pl.stall, x => x[0] == rank)) return true;
+			if (firstCond(pl.stall, x => x[0] == rank)) return true; //nur wenn in stall!!!!!!
+			//if (firstCond(pl.hand, x => x[0] == rank) || firstCond(pl.stall, x => x[0] == rank)) return true;
 		}
 		return false;
 	} else if (a == 'rumor') {
@@ -638,7 +640,7 @@ function ari_next_action() {
 
 //#region auction / buy
 function process_auction() {
-	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	let [fen, A, uplayer,plorder] = [Z.fen, Z.A, Z.uplayer,Z.plorder];
 	//console.log('A', A.selected);
 	if (isEmpty(A.selected)) A.selected = [0];
 	let playerbid = Number(valf(A.items[A.selected[0]].a, '0')); //A.selected.map(x => A.items[x]); 
@@ -673,6 +675,10 @@ function process_auction() {
 		let maxplayers = fen.maxplayers = list.filter(x => x.value == max).map(x => x.uplayer);
 		//fen.round = arrMinus(fen.plorder, maxplayers);
 		Z.turn = [maxplayers[0]];
+		for (const plname of plorder) {
+			ari_history_list([`${plname} bids ${fen.auction[plname]}`], 'auction');
+		}
+		ari_history_list([`auction winner${if_plural(fen.maxplayers.length)}: ${fen.maxplayers.join(', ')} (price: ${fen.second_most} coin)`], 'auction');
 		//iturn = fen.plorder.indexOf(maxplayers[0]);
 	} else {
 		Z.turn = [fen.plorder[iturn]];
@@ -683,9 +689,11 @@ function process_auction() {
 function post_auction() {
 	console.assert(Z.stage == 13, 'WRONG STAGE IN POST AUCTION ' + Z.stage);
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	console.log('selected',A.selected)
 	let item = A.selected.map(x => A.items[x])[0]; // A.items.filter(x => A.selected.includes(x.index)).map(x => x.key);
 
-	lookupSet(fen, ['buy', uplayer], item);
+	lookupSet(fen, ['buy', uplayer], {key:item.key,index:A.selected[0]});
+	ari_history_list([`${uplayer} selects ${item.key}`], 'auction');
 
 	for (const plname of fen.maxplayers) {
 		if (!lookup(fen, ['buy', plname])) {
@@ -700,31 +708,36 @@ function post_auction() {
 
 	//if 2 or more players selected the same card, this card is discarded
 	//otherwise the player buys the card
-	let buylist = dict2list(fen.buy);
-	//console.log('buylist', buylist);
+	let buylist = dict2list(fen.buy,'playername');
+	console.log('buylist', buylist);
 
 	let discardlist = [];
 	for (const plname of fen.maxplayers) {
-		let choice = fen.buy[plname];
-		//console.log('choice of', uplayer, 'was', choice)
+		let choice = fen.buy[plname]; //{key:item.key,index:A.selected[0]}
+		console.log('choice of', plname, 'was', choice)
 
-		let is_unique = !firstCond(buylist, x => x.id != plname && x.value == choice);
+		let n=arrCount(buylist, x => x.index == choice.index);
+
+		let is_unique = n==1; //!firstCond(buylist, x => x.id != plname && x.key == choice);
+		console.log('choice',choice,'is_unique', is_unique);
 		if (is_unique) {
 			fen.players[plname].coins -= fen.second_most;
 			elem_from_to(choice.key, fen.market, fen.players[plname].hand);
+			ari_history_list([`${plname} buys ${choice.key} for ${fen.second_most}`], 'auction');
 		} else {
-			addIf(discardlist, choice);
+			addIf(discardlist, choice.key);
 			delete fen.buy[plname];
 		}
 	}
 
 	//console.log('discardlist', discardlist);
-	for (const choice of discardlist) {
-		elem_from_to(choice.key, fen.market, fen.deck_discard);
+	for (const key of discardlist) {
+		elem_from_to(key, fen.market, fen.deck_discard);
 		ari_reorg_discard(fen);
+		ari_history_list([`${key} is discarded`], 'auction');
 	}
 
-	add_auction_history();
+	//add_auction_history();
 	//ari_history_list(get_auction_history(fen), 'auction');
 
 	delete fen.second_most;
@@ -740,10 +753,6 @@ function post_auction() {
 }
 function add_auction_history() {
 	let [fen,plorder]=[Z.fen,Z.plorder];
-	for (const plname of plorder) {
-		ari_history_list([`${plname} bids ${fen.auction[plname]}`], 'auction');
-	}
-	ari_history_list([`auction winner${fen.maxplayers.length > 1 ? 's' : ''}: ${fen.maxplayers.join(', ')}`], 'auction');
 	for (const plname of fen.plorder) {
 		if (nundef(fen.buy[plname])) continue;
 		ari_history_list([`${plname} buys ${fen.buy[plname].a} for ${fen.second_most}`], 'auction');
@@ -856,9 +865,9 @@ function post_build() {
 //#region church
 function ari_clear_church() {
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
-	for (const prop of ['church', 'church_order', 'selorder', 'tidemin', 'tide_minimum', 'toBeSelected', 'candidates']) delete fen[prop];
+	for (const prop of ['church', 'church_order', 'selorder', 'tithemin', 'tithe_minimum', 'toBeSelected', 'candidates']) delete fen[prop];
 	for (const plname in fen.players) {
-		delete fen.players[plname].tides;
+		delete fen.players[plname].tithes;
 	}
 	//console.log('fen.deck', fen.deck, 'n',Z.plorder.length);
 	fen.church = ari_deck_deal_safe(fen, Z.plorder.length);
@@ -903,7 +912,7 @@ function determine_church_turn_order() {
 }
 function is_in_middle_of_church() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	return isdef(fen.players[uplayer].tides);
+	return isdef(fen.players[uplayer].tithes);
 }
 function post_church() {
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
@@ -959,7 +968,7 @@ function post_church() {
 	}
 
 }
-function post_tide() {
+function post_tithe() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 	let items = A.selected.map(x => A.items[x]);
 
@@ -969,39 +978,39 @@ function post_tide() {
 	let st = items.map(x => ({ key: x.key, path: x.path }));
 	let val = arrSum(st.map(x => ari_get_card(x.key).val));
 
-	//console.log('player', uplayer, 'tides', st, 'value', val);
-	lookupSet(fen, ['players', uplayer, 'tides'], { keys: st, val: val });
+	//console.log('player', uplayer, 'tithes', st, 'value', val);
+	lookupSet(fen, ['players', uplayer, 'tithes'], { keys: st, val: val });
 
-	remove_tides_from_play(fen, uplayer);
+	remove_tithes_from_play(fen, uplayer);
 
-	//calc tide minimum so far
-	let pldone = plorder.filter(x => isdef(fen.players[x].tides));
-	let minplayers = arrMin(pldone, x => fen.players[x].tides.val);
+	//calc tithe minimum so far
+	let pldone = plorder.filter(x => isdef(fen.players[x].tithes));
+	let minplayers = arrMin(pldone, x => fen.players[x].tithes.val);
 	let minplayer = isList(minplayers) ? minplayers[0] : minplayers;
-	let minval = fen.tidemin = fen.players[minplayer].tides.val;
+	let minval = fen.tithemin = fen.players[minplayer].tithes.val;
 
 	let next = get_next_in_list(uplayer, fen.church_order);
 	if (next == fen.church_order[0]) {
-		//this stage is done! ALL PLAYERS HAVE TIDED!!!
-		//goto church_tide_eval stage (18)
+		//this stage is done! ALL PLAYERS HAVE TITHED!!!
+		//goto church_tithe_eval stage (18)
 		//console.log('CHURCH TIDYING DONE!!! minplayers', minplayers);
-		assertion(sameList(pldone, plorder), 'NOT all players have tides!!!!!!!', pldone);
+		assertion(sameList(pldone, plorder), 'NOT all players have tithes!!!!!!!', pldone);
 
-		//tided cards have to be removed!
-		//for (const plname of pldone) { remove_tides_from_play(fen, plname); }
+		//tithed cards have to be removed!
+		//for (const plname of pldone) { remove_tithes_from_play(fen, plname); }
 
 		if (minplayers.length > 1) { proceed_to_newcards_selection(); return; }
 		else {
-			//there is a minplayer, this player has to tide at least as much as next higher player!
+			//there is a minplayer, this player has to tithe at least as much as next higher player!
 			//remove minplayer from pldone
 			pldone = pldone.filter(x => x != minplayer);
-			//sort pldone by tide value
-			let sorted = sortBy(pldone, x => fen.players[x].tides.val);
+			//sort pldone by tithe value
+			let sorted = sortBy(pldone, x => fen.players[x].tithes.val);
 			let second_min = sorted[0];
-			fen.tide_minimum = fen.players[second_min].tides.val - minval;
+			fen.tithe_minimum = fen.players[second_min].tithes.val - minval;
 
 			//hier kann ich eigentlich schon checken ob der minplayer ueberhaupt genug hat!
-			//dann kann ich gleich entscheiden ob er zu downgrad muss oder zu additional_tides_to_play
+			//dann kann ich gleich entscheiden ob er zu downgrad muss oder zu additional_tithes_to_play
 			//#region check if minplayer has enough
 
 			let pl = fen.players[minplayer];
@@ -1009,7 +1018,7 @@ function post_tide() {
 			let vals = hst.map(x => ari_get_card(x).val);
 			let sum = isEmpty(vals) ? 0 : arrSum(vals);
 			//console.log('gesamtes minplayer blatt + stall', sum);
-			let min = fen.tide_minimum;
+			let min = fen.tithe_minimum;
 			if (sum < min) {
 				//jetzt gibt es ein problem! player muss ein building downgraden!
 				//fahre fort wie bei downgrade!
@@ -1028,12 +1037,12 @@ function post_tide() {
 					return;
 				}
 
-				ari_history_list([`${minplayer} must downgrade a building to tide ${min}!`], 'downgrade');
+				ari_history_list([`${minplayer} must downgrade a building to tithe ${min}!`], 'downgrade');
 				Z.stage = 22;
 
 			} else {
-				//must select more cards to tide!
-				ari_history_list([`${minplayer} must tide more cards to reach ${min}!`], 'tide');
+				//must select more cards to tithe!
+				ari_history_list([`${minplayer} must tithe more cards to reach ${min}!`], 'tithe');
 				Z.stage = 21;
 				//
 			}
@@ -1054,7 +1063,7 @@ function post_tide() {
 
 
 }
-function post_tide_minimum() {
+function post_tithe_minimum() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 	let pl = fen.players[uplayer];
 	let items = A.selected.map(x => A.items[x]);
@@ -1064,25 +1073,25 @@ function post_tide_minimum() {
 	// let val = arrSum(st.map(x => ari_get_card(x.key).val));
 	// let st = items.map(x => x.key);
 
-	//player already has tides!
-	pl.tides.keys = pl.tides.keys.concat(st);
+	//player already has tithes!
+	pl.tithes.keys = pl.tithes.keys.concat(st);
 	let newval = arrSum(st.map(x => ari_get_card(x.key).val));
-	pl.tides.val += newval;
-	//console.log('player', uplayer, 'tides', st, 'value', pl.tides.val);
+	pl.tithes.val += newval;
+	//console.log('player', uplayer, 'tithes', st, 'value', pl.tithes.val);
 
-	//verify that val is at least tide_minimum
-	console.log('tide_minimum', fen.tide_minimum);
-	console.log('val', pl.tides.val);
+	//verify that val is at least tithe_minimum
+	console.log('tithe_minimum', fen.tithe_minimum);
+	console.log('val', pl.tithes.val);
 
-	if (newval < fen.tide_minimum) {
-		select_error(`you need to tide at least ${fen.tide_minimum} to reach minimum`);
+	if (newval < fen.tithe_minimum) {
+		select_error(`you need to tithe at least ${fen.tithe_minimum} to reach minimum`);
 		return;
 	}
 
 
-	//tided cards have to be removed!
-	remove_tides_from_play(fen, uplayer, st);
-	// for (const tide of st) { removeInPlace(pl.hand, tide); }
+	//tithed cards have to be removed!
+	remove_tithes_from_play(fen, uplayer, st);
+	// for (const tithe of st) { removeInPlace(pl.hand, tithe); }
 
 	proceed_to_newcards_selection();
 }
@@ -1110,7 +1119,7 @@ function proceed_to_newcards_selection() {
 	//determine selection order for _newcards selection
 	let fen = Z.fen;
 
-	let selorder = fen.selorder = sortByFuncDescending(fen.church_order, x => fen.players[x].tides.val);
+	let selorder = fen.selorder = sortByFuncDescending(fen.church_order, x => fen.players[x].tithes.val);
 	//console.log('church_order',fen.church_order);
 	//console.log('selorder',selorder);
 	fen.toBeSelected = jsCopy(selorder);
@@ -1121,17 +1130,17 @@ function proceed_to_newcards_selection() {
 
 
 }
-function remove_tides_from_play(fen, plname, tides) {
+function remove_tithes_from_play(fen, plname, tithes) {
 	let pl = fen.players[plname];
-	if (nundef(tides)) tides = pl.tides.keys;
-	for (const tide of tides) {
-		//console.log('*** removing tide from', tide.path, tide.key);
-		if (tide.path.includes('hand')) { removeInPlace(pl.hand, tide.key); }
-		else if (tide.path.includes('stall')) { removeInPlace(pl.stall, tide.key); }
-		//console.log('*** hand after removing tide', pl.hand);
-		//console.log('*** stall after removing tide', pl.stall);
+	if (nundef(tithes)) tithes = pl.tithes.keys;
+	for (const tithe of tithes) {
+		//console.log('*** removing tithe from', tithe.path, tithe.key);
+		if (tithe.path.includes('hand')) { removeInPlace(pl.hand, tithe.key); }
+		else if (tithe.path.includes('stall')) { removeInPlace(pl.stall, tithe.key); }
+		//console.log('*** hand after removing tithe', pl.hand);
+		//console.log('*** stall after removing tithe', pl.stall);
 	}
-	ari_history_list([`${plname} tides ${tides.map(x => x.key).join(', ')}!`], 'tide');
+	ari_history_list([`${plname} tithes ${tithes.map(x => x.key).join(', ')}!`], 'tithe');
 
 }
 function reveal_church_cards() {
@@ -1259,63 +1268,7 @@ function post_comm_setup_stage() {
 }
 
 
-function process_commission() {
-	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 
-	//console.log('process_commission:', A.items[A.selected[0]]);
-
-	//was muss jetzt passieren?
-	//1. frage den player was er auswaehlen wird?
-	A.commission = A.items[A.selected[0]];
-	Z.stage = 16;
-	ari_pre_action();
-}
-function post_commission() {
-	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
-
-	let comm_selected = A.items[A.selected[0]];
-	//console.log('process_commission:', comm_selected);
-
-	//1. berechne wieviel der player bekommt!
-	//first check N1 = wie oft im fen.commissioned der rank von A.commission schon vorkommt
-	//fen.commissioned koennte einfach sein: array of {rank:rank,count:count} und sorted by latest
-	let rank = A.commission.key[0];
-	if (nundef(fen.commissioned)) fen.commissioned = [];
-	let x = firstCond(fen.commissioned, x => x.rank == rank);
-	if (x) { removeInPlace(fen.commissioned, x); }
-	else { x = { key: A.commission.key, rank: rank, count: 0 }; }
-
-	//console.log('x', x)
-
-	x.count += 1;
-
-	//is the rank >= that the rank of the topmost commissioned card
-	let pl = fen.players[uplayer];
-	let top = isEmpty(fen.commissioned) ? null : arrLast(fen.commissioned);
-	let rankstr = 'A23456789TJQK';
-	let points = !top || get_rank_index(rank, rankstr) >= get_rank_index(top.rank, rankstr) ? 1 : 0;
-	points += Number(x.count);
-	pl.coins += points;
-	fen.commissioned.push(x);
-
-	let key = A.commission.similar.key;
-	if (pl.hand.includes(key)) removeInPlace(pl.hand, key); else removeInPlace(pl.stall, key);
-
-	if (comm_selected.path == 'open_commissions') {
-		//top comm deck card goes to open commissions
-		removeInPlace(fen.open_commissions, comm_selected.key);
-		top_elem_from_to(fen.deck_commission, fen.open_commissions);
-	} else {
-		removeInPlace(fen.deck_commission, comm_selected.key);
-	}
-
-	//console.log('pl', pl, pl.commissions);
-	arrReplace(pl.commissions, [A.commission.key], [comm_selected.key]);
-
-	ari_history_list([`${uplayer} replaced commission card ${A.commission.key} by ${comm_selected.key}`, `${uplayer} gets ${points} for commissioning ${A.commission.key}`], 'commission');
-
-	ari_next_action();
-}
 
 //#endregion
 
@@ -1377,13 +1330,13 @@ function post_downgrade() {
 
 	//aenderung fuer church!!!
 	//if this is a church forced downgrade, cards are removed from hand (and play) permanently
-	if (isdef(pl.tides)) {
+	if (isdef(pl.tithes)) {
 		for (const c of cards) removeInPlace(pl.hand, c);
 	}
 
 	ari_history_list([`${uplayer} downgrades to ${ari_get_building_type(obuilding)}`], 'downgrade');
 
-	if (isdef(pl.tides)) { proceed_to_newcards_selection(); } else ari_next_action(fen, uplayer);
+	if (isdef(pl.tithes)) { proceed_to_newcards_selection(); } else ari_next_action(fen, uplayer);
 }
 //#endregion
 
@@ -1735,7 +1688,7 @@ function find_sequences(blatt, n = 2, rankstr = '23456789TJQKA', allow_cycle = f
 	//a sequence is several cards in a row of the same suit
 	//algo!
 	//let ranks = toLetters(rankstr);	//1. sort blatt into suitlists
-	let suitlists = get_suitlists_sorted_by_rank(blatt, true); //true...remove_duplicates
+	let suitlists = get_suitlists_sorted_by_rank(blatt, rankstr, true); //true...remove_duplicates
 	//console.log('suitlists', suitlists);
 	let seqs = [];
 	//2. foreach list:
@@ -1761,15 +1714,16 @@ function find_sequences(blatt, n = 2, rankstr = '23456789TJQKA', allow_cycle = f
 	//console.log('seqs', seqs);
 	return seqs;
 }
-function follows_in_rank(c1, c2, ranks) {
+function follows_in_rank(c1, c2, rankstr) {
+	return get_rank_index(c2, rankstr) - get_rank_index(c1, rankstr) == 1;
 	//console.log('follows_in_rank:',c1,c2)
-	let i1 = ranks.indexOf(c1[0]);
-	let i2 = ranks.indexOf(c2[0]);
-	//console.log('follows?',c1,i1,c2,i2,i2-i1)
-	return ranks.indexOf(c2[0]) - ranks.indexOf(c1[0]) == 1;
+	let i1 = rankstr.indexOf(c1[0]);
+	let i2 = rankstr.indexOf(c2[0]);
+	console.log('follows?',c1,i1,c2,i2,i2-i1)
+	return rankstr.indexOf(c2[0]) - rankstr.indexOf(c1[0]) == 1;
 }
 function get_rank_index(ckey, rankstr = '23456789TJQKA') { return rankstr.indexOf(ckey[0]); }
-function get_suitlists_sorted_by_rank(blatt, remove_duplicates = false) {
+function get_suitlists_sorted_by_rank(blatt, rankstr = '23456789TJQKA', remove_duplicates = false) {
 	let di = {};
 	for (const k of blatt) {
 		let suit = k[1];
@@ -1778,7 +1732,7 @@ function get_suitlists_sorted_by_rank(blatt, remove_duplicates = false) {
 	}
 	//let di_sorted = {};
 	for (const s in di) {
-		sortByRank(di[s]);
+		sortByRank(di[s],rankstr);
 	}
 	return di;
 }
@@ -1937,13 +1891,14 @@ function ui_get_commission_items(uplayer) {
 	//console.log('uplayer',uplayer,UI.players[uplayer])
 	let items = [], i = 0;
 	let comm = UI.players[uplayer].commissions;
-	let hand_and_stall = ui_get_hand_and_stall_items(uplayer);
+	//let hand_and_stall = ui_get_hand_and_stall_items(uplayer); // nur comm from stall allowed!!!!
+	let stall = ui_get_stall_items(uplayer); 
 	for (const o of comm.items) {
 		let rank = o.key[0];
-		let similar = firstCond(hand_and_stall, x => x.key[0] == rank);
+		let similar = firstCond(stall, x => x.key[0] == rank);
 		if (!similar) continue;
 		//console.log('rank', rank, 'has similar')
-		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i, similar: similar };
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i, similar:stall.filter(x=>x.key[0] == rank)}; // similar: similar };
 		i++;
 		items.push(item);
 	}
@@ -1960,6 +1915,13 @@ function ui_get_commission_new_items(uplayer) {
 	let topdeck = UI.deck_commission.get_topcard();
 	items.push({ o: topdeck, a: topdeck.key, key: topdeck.key, friendly: topdeck.short, path: 'deck_commission', index: i });
 	//console.log('choose among:', items)
+	return items;
+}
+function ui_get_commission_stall_items(){
+	let [A,fen,uplayer]=[Z.A,Z.fen,Z.uplayer];
+	console.log('ui_get_commission_stall_items similar',A.commission.similar);
+	let items = A.commission.similar;
+	reindex_items(items);
 	return items;
 }
 function ui_get_deck_item(uideck) {
@@ -2415,6 +2377,7 @@ function ari_open_market(fen, phase, deck, market) {
 	let n_market = phase == 'jack' ? 3 : 2;
 	fen.stage = Z.stage = phase == 'jack' ? 12 : phase == 'queen' ? 11 : 4;
 	fen.stallSelected = [];
+	delete fen.passed;
 
 	// ari_ensure_deck(fen,n_market); //nein es hat ja mit ui zu tun!!! muss es schon bei deck present machen!!!
 	//console.log('1. list',jsCopy(deck.list));

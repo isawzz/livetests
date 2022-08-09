@@ -175,6 +175,7 @@ function intersection(arr1, arr2) {
 	}
 	return res;
 }
+function if_plural(n){return n==1?'':'s';}
 
 
 
