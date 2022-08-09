@@ -3,13 +3,13 @@
 
 function ferro() {
 	function clear_ack() {
-		if (Z.stage == 'can_resolve') { ferro_change_to_card_selection(); }
-		else if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
+		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
+		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
 	}
 	function state_info(dParent) { ferro_state_new(dParent); }
 	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: [] };
-
+		options.jokers_per_group = 1;
 		fen.allGoals = ['7R', '55', '5', '44', '4', '33', '3'];
 		fen.availableGoals = options.maxrounds == 1 ? [rChoose(fen.allGoals)] : options.maxrounds < 7 ? rChoose(fen.allGoals, options.maxrounds) : fen.allGoals;
 
@@ -30,7 +30,7 @@ function ferro() {
 			let pl = fen.players[plname] = {
 				hand: deck_deal(deck, plname == starter ? handsize + 1 : handsize),
 				journeys: [],
-				coins: 10,
+				coins: options.coins, //0, //10,
 				vps: 0,
 				score: 0,
 				name: plname,
@@ -68,6 +68,7 @@ function ferro_pre_action() {
 
 function ferro_present_new(z, dParent, uplayer) {
 
+	if (DA.simulate == true) show('bRestartMove'); else hide('bRestartMove'); //console.log('DA', DA);
 	//DA.no_shield = true;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent);
@@ -104,7 +105,7 @@ function ferro_present_new(z, dParent, uplayer) {
 	if (Z.stage == 'round_end') {
 		show_waiting_for_ack_message();
 
-	//*** auto resolve *** */
+		//*** auto resolve *** */
 	} else if (Z.stage == 'buy_or_pass' && uplayer == fen.trigger && ferro_check_resolve()) {
 		assertion(Z.stage == 'buy_or_pass', 'stage is not buy_or_pass when checking can_resolve!');
 		Z.stage = 'can_resolve';
@@ -117,7 +118,8 @@ function ferro_present_new(z, dParent, uplayer) {
 		//get players in turn that have not yet set playerdata
 		assertion(isdef(Z.playerdata), 'playerdata is not defined in buy_or_pass (present ferro)');
 		let pl_not_done = Z.playerdata.filter(x => Z.turn.includes(x.name) && isEmpty(x.state)).map(x => x.name);
-		show_waiting_message(`waiting for ${pl_not_done.join(', ')} to make buy decision`);
+		// show_waiting_message(`waiting for ${pl_not_done.join(', ')} to make buy decision`);
+		show_waiting_message(`waiting for possible buy decision...`);
 		Z.isWaiting = true;
 		//ich soll hier auch den statisTitle machen und sanduhr stoppen fuer diesen player!!! und alle players die bereits done sind!
 		//if (Z.role == 'active') { Z.role = 'waiting'; staticTitle('waiting for ' + pl_not_done.join(', ')); }
@@ -262,6 +264,7 @@ function ferro_change_to_buy_pass() {
 	//newturn is list of players starting with nextplayer
 	let newturn = jsCopy(plorder); while (newturn[0] != nextplayer) { newturn = arrCycle(newturn, 1); } //console.log('newturn', newturn);
 	fen.canbuy = newturn.filter(x => x != uplayer && fen.players[x].coins > 0); //fen.canbuy list ist angeordnet nach reihenfolge der frage
+
 	fen.trigger = uplayer; //NEIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!get_admin_player(fen.plorder); // uplayer;
 
 	//der grund warum es nicht geht dass der trigger zugleich in canbuy ist, ist dass er ja kein ack ausloesen kann und deshalb
@@ -271,8 +274,10 @@ function ferro_change_to_buy_pass() {
 	fen.buyer = null;
 	fen.nextturn = [nextplayer];
 
-	if (Z.mode == 'multi') { [Z.stage, Z.turn] = ['buy_or_pass', fen.canbuy]; fen.keeppolling = true; take_turn_fen_clear(); }
+	if (isEmpty(fen.canbuy)) { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); return; }
+	else if (Z.mode == 'multi') { [Z.stage, Z.turn] = ['buy_or_pass', fen.canbuy]; fen.keeppolling = true; take_turn_fen_clear(); }
 	else {
+		//das ist nur in hotseat mode!!!
 		fen.canbuy.map(x => fen.players[x].buy = 'unset');
 		fen.lastplayer = arrLast(fen.canbuy);
 		[Z.stage, Z.turn] = ['buy_or_pass', [fen.canbuy[0]]];

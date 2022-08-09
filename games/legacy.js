@@ -4789,11 +4789,6 @@ function clearTable() {
 	hide('bPauseContinue');
 }
 function clearStatus() { clearFleetingMessage(); }
-function hFunc(content, funcname, arg1, arg2, arg3) {
-	//console.log('arg2',arg2,typeof arg2)
-	let html = `<a style='color:blue' href="javascript:${funcname}('${arg1}','${arg2}','${arg3}');">${content}</a>`;
-	return html;
-}
 function hide_options_popup() {	let d = mBy('dOptions');	if (isdef(d)) mRemove(d);}
 function hide_history_popup() {	let d = mBy('dHistoryPopup');	if (isdef(d)) {mAppend(UI.dHistoryParent,UI.dHistory);mRemove(d);}}
 function rPlayerOrder(players) { return shuffle(jsCopy(players)); }
@@ -4850,7 +4845,6 @@ function mTableCommands(rowitems, di) {
 		dcol.innerHTML = html;
 	}
 }
-function delete_table(friendly) { stopgame(); phpPost({ friendly: friendly }, 'delete_table'); }
 
 function show_title_left(s, styles, funnyLetters = false) {
 	let d = mBy('dTitleLeft');

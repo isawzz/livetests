@@ -41,7 +41,7 @@ function fritz_present_new(z, dParent, uplayer) {
 	DA.hovergroup = null;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	//fen.shield=true;
-	console.log('role',Z.role)
+	//console.log('role',Z.role)
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent); mFlexWrap(dOpenTable)
 	Config.ui.card.h = 130;
 	Config.ui.container.h = Config.ui.card.h + 30;
@@ -364,7 +364,7 @@ function end_of_turn_fritz() {
 	//#region TJ group processing
 
 	//all TJ groups must be checked and loose cards placed in loosecards
-	console.log('eot inspecting groups', DA.TJ.length)
+	//console.log('eot inspecting groups', DA.TJ.length)
 	let ploose = {};
 	fen.journeys = [];
 	fen.loosecards = [];
@@ -404,7 +404,7 @@ function end_of_turn_fritz() {
 	}
 
 	//console.log('_____\npublic loosecards', fen.loosecards);
-	output_loose_and_journeys(fen);
+	//output_loose_and_journeys(fen);
 
 	//discard pile must be reduced by all cards that do not have source = 'discard'
 	let discard = UI.deck_discard.items.filter(x => x.source == 'discard');

@@ -135,6 +135,32 @@ function onclick_restart_long() {
 	stopgame();
 	startgame(game, players, options);
 }
+function onclick_restart_NEW() {
+	//old code: nur die fen wird resettet
+	let fen = Z.fen;
+	let oldZ = {};
+	for (const k of ['uplayer', 'game', 'host', 'func', 'mode', 'options', 'friendly', 'uname']) { oldZ[k] = Z[k]; }
+	Z = {}; //Z.scoring = {};
+	for (const k of ['uplayer', 'game', 'host', 'func', 'mode', 'options', 'friendly', 'uname']) { Z[k] = oldZ[k]; }
+
+	if (nundef(fen.original_players)) fen.original_players = fen.players;
+	//if (isdef(fen.original_players)) plorder=fen.original_players;
+	let playernames = [Z.host].concat(get_keys(fen.original_players).filter(x => x != Z.host));
+	let playmodes = playernames.map(x => fen.original_players[x].playmode);
+	let strategies = playernames.map(x => fen.original_players[x].strategy);
+
+	let default_options = {}; for (const k in Config.games[Z.game].options) default_options[k] = arrLast(Config.games[Z.game].options[k].split(','));
+	addKeys(default_options, Z.options);
+
+	//console.log('playernames',playernames,'playmodes',playmodes)
+	fen = Z.fen = Z.func.setup(playernames, Z.options);
+	[Z.stage, Z.turn, Z.round, Z.step, Z.phase] = [fen.stage, fen.turn, 1, 1, fen.phase];
+	let i = 0; let players = playernames.map(x => { let pl = fen.players[x]; pl.name = x; pl.strategy = strategies[i]; pl.playmode = playmodes[i++]; });
+	// let i = 0; playernames.map(x => fen.players[x].playmode = playmodes[i++]); //restore playmode
+	//if (Z.game == 'spotit') spotit_clear_score();
+	//console.log('neue fen',Z.fen.plorder.map(x=>fen.players[x].time_left))
+	take_turn_fen_clear();
+}
 function onclick_restart() {
 	//old code: nur die fen wird resettet
 	let [game, fen, plorder, host] = [Z.game, Z.fen, Z.plorder, Z.host];
@@ -150,22 +176,24 @@ function onclick_restart() {
 
 	//console.log('playernames',playernames,'playmodes',playmodes)
 	fen = Z.fen = Z.func.setup(playernames, Z.options);
-	[Z.stage, Z.turn, Z.round, Z.step, Z.phase] = [fen.stage, fen.turn, 1, 1, fen.phase];
-	let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
+	[Z.plorder, Z.stage, Z.turn, Z.round, Z.step, Z.phase] = [fen.plorder, fen.stage, fen.turn, 1, 1, fen.phase];
+	let i = 0; playernames.map(x => { let pl = fen.players[x]; pl.name = x; pl.strategy = strategies[i]; pl.playmode = playmodes[i++]; });
+	// let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
 	// let i = 0; playernames.map(x => fen.players[x].playmode = playmodes[i++]); //restore playmode
 	//if (Z.game == 'spotit') spotit_clear_score();
 	//console.log('neue fen',Z.fen.plorder.map(x=>fen.players[x].time_left))
 	take_turn_fen_clear();
 }
-function onclick_restart_move() {
-	if (isdef(Clientdata.snapshot)) {
-		Z.fen = Clientdata.snapshot;
-		clear_transaction();
-		take_turn_fen();
-	} else {
-		onclick_reload();
-	}
-}
+function onclick_restart_move() { clear_transaction(); onclick_reload(); }
+// 	if (isdef(Clientdata.snapshot)) {
+// 		Z.fen = Clientdata.snapshot;
+// 		clear_transaction();
+// 		take_turn_fen();
+// 	} else {
+// 		clear_transaction();
+// 		onclick_reload();
+// 	}
+// }
 function onclick_reset_all() { stopgame(); phpPost({ app: 'simple' }, 'delete_tables'); }
 function onclick_skip() {
 	//removeInPlace(Z.turn,Z.uplayer);

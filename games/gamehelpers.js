@@ -3,16 +3,14 @@ function activate_ui() {
 	if (uiActivated) { DA.ai_is_moving = false; return; }
 	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
 
-	if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
-		FirstLoad = false;
-		Clientdata.snapshot = jsCopy(Z.fen);
-
-		show('bRestartMove');
-	} else if (Clientdata.this_turn.length != 1) {
-		delete Clientdata.snapshot;
-		hide('bRestartMove');
-
-	}
+	// if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
+	// 	FirstLoad = false;
+	// 	Clientdata.snapshot = jsCopy(Z.fen);
+	// 	show('bRestartMove');
+	// } else if (Clientdata.this_turn.length != 1) {
+	// 	delete Clientdata.snapshot;
+	// 	hide('bRestartMove');
+	// }
 
 	uiActivated = true; DA.ai_is_moving = false;
 }
@@ -109,6 +107,7 @@ function compute_hidden(plname) {
 	return hidden;
 
 }
+function delete_table(friendly) { stopgame(); phpPost({ friendly: friendly }, 'delete_table'); }
 function ev_to_gname(ev) { evNoBubble(ev); return evToTargetAttribute(ev, 'gamename'); }
 function generate_table_name(n) {
 	let existing = Serverdata.tables.map(x => x.friendly);
@@ -228,6 +227,11 @@ function get_user_pic_and_name(uname, dParent, sz = 50, border = 'solid medium w
 	return elem;
 }
 function get_texture(name) { return `url(../base/assets/images/textures/${name}.png)`; }
+function hFunc(content, funcname, arg1, arg2, arg3) {
+	//console.log('arg2',arg2,typeof arg2)
+	let html = `<a style='color:blue' href="javascript:${funcname}('${arg1}','${arg2}','${arg3}');">${content}</a>`;
+	return html;
+}
 function i_am_host() { return U.name == Z.host; }
 function i_am_acting_host() { return U.name == Z.fen.acting_host; }
 function i_am_trigger() { return is_multi_trigger(U.name); }
@@ -347,11 +351,11 @@ function shield_off() {
 function show_admin_ui() {
 	//console.log('show_admin_ui');
 	//game specific buttons hide or show
-	for (const id of ['bSpotitStart', 'bClearAck', 'bRandomMove', 'bSkipPlayer']) hide(id);
+	for (const id of ['bSpotitStart', 'bClearAck', 'bRandomMove', 'bSkipPlayer', 'bRestartMove']) hide(id);
 	if (Z.game == 'spotit' && Z.uname == Z.host && Z.stage == 'init') show('bSpotitStart');
 	else if (Z.game == 'bluff' && Z.uname == Z.host && Z.stage == 1) show('bClearAck');
 	else if (Z.uname == Z.host && Z.stage == 'round_end') show('bClearAck');
-	else if (Z.game == 'ferro' && Z.uname == 'mimi' && Z.stage == 'can_resolve') show('bClearAck');
+	else if (Z.game == 'ferro' && Z.uname == 'mimi' && Z.stage != 'card_selection') show('bClearAck');
 
 	if (['ferro', 'bluff', 'aristo', 'a_game'].includes(Z.game) && (Z.role == 'active' || Z.mode == 'hotseat')) {
 		//console.log('random should show because game is', Z.game)
@@ -638,6 +642,16 @@ function show_tables(ms = 500) {
 		0: (item, val) => hFunc(val, 'onclick_table', val, item.id),
 	});
 
+
+	//delete command:
+	let d = iDiv(t);
+	//let x = mAppend(d.firstChild.firstChild, mCreate('th')); x.innerHTML = 'commands'; //header! console.log('x', x);
+	for (const ri of t.rowitems) {
+		let r = iDiv(ri);
+		let h = hFunc('delete', 'delete_table', ri.o.friendly);
+		c = mAppend(r, mCreate('td')); 
+		c.innerHTML = h;
+	}
 
 
 	//mRise(dParent, ms);

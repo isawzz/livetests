@@ -48,7 +48,7 @@ function aristo() {
 			ari_history_list([`commission trading starts`], 'commissions', fen);
 			//[fen.stage, fen.turn] = [23, [fen.plorder[0]]]; fen.comm_setup_num = 3;
 			[fen.stage, fen.turn] = [23, fen.plorder]; fen.comm_setup_num = 3; fen.keeppolling = true;
-		} else if (exp_rumors(options)) {
+		} else if (exp_rumors(options) && fen.plorder.length > 2) {
 			ari_history_list([`gossiping starts`], 'rumors', fen);
 			[fen.stage, fen.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
 		} else[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
@@ -271,16 +271,17 @@ function ari_pre_action() {
 	switch (ARI.stage[stage]) {
 		case 'comm_weitergeben': select_add_items(ui_get_all_commission_items(uplayer), process_comm_setup, `must select ${fen.comm_setup_num} card${fen.comm_setup_num > 1 ? 's' : ''} to discard`, fen.comm_setup_num, fen.comm_setup_num); break;
 		case 'rumors_weitergeben': 
-		let rumitems = ui_get_rumors_and_players_items(uplayer);
-		if (isEmpty(rumitems)) {
-			//console.log('ALL ITEMS HAVE BEEN ASSIGNED!!!');
-			show_waiting_message('waiting for other players...');
-			let done = ari_try_resolve_rumors_distribution();
-			if (!done) autopoll();
-			//check if other playerdata are also complete, if yes and I am the trigger??? modify fen!
-		}else select_add_items(rumitems, process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); break;
+			let rumitems = ui_get_rumors_and_players_items(uplayer);
+			if (isEmpty(rumitems)) {
+				//console.log('ALL ITEMS HAVE BEEN ASSIGNED!!!');
+				show_waiting_message('waiting for other players...');
+				let done = ari_try_resolve_rumors_distribution();
+				if (!done) autopoll();
+				//check if other playerdata are also complete, if yes and I am the trigger??? modify fen!
+			}else select_add_items(rumitems, process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); 
+			break;
 		case 'next_rumor_setup_stage': post_rumor_setup(); break;
-		case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
+		// case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
 		case 'buy rumor': select_add_items(ui_get_top_rumors(), post_buy_rumor, 'must select one of the cards', 1, 1); break;
 		case 'rumor discard': select_add_items(ui_get_rumors_items(uplayer), process_rumor_discard, 'must select a rumor card to discard', 1, 1); break;
 		case 'rumor_both': select_add_items(ui_get_top_rumors(), post_rumor_both, 'must select one of the cards', 1, 1); break;
@@ -354,7 +355,8 @@ function ari_pre_action() {
 				case 'exchange': select_add_items(ui_get_exchange_items(uplayer), post_exchange, 'must select cards to exchange', 2, 2); break;
 				case 'visit': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for visiting', 1, 1); break;
 
-				case 'rumor': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for placing a rumor', 1, 1); break;
+				case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
+				// case 'rumor': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for placing a rumor', 1, 1); break;
 				case 'inspect': select_add_items(ui_get_other_buildings(uplayer), post_inspect, 'must select building to visit', 1, 1); break;
 				case 'blackmail': select_add_items(ui_get_payment_items('Q'), payment_complete, 'must select payment for blackmailing', 1, 1); break;
 
@@ -497,12 +499,15 @@ function ari_check_action_available(a, fen, uplayer) {
 		}
 		//console.log('other players have buildings:',n);
 		if (n == 0) return false;
-		//player needs to have a queen or coin>0 and queen phase
-		let res = ari_get_player_hand_and_stall(fen, uplayer);
-		let has_a_queen = firstCond(res, x => x[0] == 'Q');
-		if (pl.coins < 1 && !has_a_queen) return false;
-		if (fen.phase != 'queen' && !has_a_queen) return false;
 		return true;
+
+		//NO to the following: rumor action kostet nichts!!!
+		//player needs to have a queen or coin>0 and queen phase
+		// let res = ari_get_player_hand_and_stall(fen, uplayer);
+		// let has_a_queen = firstCond(res, x => x[0] == 'Q');
+		// if (pl.coins < 1 && !has_a_queen) return false;
+		// if (fen.phase != 'queen' && !has_a_queen) return false;
+		// return true;
 	} else if (a == 'inspect') {
 		if (isEmpty(pl.rumors)) return false;
 		//there has to be some building in any other player
@@ -1236,7 +1241,7 @@ function post_comm_setup_stage() {
 		delete fen.keeppolling;
 		ari_history_list([`commission trading ends`], 'commissions');
 
-		if (exp_rumors) {
+		if (exp_rumors  && plorder.length > 2) {
 			[Z.stage, Z.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
 			ari_history_list([`gossiping starts`], 'rumors');
 
@@ -1821,7 +1826,7 @@ function set_journey_or_stall_stage(fen, options, phase) {
 	let pljourney = exp_journeys(options) ? find_players_with_potential_journey(fen) : [];
 	//console.log('________ any journey?', pljourney);
 	let stage, turn;
-	if (isEmpty(pljourney)) { turn = [fen.plorder[0]]; ari_ensure_deck(fen, phase == 'jack' ? 3 : 2); stage = 3; }
+	if (isEmpty(pljourney)) { delete fen.passed; turn = [fen.plorder[0]]; ari_ensure_deck(fen, phase == 'jack' ? 3 : 2); stage = 3; }
 	else { turn = [pljourney[0]]; stage = 1; }
 	return [stage, turn];
 }
@@ -2842,7 +2847,7 @@ function post_buy_rumor() {
 
 }
 function process_rumor() {
-	process_payment();
+	//process_payment();
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 
 	//assert that exactly 2 items are selected one of which is a building and one a rumor card
@@ -3245,9 +3250,12 @@ function process_visit() {
 }
 function post_visit() {
 
+	//console.log('post visit!!!!!!!!!!!!!!!!!!!!!!!')
+
 	let [fen, A, uplayer, building, obuilding, owner] = [Z.fen, Z.A, Z.uplayer, Z.A.building, Z.A.obuilding, Z.A.buildingowner];
 	let buildingtype = Z.A.building.o.type;
 	//console.log('====>buildingtype',buildingtype);
+	//console.log('!!!!!!!!!!!!!building', obuilding, 'DESTROY!!!!!!!!!!!!!!!!', '\nlist', obuilding.list);
 	let res = A.selected[0] == 0; //confirm('destroy the building?'); //TODO das muss besser werden!!!!!!!
 	if (!res) {
 		if (fen.players[owner].coins > 0) {
@@ -3258,7 +3266,6 @@ function post_visit() {
 		}
 	} else {
 		let list = obuilding.list;
-		//console.log('!!!!!!!!!!!!!building', obuilding, 'DESTROY!!!!!!!!!!!!!!!!', '\nlist', list);
 		let correct_key = list[0];
 		let rank = correct_key[0];
 		//console.log('rank is', rank);
@@ -3274,8 +3281,9 @@ function post_visit() {
 			}
 		}
 		//console.log('building after removing cards', list, obuilding)
-		if (isdef(obuilding.harvest)) {
-			fen.deck_discard.unshift(obuilding.harvest);
+
+		if (isdef(obuilding.h)) {
+			fen.deck_discard.unshift(obuilding.h);
 		}
 		ari_reorg_discard(fen);
 
@@ -3335,10 +3343,12 @@ function post_upgrade() {
 	}
 	//wie krieg ich das gesamte building?
 	let bres = target; //lookup(otree,target);
-	bres.harvest = null;
+	bres.h = null;
 	//console.log('target',target);
 	removeInPlace(fen.players[uplayer].buildings[type0], bres);
 	fen.players[uplayer].buildings[type1].push(bres);
+
+	console.log('building after upgrade', bres);
 
 	process_payment();
 	ari_history_list([`${uplayer} upgrades a ${type0}`], 'upgrade');

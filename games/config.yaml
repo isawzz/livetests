@@ -53,7 +53,8 @@ games:
       # mode: 'solo,multi,hotseat'
       min_handsize: '1,3,2'
       max_handsize: '4,5,6,7'
-      strategy: 'random,clairvoyant'
+      strategy: 'clairvoyant,random'
+      #strategy: 'random,clairvoyant'
   fritz:
     friendly: "A L'Honneur!"
     logo: fencing #weary face
@@ -80,13 +81,14 @@ games:
       #mode: 'solo,multi,hotseat'
       mode: 'solo,hotseat,multi'
       handsize: '3,5,11'
+      coins: '3,5,10'
       maxrounds: '1,3,5,7'
       phase_order: 'fixed,choice'
-      thinking_time: '3,10,20,5'
+      thinking_time: '3,20,5,10'
       auto_weiter: 'no,yes'
       # allow_sequences: 'yes,no'
       # allow_exchange: 'yes,no'
-      jokers_per_group: '3,2,1'
+      # jokers_per_group: '3,2,1'
   sheriff:
     friendly: Sheriff
     logo: police officer

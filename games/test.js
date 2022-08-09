@@ -20,11 +20,35 @@ function start_tests() {
 	//ltest70_aristo_church(); //ltest57_aristo();
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	//ltest89_aristo_journey();
+	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
-
+	ltest94_aristo_journey(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
 }
+
+function ltest96_aristo_visit() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein,set_queen_phase,give_player_queen], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
+}
+function ltest95_aristo_rumor_action() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings_plus,set_queen_phase,give_player_king], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest94_aristo_journey() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_hand_journey], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
+}
+
 
 function ltest93_bluff() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -1453,6 +1477,7 @@ function give_players_buildings(o) {
 function give_players_schwein(o, isOpen = true) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let b = stage_building(fen, 1, 'farm');
+	b.h='KHn';
 	if (isOpen) b.schwein = b.list[2];
 	fen.stage = 5;
 	fen.phase = 'king';
@@ -1485,9 +1510,20 @@ function give_players_stalls(o) {
 		pl.stall_value = calc_stall_value(fen, plname);
 	}
 }
+function give_player_king(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	fen.players[uplayer].hand.push('KHn');
+}
 function give_player_queen(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.players[uplayer].hand.push('QHn');
+}
+function give_players_hand_journey(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	for (const plname of fen.plorder) { 
+		let pl = fen.players[plname];
+		arrExtend(pl.hand,['ACn','2Cn','3Cn']);
+	}
 }
 function give_players_buildings_plus(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1608,7 +1644,8 @@ function set_queen_phase(o) {
 	arisim_stage_3(fen);
 	arisim_stage_4_all(fen, 3, false);
 	ensure_actions(fen);
-	o.stage = fen.stage;
+	fen.stage;
+	fen.turn = [fen.plorder[0]];
 	//[o.stage, fen.turn] = [fen.stage, o.turn];
 	//fen.stage = o.stage = 5;
 }

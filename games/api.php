@@ -36,7 +36,7 @@ if ($cmd == 'table'){
 	if (isset($data->write_fen)){
 		$fen = json_encode($data->fen);
 		$modified = get_now();
-		$qw = "UPDATE gametable SET `fen`='$fen',`modified`=$modified WHERE `friendly` = '$friendly'"; //ok
+		$qw = "UPDATE gametable SET `fen`='$fen',`modified`=$modified, `phase`='',`scoring`=NULL WHERE `friendly` = '$friendly'"; //ok
 		$qr="SELECT * FROM gametable WHERE `friendly` = '$friendly' limit 1";
 		$res=db_write_read($qw,$qr);
 		$result->table = $res;

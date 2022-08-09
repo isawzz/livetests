@@ -393,14 +393,15 @@ function handle_bid() {
 	bid = normalize_bid(bid);
 
 	let higher = is_bid_higher_than(bid, oldbid);
-
+	if (bid[2] == 0) bid[2] = '_';
+	
 	//set fen.lastbid
 	if (!higher) {
 		select_error('the bid you entered is not high enough!');
 		//console.log('oldbid', oldbid, '\nnewbid', bid)
 	} else {
 		//set lastbid
-		//convert 0 back to '_'		if (bid[2] == 0) bid[2] = '_';
+		//convert 0 back to '_'		
 		fen.lastbid = fen.players[uplayer].lastbid = bid; //fen.newbid;
 		fen.lastbidder = uplayer;
 		delete fen.oldbid; delete fen.newbid;
