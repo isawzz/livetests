@@ -40,12 +40,13 @@ function drawcard(key,dParent,sz){
 
 	let w=h/6.5;
 
-	//let left=2 - sz>=300?2:sz>=24?1:sz>=180?0:sz>=120?-1:2;
+	let left=sz>=300?7:sz>=200?5:sz>=100?3:3;
 
 
 	let matop=(sz-h)/2;
-	let html = `<img height=${h} src="./base/assets/images/icons/deco_v.png">`;
-	d1 = mDiv(d, {position:'absolute',top:matop,left:5}, null, html); 
+	let html = `<img height=${sz/4} src="./base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+	// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
+	d1 = mDiv(d, {position:'absolute',bottom:0,left:left}, null, html); 
 
 
 
