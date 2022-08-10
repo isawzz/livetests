@@ -1,4 +1,8 @@
 @font-face {
+  font-family: 'tangerine';
+	src: url('./tangerine.ttf') format("truetype");
+}
+@font-face {
   font-family: 'emoNoto';
 	src: url('./NotoColorEmoji.ttf') format("truetype");
   /* src: url(https://gitcdn.xyz/repo/googlefonts/noto-emoji/master/fonts/NotoColorEmoji.ttf); */

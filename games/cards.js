@@ -7,15 +7,24 @@ function ari_get_card(ckey, h, w, ov = .2) {
 	let type = ckey[2];
 	let info = type == 'n' ? to_aristocard(ckey) : type == 'l' ? to_luxurycard(ckey) : to_commissioncard(ckey);
 	let card = cardFromInfo(info, h, w, ov);
-	// if (type == 'l') {
-	// 	let d=iDiv(card);
-	// 	let sym=mSym('crow',d,{bg:'green',h:100,w:5},'tl');
+	if (type == 'l') {
+		console.log('ckey', ckey)
+		let d = iDiv(card); mStyle(d, { position: 'relative' });
+		let d1 = mDiv(d, { fg: 'dimgray', fz: 11, family: 'tangerine', position: 'absolute', left: 0, top: 0, 'writing-mode': 'vertical-rl', transform: 'scale(-1)', top: '35%' }, null, 'Luxury');
+		let html = `<img height=${18} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+		d1 = mDiv(d, { position: 'absolute', bottom: -2, left: 3, opacity: .25 }, null, html);
+		//mPlace(d1,'cc');
+		// let sz = card.sz;
+		// let left = sz >= 300 ? 7 : sz >= 200 ? 5 : sz >= 100 ? 3 : 3;
+		// let bottom = sz >= 300 ? 0 : sz >= 200 ? -1 : sz >= 100 ? -2 : -3;
+		// let html = `<img height=${30} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+		// d1 = mDiv(d, { position: 'absolute', bottom: 0, left: 0, opacity: .5 }, null, html);
+		// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
+		// d1 = mDiv(d, { position: 'absolute', bottom: bottom, left: left, opacity: .5 }, null, html);
+		//let dt = mDiv(d, { family: 'Algerian' }, null, 'luxury');
+		//mPlace(dt, 'tc', 0, '50%')
 
-
-	// 	//symbolcolor(card, 'royalblue');
-	// 	//set_card_border(card, 10, 'orangered', "20,10,5,5,5,10"); 
-	// 	//set_card_style(card, { bg: 'gold' }) }
-	// }
+	}
 	return card;
 }
 function ferro_get_card(ckey, h, w, ov = .25) {
@@ -535,7 +544,7 @@ function symbolcolor(card, color) {
 	//get all symbol elements
 	//let symbols = d.getElementsByClassName('symbol');
 	let els = d.getElementsByTagName('symbol'); // findDescendantOfType('symbol', d);
-	console.log('list',els)
+	console.log('list', els)
 	for (const el of els) {
 		let html = el.innerHTML;
 		let html1 = replaceAll(html, 'red', color);

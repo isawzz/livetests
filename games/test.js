@@ -22,76 +22,22 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest102_luxurycard(); //ltest98_weired_blatt_aendern(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest103_aristo_journey(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
+}
+function ltest103_aristo_journey() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_luxury_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
 function ltest102_luxurycard() {
 	let dTable = mBy('dTable'); clearElement(dTable); mStyle(dTable, { hmin: 400 });
 	drawcard('AHl', dTable, 300);
 	drawcard('AHl', dTable, 200);
 	drawcard('AHl', dTable, 100);
-}
-function drawcard(key,dParent,sz){
-	let d1;
-	let card = ari_get_card(key, sz);
-	mAppend(dParent, iDiv(card));
-	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
-	let h=sz*.5;
-
-	let w=h/6.5;
-
-	let left=sz>=300?7:sz>=200?5:sz>=100?3:3;
-
-
-	let matop=(sz-h)/2;
-	let html = `<img height=${sz/4} src="./base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
-	// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
-	d1 = mDiv(d, {position:'absolute',bottom:0,left:left}, null, html); 
-
-
-
-	// let wc=sz*0.6;
-	// let hc=wc/5; 
-	// let offx=card.w-hc;
-	// console.log('wc',wc,'hc',hc);
-	// let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
-	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
-	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
-	//d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
-
-
-
-	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
-	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
-	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
-	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
-	// let rect=getRect(d1);
-	//mPlace(d1, 'cc');
-
-}
-function _drawcard(key,dParent,sz){
-	let d1;
-	let card = ari_get_card(key, sz);
-	mAppend(dParent, iDiv(card));
-	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
-	let wc=sz*0.6;
-	let hc=wc/5; 
-	let offx=card.w-hc;
-	console.log('wc',wc,'hc',hc);
-	let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
-	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
-	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
-	d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
-
-
-
-	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
-	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
-	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
-	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
-	// let rect=getRect(d1);
-	//mPlace(d1, 'cc');
-
 }
 function ltest101_commission() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_queen_phase, give_player_multiple_commission_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -153,8 +99,6 @@ function ltest94_aristo_journey() {
 
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
-
-
 function ltest93_bluff() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -1439,6 +1383,44 @@ function bluff_start_bid(o) {
 	let b2 = coin(10) ? '_' : rNumber(1, 4);
 	o.fen.lastbid = [rNumber(1, 4), ranks[0], b2, b2 == '_' ? '_' : ranks[1]];
 }
+function drawcard(key,dParent,sz){
+	let d1;
+	let card = ari_get_card(key, sz);
+	mAppend(dParent, iDiv(card));
+	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
+
+
+	let h=sz*.6;
+	let w=h/6.5;
+	let left=sz>=300?7:sz>=200?5:sz>=100?3:3;
+	let bottom=sz>=300?0:sz>=200?-1:sz>=100?-2:-3;
+	let matop=(sz-h)/2;
+	let html = `<img height=${sz/3} src="./base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+	// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
+	d1 = mDiv(d, {position:'absolute',bottom:bottom,left:left,opacity:.5}, null, html); 
+	let dt=mDiv(d,{family:'Algerian'},null,'luxury');
+	mPlace(dt,'tc',0,'50%')
+
+
+	// let wc=sz*0.6;
+	// let hc=wc/5; 
+	// let offx=card.w-hc;
+	// console.log('wc',wc,'hc',hc);
+	// let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
+	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
+	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
+	//d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
+
+
+
+	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
+	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
+	// let rect=getRect(d1);
+	//mPlace(d1, 'cc');
+
+}
 function each_hand_of_one(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	for (const plname of fen.plorder) {
@@ -1622,6 +1604,10 @@ function give_player_king(o) {
 function give_player_queen(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.players[uplayer].hand.push('QHn');
+}
+function give_player_luxury_cards(o){
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	fen.players[uplayer].hand.push('AHl', 'AHl', 'AHl');
 }
 function give_player_multiple_commission_cards(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];

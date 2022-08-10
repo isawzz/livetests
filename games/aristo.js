@@ -116,9 +116,11 @@ function aristo() {
 		let pl = fen.players[plname];
 		let ui = UI.players[plname] = {};
 
-		pl.hand = fen.stage == '1' ? sort_cards(pl.hand, true, 'CDSH', true, 'A23456789TJQK') : sort_cards(pl.hand, false, null, true, 'A23456789TJQK'); //pl.hand.sort(); GEHT!
-		//lookupSetOverride(pl,['hand'],sorted);
-		//console.log('ari_present: hand', jsCopy(pl.hand));
+		
+		// pl.hand = fen.stage == '1' ? sort_cards(pl.hand, true, 'CDSH', true, 'A23456789TJQK') : sort_cards(pl.hand, false, null, true, 'A23456789TJQK'); //pl.hand.sort(); GEHT!
+		//pl.hand = fen.stage == '1' ? sort_cards(pl.hand, true, 'CDSH', true, 'A23456789TJQK') : sort_cards(pl.hand, false, null, true, 'A23456789TJQK'); //pl.hand.sort(); GEHT!
+		
+		
 		let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ari_get_card);
 		if (ishidden) { hand.items.map(x => face_down(x)); }
 

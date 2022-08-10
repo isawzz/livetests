@@ -1,4 +1,46 @@
 
+function _drawcard(key,dParent,sz){
+	let d1;
+	let card = ari_get_card(key, sz);
+	mAppend(dParent, iDiv(card));
+	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
+	let wc=sz*0.6;
+	let hc=wc/5; 
+	let offx=card.w-hc;
+	console.log('wc',wc,'hc',hc);
+	let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
+	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
+	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
+	d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
+
+
+
+	//let d1=mDiv(d,{'transform-origin':'0px 0px',transform:'rotate(90deg)'},null,`<img height=${sz/3} src="./base/assets/images/icons/ornamenth.png">`); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {}, null, html); //,rounding:h/2,border:'5px solid gold',bg:'transparent'});
+	//let d1 = mDiv(d, {transform:'rotate(-90deg) translateX(-50%) translateY(-328%)'}, null, html);
+	// let d1 = mDiv(d, {'transform-origin':'center', transform:'rotate(-90deg)'}, null, html);
+	// let rect=getRect(d1);
+	//mPlace(d1, 'cc');
+
+}
+
+function ari_get_card(ckey, h, w, ov = .2) {
+	//console.log('ckey', ckey);
+	let type = ckey[2];
+	let info = type == 'n' ? to_aristocard(ckey) : type == 'l' ? to_luxurycard(ckey) : to_commissioncard(ckey);
+	let card = cardFromInfo(info, h, w, ov);
+	if (type == 'l') {
+		let d=iDiv(card);
+		let sym=mSym('crow',d,{bg:'green',h:100,w:5},'tl');
+
+
+		//symbolcolor(card, 'royalblue');
+		//set_card_border(card, 10, 'orangered', "20,10,5,5,5,10"); 
+		//set_card_style(card, { bg: 'gold' }) }
+	}
+	return card;
+}
+
 function to_luxurycard(ckey, color = 'gold', sz = 100, w) { 
 	let card = to_aristocard(ckey, color); 
 
