@@ -1,30 +1,46 @@
+function correct_handsorting(hand,plname) {
+	let pl = Z.fen.players[plname];
+	//console.log('pl',pl,'Clientdata',Clientdata);
+	let [cs, pls] = [Clientdata.handsorting, pl.handsorting];
+
+	if (nundef(cs) && nundef(pls)) {
+		let hs = localStorage.getItem('handsorting');
+		if (hs) Clientdata.handsorting = JSON.parse(hs);
+		else Clientdata.handsorting = Config.games[Z.game].defaulthandsorting;
+		pls = pl.handsorting = Clientdata.handsorting;
+		localStorage.setItem('handsorting', JSON.stringify(pls)); 
+	}	else if (nundef(cs)) { Clientdata.handsorting = pls; localStorage.setItem('handsorting', JSON.stringify(pls)); }
+	if (isdef(cs) && isdef(pls) && cs != pls) { pls = pl.handsorting = cs; localStorage.setItem('handsorting', JSON.stringify(pls)); }; //update from current
+
+	//pls is now the correct sorting
+	hand = sort_cards(hand, pls=='suit', 'CDSH', true, Z.func.rankstr);
+	return hand;
+
+}
 
 //#region get_card and card assets
 
-
+function ari_get_card_large(ckey, h, w, ov = .2) {
+	let type = ckey[2];
+	let sz = { largecard: 120, smallcard: 80 };
+	let info = type == 'n' ? to_aristocard(ckey, sz.largecard) : type == 'l' ? to_luxurycard(ckey, sz.largecard) : type == 'r' ? to_rumorcard(ckey, sz.smallcard) : to_commissioncard(ckey, sz.smallcard);
+	let card = cardFromInfo(info, h, w, ov);
+	if (type == 'l') luxury_card_deco(card);
+	return card;
+}
+function luxury_card_deco(card) {
+	let d = iDiv(card); mStyle(d, { position: 'relative' });
+	let d1 = mDiv(d, { fg: 'dimgray', fz: 11, family: 'tangerine', position: 'absolute', left: 0, top: 0, 'writing-mode': 'vertical-rl', transform: 'scale(-1)', top: '35%' }, null, 'Luxury');
+	let html = `<img height=${18} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+	d1 = mDiv(d, { position: 'absolute', bottom: -2, left: 3, opacity: .25 }, null, html);
+}
 function ari_get_card(ckey, h, w, ov = .2) {
 	//console.log('ckey', ckey);
 	let type = ckey[2];
-	let info = type == 'n' ? to_aristocard(ckey) : type == 'l' ? to_luxurycard(ckey) : to_commissioncard(ckey);
+	let sz = { largecard: 100, smallcard: 50 };
+	let info = type == 'n' ? to_aristocard(ckey, sz.largecard) : type == 'l' ? to_luxurycard(ckey, sz.largecard) : type == 'r' ? to_rumorcard(ckey, sz.smallcard) : to_commissioncard(ckey, sz.smallcard);
 	let card = cardFromInfo(info, h, w, ov);
-	if (type == 'l') {
-		console.log('ckey', ckey)
-		let d = iDiv(card); mStyle(d, { position: 'relative' });
-		let d1 = mDiv(d, { fg: 'dimgray', fz: 11, family: 'tangerine', position: 'absolute', left: 0, top: 0, 'writing-mode': 'vertical-rl', transform: 'scale(-1)', top: '35%' }, null, 'Luxury');
-		let html = `<img height=${18} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
-		d1 = mDiv(d, { position: 'absolute', bottom: -2, left: 3, opacity: .25 }, null, html);
-		//mPlace(d1,'cc');
-		// let sz = card.sz;
-		// let left = sz >= 300 ? 7 : sz >= 200 ? 5 : sz >= 100 ? 3 : 3;
-		// let bottom = sz >= 300 ? 0 : sz >= 200 ? -1 : sz >= 100 ? -2 : -3;
-		// let html = `<img height=${30} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
-		// d1 = mDiv(d, { position: 'absolute', bottom: 0, left: 0, opacity: .5 }, null, html);
-		// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
-		// d1 = mDiv(d, { position: 'absolute', bottom: bottom, left: left, opacity: .5 }, null, html);
-		//let dt = mDiv(d, { family: 'Algerian' }, null, 'luxury');
-		//mPlace(dt, 'tc', 0, '50%')
-
-	}
+	if (type == 'l') luxury_card_deco(card);
 	return card;
 }
 function ferro_get_card(ckey, h, w, ov = .25) {
@@ -98,7 +114,7 @@ function sheriff_card(name, color) {
 	//set_card_border(c,5,'lime')
 	return c;
 }
-function to_aristocard(ckey, color = RED, sz = 100, w) {
+function to_aristocard(ckey, sz = 100, color = RED, w) {
 	//console.log('ckey', ckey);
 	let info = jsCopy(C52Cards[ckey.substring(0, 2)]);
 	info.key = ckey;
@@ -113,8 +129,9 @@ function to_aristocard(ckey, color = RED, sz = 100, w) {
 	info.isort = info.isuit * 13 + info.irank;
 	return info;
 }
-function to_luxurycard(ckey, color = 'gold', sz = 100, w) { return to_aristocard(ckey, color, sz); }
-function to_commissioncard(ckey, color = GREEN, sz = 40, w) { return to_aristocard(ckey, color, sz); }
+function to_luxurycard(ckey, sz = 100, color = 'gold', w) { return to_aristocard(ckey, sz, color); }
+function to_commissioncard(ckey, sz = 40, color = GREEN, w) { return to_aristocard(ckey, sz, color); }
+function to_rumorcard(ckey, sz = 40, color = GREEN, w) { return to_aristocard(ckey, sz, color); }
 
 //#region card face up or down
 function face_down_alt(item, bg, texture_name) {
@@ -148,79 +165,18 @@ function face_up(item) {
 	item.faceUp = true;
 }
 function toggle_face(item) { if (item.faceUp) face_down(item); else face_up(item); }
-function anim_toggle_face_orig(item, callback) {
+function anim_toggle_face(item, ms=300, callback=null) {
 	let d = iDiv(item);
 	mClass(d, 'aniflip');
 	TO.anim = setTimeout(() => {
 		if (item.faceUp) face_down(item); else face_up(item); mClassRemove(d, 'aniflip');
 		if (isdef(callback)) callback();
-	}, 300);
+	}, ms);
 }
+function anim_face_up(item, ms=300, callback=null) {	face_down(item);anim_toggle_face(item,callback);}
+function anim_face_down(item, ms=300, callback=null) {	face_up(item);anim_toggle_face(item,callback);}
 
 //#region ui_type_...
-function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card) {
-
-	//console.log('hallo!!!!!!!!!!!!!')
-	let cont = ui_make_container(dParent, get_container_styles(styles));
-	let cardcont = mDiv(cont);
-
-	let list = b.list;
-	//console.log('list', list)
-	//let n = list.length;
-	let d = mDiv(dParent);
-	let items = list.map(x => get_card_func(x));
-	// let cont = ui_make_hand_container(items, d, { maleft: 12, padding: 4 });
-
-	let schwein = null;
-	for (let i = 1; i < items.length; i++) {
-		let item = items[i];
-		if (b.schwein != item.key) face_down(item); else schwein = item;
-	}
-
-	let d_harvest = null;
-	if (isdef(b.h)) {
-		let keycard = items[0];
-		let d = iDiv(keycard);
-		mStyle(d, { position: 'relative' });
-		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
-	}
-
-	let d_rumors = null, rumorItems = [];
-	//console.log('b',b)
-	if (!isEmpty(b.rumors)) {
-		//console.log('ja, hat rumors!!!!!!!!!!!!!!')
-		let d = cont;
-		mStyle(d, { position: 'relative' });
-		d_rumors = mDiv(d, { display: 'flex', gap: 2, position: 'absolute', h: 30, bottom: 0, right: 0 }); //,bg:'green'});
-		for (const rumor of b.rumors) {
-			let dr = mDiv(d_rumors, { h: 24, w: 16, vmargin: 3, align: 'center', bg: 'dimgray', rounding: 2 }, null, 'R');
-			rumorItems.push({ div: dr, key: rumor });
-		}
-	}
-
-	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
-	//console.log('card',card)
-	mContainerSplay(cardcont, 2, card.w, card.h, items.length, card.ov * card.w);
-	ui_add_cards_to_hand_container(cardcont, items, list);
-
-	ui_add_container_title(title, cont, items);
-
-	// if (isdef(title) && !isEmpty(items)) { mText(title, d); }
-
-	return {
-		ctype: 'hand',
-		list: list,
-		path: path,
-		container: cont,
-		cardcontainer: cardcont,
-		items: items,
-		schwein: schwein,
-		harvest: d_harvest,
-		rumors: rumorItems,
-		keycard: items[0],
-
-	};
-}
 function ui_type_deck(list, dParent, styles = {}, path = 'deck', title = 'deck', get_card_func = ari_get_card, show_if_empty = false) {
 	let cont = ui_make_container(dParent, get_container_styles(styles));
 	let cardcont = mDiv(cont);

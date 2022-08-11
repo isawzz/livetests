@@ -2,7 +2,7 @@
 
 
 function ferro() {
-	const rankstr ='23456789TJQKA*';
+	const rankstr = '23456789TJQKA*';
 	function clear_ack() {
 		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
 		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
@@ -64,13 +64,13 @@ function ferro_pre_action() {
 		case 'card_selection': select_add_items(ui_get_ferro_items(uplayer), fp_card_selection, 'must select one or more cards', 1, 100); break;
 		default: console.log('stage is', stage); break;
 	}
-	ensure_buttons_visible_ferro();
+	//ensure_buttons_visible_ferro();
 }
 
 function ferro_present_new(z, dParent, uplayer) {
 
 	if (DA.simulate == true) show('bRestartMove'); else hide('bRestartMove'); //console.log('DA', DA);
-	//DA.no_shield = true;
+
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent);
 
@@ -85,7 +85,7 @@ function ferro_present_new(z, dParent, uplayer) {
 
 	let uname_plays = fen.plorder.includes(Z.uname);
 	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
-	//let order = TESTING ? fen.plorder : [show_first].concat(fen.plorder.filter(x => x != show_first));
+
 	order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first));
 	for (const plname of order) {
 		let pl = fen.players[plname];
@@ -126,14 +126,7 @@ function ferro_present_new(z, dParent, uplayer) {
 		//if (Z.role == 'active') { Z.role = 'waiting'; staticTitle('waiting for ' + pl_not_done.join(', ')); }
 	}
 
-	// //*** auto trigger remove players from turn who have made buy or pass decision!!!! *** */
-	// Ne das macht wieder das neue problem dass der timer dann neu startet, das will ich nicht!
-	// if (Z.stage == 'buy_or_pass' && uplayer == fen.trigger && !isEmpty(Z.playerdata_changed_for) && Z.playerdata_changed_for.length < Z.plorder){
-	// 	Z.playerdata_changed_for.map(x=>removeInPlace(Z.turn,x));
-	// 	take_turn_fen();
-	// 	return;
-	// }
-
+	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname);
 	new_cards_animation();
 
 
@@ -145,23 +138,10 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 	Config.ui.card.h = ishidden ? 100 : 150;
 	Config.ui.container.h = Config.ui.card.h + 30;
 
-	// no presorting!!! pl.hand = sort_cards(pl.hand, false, null, true, '23456789TJQKA*');
-	//if (!TESTING) pl.hand = sort_cards(pl.hand, false, null, true, '23456789TJQKA*');
-	// if (lookup(Clientdata['handsorting',plname])) pl.handsorting = lookup(Clientdata['handsorting',plname]);
-	if (isdef(Clientdata.handsorting)) pl.handsorting = Clientdata.handsorting;
-	if (isdef(pl.handsorting)) {
-		let bysuit = pl.handsorting.by == 'suit';
-		let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
-		pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, '23456789TJQKA*').concat(arr2);
-	}
+	if (!ishidden) pl.hand = correct_handsorting(pl.hand, plname);
+
 	let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ferro_get_card);
 	if (ishidden) { hand.items.map(x => face_down(x)); }
-	else {
-		//mStyle(d,{transform:'scale(2)'}); } 
-		//hand.items.map(x=>mStyle(iDiv(x),{h:200,w:100})); 
-		ensure_buttons_visible_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname);
-
-	}
 
 	ui.journeys = [];
 	let i = 0;
@@ -173,17 +153,7 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 	}
 
 }
-function ferro_activate_ui() {
-	//first animations!!!!
-	let [stage, A, fen, plorder, uplayer, deck] = [Z.stage, Z.A, Z.fen, Z.plorder, Z.uplayer, Z.deck];
-	let pl = fen.players[uplayer];
-
-	//console.log('activate!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-	//new_cards_animation();
-	//round_change_animation();
-
-	ferro_pre_action();
-}
+function ferro_activate_ui() { ferro_pre_action(); }
 function ferro_state_new(dParent) {
 
 	if (DA.TEST0 == true) {
@@ -610,45 +580,6 @@ function fp_card_selection() {
 		}
 	}
 }
-function ensure_buttons_visible_ferro() {
-	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-	if (fen.players[uplayer].hand.length <= 1) return; // only display for hand size > 1
-	let dbPlayer = mBy('dbPlayer');
-	if (nundef(dbPlayer)) {
-		let d = iDiv(UI.players[uplayer]);
-		mStyle(d, { position: 'relative' })
-		dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
-	}
-	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
-	// let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
-	// let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
-	if (Z.game == 'ferro') {
-		let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
-		if (isEmpty(A.selected)) hide(b);
-	}
-
-}
-function ensure_buttons_visible_for(plname) {
-	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
-
-	let fen = Z.fen;
-	let pl = fen.players[plname];
-	let plui = UI.players[plname];
-	//console.log('plui', plui);
-	if (pl.hand.length <= 1) return; // only display for hand size > 1
-	let d = iDiv(plui);
-	mStyle(d, { position: 'relative' })
-	//console.log('d', d);
-	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
-	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
-	let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
-	let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
-	// if (Z.game == 'ferro' && plname == uplayer) {
-	// 	let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
-	// 	if (isEmpty(A.selected)) hide(b);
-	// }
-
-}
 function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = true) {
 	//let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 
@@ -864,44 +795,6 @@ function is_legal_if_7R(cards) {
 
 	return true;
 
-}
-function onclick_by_rank_ferro() {
-	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-	//console.log('sorting for', uplayer);
-	let items = ui_get_hand_items(uplayer).map(x => x.o);
-	let h = UI.players[uplayer].hand;
-	pl.handsorting = { n: items.length, by: 'rank' };
-	//lookupSetOverride(Clientdata,['handsorting',uplayer],pl.handsorting);
-	Clientdata.handsorting = pl.handsorting;
-	//console.log('h ui', h);
-	//console.log('items', items);
-	let cardcont = h.cardcontainer;
-	let ch = arrChildren(cardcont);
-	ch.map(x => x.remove());
-	//console.log('rankstr',Z.func.rankstr);
-	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //window[Z.game.toUpperCase()].rankstr); //'23456789TJQKA*');
-	h.sortedBy = 'rank';
-	for (const item of sorted) {
-		mAppend(cardcont, iDiv(item));
-	}
-	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
-}
-function onclick_by_suit_ferro() {
-	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-	let items = ui_get_hand_items(uplayer).map(x => x.o);
-	let h = UI.players[uplayer].hand;
-	pl.handsorting = { n: items.length, by: 'suit' };
-	//console.log('h ui', h);
-	let cardcont = h.cardcontainer;
-	let ch = arrChildren(cardcont);
-	ch.map(x => x.remove());
-	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //'23456789TJQKA*');
-	sorted = sortCardItemsBySuit(sorted);
-	h.sortedBy = 'suit';
-	for (const item of sorted) {
-		mAppend(cardcont, iDiv(item));
-	}
-	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
 function onclick_clear_selection_ferro() { clear_selection(); }
 

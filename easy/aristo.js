@@ -2640,7 +2640,7 @@ function post_inspect() {
 		//console.log('building', building);
 		A.owner = stringAfter(building.path, '.');
 		A.owner = stringBefore(A.owner, '.');
-		turn_schwein_up(building);
+		turn_new_schwein_up(building);
 	}
 
 	// if the building has a schwein, and schwein is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
@@ -2838,7 +2838,7 @@ function post_blackmail() {
 	delete fen.blackmail;
 	ari_next_action();
 }
-function turn_schwein_up(b) {
+function turn_new_schwein_up(b) {
 	let key = b.keycard.key;
 	let list = b.list;
 	//return true if all list elements have the same first letter as key

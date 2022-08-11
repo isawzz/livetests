@@ -29,7 +29,7 @@ games:
     friendly: Aristocracy
     logo: crown
     color: indigo
-    game_type: turn
+    defaulthandsorting: rank
     options:
       #mode: 'solo,hotseat,multi'
       mode: 'solo,hotseat,multi'
@@ -37,6 +37,7 @@ games:
       journey: 'no,yes'
       commission: 'no,yes'
       rumors: 'no,yes'
+    game_type: turn
     def_startlevel: 4
     achieve_inc: 0
     hand_size: 7
@@ -47,7 +48,7 @@ games:
     friendly: Bluff
     logo: beaming face with smiling eyes
     color: red
-    game_type: turn
+    defaulthandsorting: rank
     options:
       mode: 'solo,hotseat,multi'
       # mode: 'solo,multi,hotseat'
@@ -59,6 +60,7 @@ games:
     friendly: "A L'Honneur!"
     logo: fencing #weary face
     color: midnightblue
+    defaulthandsorting: suit
     options:
       #mode: 'solo,multi,hotseat'
       mode: 'solo,hotseat,multi'
@@ -76,7 +78,7 @@ games:
     friendly: Ferrocarril
     logo: train
     color: sienna
-    game_type: turn
+    defaulthandsorting: rank
     options:
       #mode: 'solo,multi,hotseat'
       mode: 'solo,hotseat,multi'

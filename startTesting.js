@@ -44,6 +44,22 @@ function phpPost(o, cmd) {
 		o.game = Z.game;
 
 	}
+	if (isdef(Z)) {
+		o.playerdata = Z.playerdata;
+		if (isdef(Z.state)) firstCond(o.playerdata, x => x.name == Z.uplayer).state = Z.state;
+		if (isdef(Z.player_status)) firstCond(o.playerdata, x => x.name == Z.uplayer).player_status = Z.player_status;
+		Z.playerdata = o.playerdata;
+		//console.log('o.playerdata', o.playerdata);
+	} else if (isdef(o.friendly)) {
+		//console.log('o',o)
+		if (nundef(o.playerdata)) {
+			o.playerdata = [];
+			for (const plname of o.fen.plorder) {
+				o.playerdata.push({ name: plname, state: null, player_status: null });
+			}
+		}
+	}
+
 	switch (cmd) {
 		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;
 		case "move":

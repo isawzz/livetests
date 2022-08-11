@@ -241,7 +241,7 @@ function ai_move(ms = 100) {
 	for (const item of selitems) {
 		select_last(item, select_toggle);
 
-		//submit on enter item muss als letztes ausgewahehlt werden, und nach dem select_toggle aus A.selected entfernt werden!!!
+		//submit on enter item muss als letztes ausgewahehlt werden, und nach dem _select_toggle aus A.selected entfernt werden!!!
 		//da submit on enter sowieso A.callback aufruft => verify! JA
 		if (isdef(item.submit_on_click)) A.selected.pop();
 	}

@@ -27,6 +27,48 @@ function onclick_ack() {
 	Z.func.clear_ack();
 	//if (!is_sending) take_turn_single();
 }
+function onclick_by_rank() {
+
+	//console.log('onclick_by_rank');
+
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	//console.log('sorting for', uplayer);
+	let items = ui_get_hand_items(uplayer).map(x => x.o);
+	let h = UI.players[uplayer].hand;
+	pl.handsorting = { n: items.length, by: 'rank' };
+	//lookupSetOverride(Clientdata,['handsorting',uplayer],pl.handsorting);
+	Clientdata.handsorting = pl.handsorting;
+	//console.log('h ui', h);
+	//console.log('items', items);
+	let cardcont = h.cardcontainer;
+	let ch = arrChildren(cardcont);
+	ch.map(x => x.remove());
+
+	//console.log('rankstr', Z.func.rankstr);//console.log('rankstr',Z.func.rankstr);
+	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //window[Z.game.toUpperCase()].rankstr); //'23456789TJQKA*');
+	h.sortedBy = 'rank';
+	for (const item of sorted) {
+		mAppend(cardcont, iDiv(item));
+	}
+	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
+}
+function onclick_by_suit() {
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	let items = ui_get_hand_items(uplayer).map(x => x.o);
+	let h = UI.players[uplayer].hand;
+	pl.handsorting = { n: items.length, by: 'suit' };
+	//console.log('h ui', h);
+	let cardcont = h.cardcontainer;
+	let ch = arrChildren(cardcont);
+	ch.map(x => x.remove());
+	let sorted = sortCardItemsByRank(items, Z.func.rankstr); //'23456789TJQKA*');
+	sorted = sortCardItemsBySuit(sorted);
+	h.sortedBy = 'suit';
+	for (const item of sorted) {
+		mAppend(cardcont, iDiv(item));
+	}
+	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
+}
 function onclick_cancelmenu() { hide('dMenu'); }
 function onclick_game_menu_item(ev) {
 	let gamename = ev_to_gname(ev);

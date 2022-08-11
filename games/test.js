@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; onclick_by_rank_ferro(); } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; } //onclick_by_rank(); } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -22,8 +22,61 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest103_aristo_journey(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest107_aristo_inspect_schwein(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
+}
+function give_players_schwein(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	for (let i = 0; i < fen.plorder.length; i++) {
+		let b = stage_building(fen, i, 'farm');
+		b.h = 'KHn';
+		b.schweine = [2];
+		let b1 = stage_building(fen, i, 'estate');
+	}
+	[fen.turn, fen.stage] = [[uplayer], 5];
+	fen.phase = 'king';
+}
+function ltest107_aristo_inspect_schwein() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein, set_queen_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { };
+	DA.auto_moves = [];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+// function ltest106_aristo_schweine() {
+// 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings,give_players_schwein,set_king_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+// 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+// 	DA.auto_moves = [];//[['random']];
+// 	let playernames = [U.name, 'felix'];
+
+// 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+// }
+function ltest106_aristo_build() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_player_only_4_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest105_aristo_church() {
+	TESTING = true; DA.testing = true;
+	// DA.test = { mods: [give_players_stalls, make_church, set_player_tithes], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test = { mods: [give_players_stalls, make_church], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'gul', 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest104_aristo() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest103_aristo_journey() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_luxury_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -1383,23 +1436,23 @@ function bluff_start_bid(o) {
 	let b2 = coin(10) ? '_' : rNumber(1, 4);
 	o.fen.lastbid = [rNumber(1, 4), ranks[0], b2, b2 == '_' ? '_' : ranks[1]];
 }
-function drawcard(key,dParent,sz){
+function drawcard(key, dParent, sz) {
 	let d1;
 	let card = ari_get_card(key, sz);
 	mAppend(dParent, iDiv(card));
-	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
+	let d = iDiv(card); mStyle(d, { position: 'relative', margin: 20 });
 
 
-	let h=sz*.6;
-	let w=h/6.5;
-	let left=sz>=300?7:sz>=200?5:sz>=100?3:3;
-	let bottom=sz>=300?0:sz>=200?-1:sz>=100?-2:-3;
-	let matop=(sz-h)/2;
-	let html = `<img height=${sz/3} src="./base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
+	let h = sz * .6;
+	let w = h / 6.5;
+	let left = sz >= 300 ? 7 : sz >= 200 ? 5 : sz >= 100 ? 3 : 3;
+	let bottom = sz >= 300 ? 0 : sz >= 200 ? -1 : sz >= 100 ? -2 : -3;
+	let matop = (sz - h) / 2;
+	let html = `<img height=${sz / 3} src="./base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
 	// d1 = mDiv(d, {position:'absolute',top:matop,left:left}, null, html); 
-	d1 = mDiv(d, {position:'absolute',bottom:bottom,left:left,opacity:.5}, null, html); 
-	let dt=mDiv(d,{family:'Algerian'},null,'luxury');
-	mPlace(dt,'tc',0,'50%')
+	d1 = mDiv(d, { position: 'absolute', bottom: bottom, left: left, opacity: .5 }, null, html);
+	let dt = mDiv(d, { family: 'Algerian' }, null, 'luxury');
+	mPlace(dt, 'tc', 0, '50%')
 
 
 	// let wc=sz*0.6;
@@ -1561,11 +1614,11 @@ function give_players_buildings(o) {
 	fen.stage = 5;
 	fen.phase = 'king';
 }
-function give_players_schwein(o, isOpen = true) {
+function give_players_schwein_old(o, isOpen = true) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	let b = stage_building(fen, 1, 'farm');
 	b.h = 'KHn';
-	if (isOpen) b.schwein = b.list[2];
+	if (isOpen) b.schweine = [b.list[2]];
 	fen.stage = 5;
 	fen.phase = 'king';
 }
@@ -1605,9 +1658,14 @@ function give_player_queen(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.players[uplayer].hand.push('QHn');
 }
-function give_player_luxury_cards(o){
+function give_player_luxury_cards(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
 	fen.players[uplayer].hand.push('AHl', 'AHl', 'AHl');
+}
+function give_player_only_4_cards(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	fen.players[uplayer].hand = ['AHn', 'AHn'];
+	fen.players[uplayer].stall = ['ACn', 'ASn'];
 }
 function give_player_multiple_commission_cards(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1756,6 +1814,7 @@ function set_auction_phase(o) {
 	// ensure_actions(fen);
 
 }
+function set_king_phase(o) { set_queen_phase(o); o.phase = o.fen.phase = 'king'; }
 function set_queen_phase(o) {
 	fen = o.fen;
 	fen.phase = o.phase = 'queen';

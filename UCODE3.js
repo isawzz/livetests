@@ -1,4 +1,684 @@
 
+
+
+function post_inspect_NO(){
+	let uibuilding = item.o;
+	let fenbuilding = lookup(fen, uibuilding.path.split('.'));
+	let key = uibuilding.keycard.key;
+	let cards = uibuilding.items;
+
+	//find ckey in list that is not key but is not in schweine already
+	//A.newschwein = firstCond(uibuilding.items, x => x.key != key && !fenbuilding.schweine.includes(uibuilding.list.indexOf(x.index)));
+	
+	//console.log('newschwein',A.newschwein); uibuilding.items.map(x=>face_up(x));
+	//newschwein ist ein card item!
+	
+	reveal_animation(cards, weiter_post_inspect);
+}
+function reveal_animation(cards, callback) {
+
+	console.log("_reveal_animation!!!!!");
+	let key = cards[0].rank;
+
+	if (isdef(newschwein)) {
+		let d = iDiv(newschwein);
+		mPulse1(d, () => { face_up(c); callback(); });
+	}
+
+	for(let i = 0; i < cards.length; i++){	}
+	let i = -1;
+	for (const c of cards) {
+		if (++i == 0) continue; 
+		let d = iDiv(c);
+		if (c.rank != key) {
+			mPulse1(d, () => { face_up(c); if (i == cards.length) callback(); });
+		} else {
+			mPulse1(d, () => { if (i == cards.length) callback(); });
+		}
+	}
+}
+
+function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card, separate_lead = false, ishidden = false) {
+
+	//console.log('hallo!!!!!!!!!!!!!')
+	let cont = ui_make_container(dParent, get_container_styles(styles));
+	let cardcont = mDiv(cont);
+
+	let list = b.list;
+	//console.log('list', list)
+	//let n = list.length;
+	let d = mDiv(dParent);
+	let items = list.map(x => get_card_func(x));
+	// let cont = ui_make_hand_container(items, d, { maleft: 12, padding: 4 });
+
+	let schweine = null;
+	for (let i = 1; i < items.length; i++) {
+		let item = items[i];
+		// if (b.schweine != item.key) face_down(item); else schweine = item;
+		if (isdef(b.schweine) && b.schweine.includes(item.key)) face_down(item); else schweine = item;
+	}
+
+	let d_harvest = null;
+	if (isdef(b.h)) {
+		let keycard = items[0];
+		let d = iDiv(keycard);
+		mStyle(d, { position: 'relative' });
+		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
+	}
+
+	let d_rumors = null, rumorItems = [];
+	//console.log('b',b)
+	if (!isEmpty(b.rumors)) {
+		//console.log('ja, hat rumors!!!!!!!!!!!!!!')
+		let d = cont;
+		mStyle(d, { position: 'relative' });
+		d_rumors = mDiv(d, { display: 'flex', gap: 2, position: 'absolute', h: 30, bottom: 0, right: 0 }); //,bg:'green'});
+		for (const rumor of b.rumors) {
+			let dr = mDiv(d_rumors, { h: 24, w: 16, vmargin: 3, align: 'center', bg: 'dimgray', rounding: 2 }, null, 'R');
+			rumorItems.push({ div: dr, key: rumor });
+		}
+	}
+
+	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
+	//console.log('card',card)
+	let [ov,splay]=separate_lead?[card.ov*1.5,5]:[card.ov,2];
+	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
+	ui_add_cards_to_hand_container(cardcont, items, list);
+
+	ui_add_container_title(title, cont, items);
+
+	// if (isdef(title) && !isEmpty(items)) { mText(title, d); }
+
+	return {
+		ctype: 'hand',
+		list: list,
+		path: path,
+		container: cont,
+		cardcontainer: cardcont,
+		items: items,
+		schweine: schweine,
+		harvest: d_harvest,
+		rumors: rumorItems,
+		keycard: items[0],
+
+	};
+}
+
+//#region working on schweine
+function turn_new_schwein_up(uibuilding) {
+	//b is uibuilding
+	let key = uibuilding.keycard.key;
+	let list = uibuilding.list;
+
+	let schweine = firstCond(list, x => x[0] != key[0] );
+	assertion(isdef(schweine), 'WAS DA IST GARKEIN SCHWEIN!!!!!!!!!!', uibuilding);
+	let ui = firstCond(uibuilding.items, x => x.key == schweine);
+	//console.log('schweine card is',ui)
+	face_up(ui);
+
+	let fenbuilding = lookup(Z.fen, uibuilding.path.split('.'));
+	uibuilding.schweine = fenbuilding.schweine = schweine;
+	ari_open_rumors(32);
+}
+
+function post_inspect() {
+	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
+	let item = A.items[A.selected[0]];
+
+	//console.log('building to inspect:', item.o);
+	//lead is item.o.keycard
+	//if the building has a _schwein, and _schwein is open, uplayer gets a rumor
+	let building = item.o;
+
+	if (isdef(building.schweine)) {
+		//uplayer gets a rumor from rumor deck
+		//output_arr_short(fen.deck_rumors);
+		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
+		fen.players[uplayer].rumors.push(rumor);
+		//console.log('...got rumor', rumor);
+		//output_arr_short(fen.deck_rumors);
+		ari_history_list([`${uplayer} inspects a schweine!`], 'inspect');
+
+		ari_next_action();
+	} else if (building_is_correct(building)) {
+		//uplayer need to chose a rumor card to discard!
+		//console.log('')
+		Z.stage = 29;
+		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
+		ari_pre_action();
+	} else {
+		//building is not correct: turn _schwein up, both players get a rumor
+		//console.log('building is not correct')
+		//console.log('building', building);
+		A.owner = stringAfter(building.path, '.');
+		A.owner = stringBefore(A.owner, '.');
+		ari_history_list([`${uplayer} reveals a schweine!`], 'inspect');
+		turn_new_schwein_up(building);
+	}
+
+	// if the building has a schweine, and schweine is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
+	// if the building has no schweine, uplayer needs to select one of his rumors to pay
+}
+
+
+
+
+function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card, separate_lead = false) {
+
+	//console.log('hallo!!!!!!!!!!!!!')
+	let cont = ui_make_container(dParent, get_container_styles(styles));
+	let cardcont = mDiv(cont);
+
+	let list = b.list;
+	//console.log('list', list)
+	//let n = list.length;
+	let d = mDiv(dParent);
+	let items = list.map(x => get_card_func(x));
+	// let cont = ui_make_hand_container(items, d, { maleft: 12, padding: 4 });
+
+	let schweine = null;
+	for (let i = 1; i < items.length; i++) {
+		let item = items[i];
+		// if (b.schweine != item.key) face_down(item); else schweine = item;
+		if (isdef(b.schweine) && b.schweine.includes(item.key)) face_down(item); else schweine = item;
+	}
+
+	let d_harvest = null;
+	if (isdef(b.h)) {
+		let keycard = items[0];
+		let d = iDiv(keycard);
+		mStyle(d, { position: 'relative' });
+		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
+	}
+
+	let d_rumors = null, rumorItems = [];
+	//console.log('b',b)
+	if (!isEmpty(b.rumors)) {
+		//console.log('ja, hat rumors!!!!!!!!!!!!!!')
+		let d = cont;
+		mStyle(d, { position: 'relative' });
+		d_rumors = mDiv(d, { display: 'flex', gap: 2, position: 'absolute', h: 30, bottom: 0, right: 0 }); //,bg:'green'});
+		for (const rumor of b.rumors) {
+			let dr = mDiv(d_rumors, { h: 24, w: 16, vmargin: 3, align: 'center', bg: 'dimgray', rounding: 2 }, null, 'R');
+			rumorItems.push({ div: dr, key: rumor });
+		}
+	}
+
+	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
+	//console.log('card',card)
+	let [ov,splay]=separate_lead?[card.ov*1.5,5]:[card.ov,2];
+	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
+	ui_add_cards_to_hand_container(cardcont, items, list);
+
+	ui_add_container_title(title, cont, items);
+
+	// if (isdef(title) && !isEmpty(items)) { mText(title, d); }
+
+	return {
+		ctype: 'hand',
+		list: list,
+		path: path,
+		container: cont,
+		cardcontainer: cardcont,
+		items: items,
+		schweine: schweine,
+		harvest: d_harvest,
+		rumors: rumorItems,
+		keycard: items[0],
+
+	};
+}
+
+function post_exchange() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	//there should be exactly 2 selected actions and they should be in different groups
+	//the 2 actions correspond to the 2 legal cards to trade!
+	if (A.selected.length != 2) {
+		select_error('please, select exactly 2 cards!');
+		return;
+	}
+	let i0 = A.items[A.selected[0]];
+	let i1 = A.items[A.selected[1]];
+	//one of the cards has to be from a building
+	let [p0, p1] = [i0.path, i1.path];
+	if (p0.includes('build') == p1.includes('build')) {
+		select_error('select exactly one building card and one of your hand or stall cards!');
+		return;
+	}
+
+	exchange_items_in_fen(fen, i0, i1); //replace cards in otree
+	//the repaired building loses its _schwein if any!
+	//console.log('exchange items', i0, i1);
+
+	let ibuilding = p0.includes('build') ? i0 : i1;
+	let fenbuilding = lookup(fen, ibuilding.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));
+	//console.log('fenbuilding', fenbuilding);
+	
+	//NEW!!!!
+	if (isdef(fenbuilding.schweine) && fenbuilding.schweine.includes(ibuilding.key)){
+		removeInPlace(fenbuilding.schweine, ibuilding.key);
+		if (fenbuilding.schweine.length == 0) delete fenbuilding.schweine;
+	}
+	//fenbuilding.schweine = null; //STIMMT NICHT!!!! KOENNTEN MEHRERE SCHWEINE SEIN!
+
+	ari_history_list([`${uplayer} exchanges card in ${ari_get_building_type(fenbuilding)}`], 'exchange');
+	ari_next_action();
+}
+function process_visit() {
+	process_payment();
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	let item = A.items[A.selected[0]];
+	let obuilding = lookup(fen, item.path.split('.'));
+	let parts = item.path.split('.');
+	let owner = parts[1];
+
+	if (isdef(obuilding.schweine)) {
+
+		Z.stage = 46;
+		A.building = item;
+		A.obuilding = obuilding;
+		A.buildingowner = owner;
+		ari_pre_action();
+		return;
+
+	} else {
+
+		//this building is revealed
+		let cards = item.o.items;
+		let key = cards[0].rank;
+		//let schweine = false;
+		//let schweine = null;
+		for (const c of cards) {
+			if (c.rank != key) { schweine = true; schweine = c.key; face_up(c); break; }
+		}
+		if (schweine) {
+			if (fen.players[owner].coins > 0) {
+				fen.players[owner].coins--;
+				fen.players[uplayer].coins++;
+			}
+			let b = lookup(fen, item.path.split('.'));
+			b.schweine = schweine;
+		}
+
+		ari_history_list([
+			`${uplayer} visited ${ari_get_building_type(obuilding)} of ${owner} resulting in ${schweine ? 'schweine' : 'ok'} ${ari_get_building_type(obuilding)}`,
+		], 'visit');
+
+		reveal_animation(cards,()=>ari_next_action(fen,uplayer));
+		
+		//ari_next_action(fen, uplayer);
+	}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//#endregion
+
+function post_inspect() {
+	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
+	let item = A.items[A.selected[0]];
+
+	//console.log('building to inspect:', item.o);
+	//lead is item.o.keycard
+	//if the building has a schwein, and schwein is open, uplayer gets a rumor
+	let building = item.o;
+
+	if (isdef(building.schwein)) {
+		//uplayer gets a rumor from rumor deck
+		//output_arr_short(fen.deck_rumors);
+		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
+		fen.players[uplayer].rumors.push(rumor);
+		//console.log('...got rumor', rumor);
+		//output_arr_short(fen.deck_rumors);
+		ari_history_list([`${uplayer} inspects a schwein!`], 'inspect');
+
+		ari_next_action();
+	} else if (building_is_correct(building)) {
+		//uplayer need to chose a rumor card to discard!
+		//console.log('')
+		Z.stage = 29;
+		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
+		ari_pre_action();
+	} else {
+		//building is not correct: turn schwein up, both players get a rumor
+		//console.log('building is not correct')
+		//console.log('building', building);
+		A.owner = stringAfter(building.path, '.');
+		A.owner = stringBefore(A.owner, '.');
+		ari_history_list([`${uplayer} reveals a schwein!`], 'inspect');
+		turn_new_schwein_up(building);
+	}
+
+	// if the building has a schwein, and schwein is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
+	// if the building has no schwein, uplayer needs to select one of his rumors to pay
+}
+
+function ensure_buttons_visible_for(plname) {
+	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+
+	let fen = Z.fen;
+	let pl = fen.players[plname];
+	let plui = UI.players[plname];
+	//console.log('plui', plui);
+	if (pl.hand.length <= 1) return; // only display for hand size > 1
+	let d = iDiv(plui);
+	mStyle(d, { position: 'relative' })
+	//console.log('d', d);
+	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
+	let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
+	// if (Z.game == 'ferro' && plname == uplayer) {
+	// 	let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
+	// 	if (isEmpty(A.selected)) hide(b);
+	// }
+
+}
+function ensure_buttons_visible_ferro() {
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	if (fen.players[uplayer].hand.length <= 1) return; // only display for hand size > 1
+	let dbPlayer = mBy('dbPlayer');
+	if (nundef(dbPlayer)) {
+		let d = iDiv(UI.players[uplayer]);
+		mStyle(d, { position: 'relative' })
+		dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
+	}
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	// let bByRank = mButton('by rank', onclick_by_rank_ferro, dbPlayer, styles, 'enabled');
+	// let bBySuit = mButton('by suit', onclick_by_suit_ferro, dbPlayer, styles, 'enabled');
+	if (Z.game == 'ferro') {
+		let b = mButton('clear selection', onclick_clear_selection_ferro, dbPlayer, styles, 'enabled', 'bClearSelection'); //isEmpty(A.selected)?'disabled':'enabled');
+		if (isEmpty(A.selected)) hide(b);
+	}
+
+}
+
+function fritz_present_new(z, dParent, uplayer) {
+	//console.log('present')
+	DA.hovergroup = null;
+	let [fen, ui, stage] = [z.fen, UI, z.stage];
+	//fen.shield=true;
+	//console.log('role',Z.role)
+	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent); mFlexWrap(dOpenTable)
+	Config.ui.card.h = 130;
+	Config.ui.container.h = Config.ui.card.h + 30;
+
+	//let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', fritz_get_card);
+	if (isEmpty(fen.deck_discard)) {
+		mText('discard empty', dOpenTable);
+		ui.deck_discard = { items: [] }
+	} else {
+		let deck_discard = ui.deck_discard = ui_type_hand(fen.deck_discard, dOpenTable, { maright: 25 }, 'deck_discard', 'discard', fritz_get_card, true);
+		let i = 0; deck_discard.items.map(x => { x.source = 'discard'; x.index = i++ });
+	}
+	mLinebreak(dOpenTable);
+
+
+	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, hmin: 162, wmin: 245, padding: '5px 50px 5px 5px', margin: 5 });
+	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
+	mFlexWrap(ddarea)
+
+	fritz_stats_new(z, dRechts);
+
+	show_history(fen, dRechts);
+
+	//loose cards and journeys
+	DA.TJ = [];
+	//journeys become groups
+	//fen.journeys = [['QHn', 'KHn', 'AHn'], ['QCn', 'QHn', 'QDn']];
+	for (const j of fen.journeys) {
+		let cards = j.map(x => fritz_get_card(x));
+		frnew(cards[0], { target: 'hallo' });
+		for (let i = 1; i < cards.length; i++) { fradd(cards[i], Items[cards[0].groupid]); }
+
+	}
+	//loose cards of fen and other players become groups. own loose cards will ALSO go to player area
+	let loosecards = ui.loosecards = jsCopy(fen.loosecards).map(c => fritz_get_card(c));
+	for (const plname of fen.plorder) {
+		let cards = fen.players[plname].loosecards.map(c => fritz_get_card(c));
+		cards.map(x => x.owner = plname);
+		// if (plname != uplayer) { loosecards = loosecards.concat(cards); }
+		loosecards = loosecards.concat(cards);
+	}
+	for (const looseui of loosecards) {
+		//console.log('looseui', looseui);
+		let card = looseui;
+		frnew(card, { target: 'hallo' });
+	}
+
+	//all cards in drop area are droppable
+	for (const group of DA.TJ) {
+		assertion(isdef(group.id), 'no group id', group);
+		let d = iDiv(group);
+		//console.log('d',d);
+		let ch = arrChildren(iDiv(group));
+		let cards = ch.map(x => Items[x.id]);
+		//console.log('cards', cards);
+		cards.map(x => mDroppable(x, drop_card_fritz));
+	}
+
+	//if ddarea is empty, write drag and drop hint
+	if (arrChildren(ddarea).length == 0) {
+		let d = mDiv(ddarea, { 'pointer-events': 'none', maleft: 45, align: 'center', hmin: 40, w: '100%', fz: 12, fg: 'dimgray' }, 'ddhint', 'drag and drop cards here');
+		//setRect(ddarea)
+		//mPlace(d,'cc')
+
+	}
+
+	ui.players = {};
+	let uname_plays = fen.plorder.includes(Z.uname);
+	let plmain = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
+	fritz_present_player(plmain, dMiddle);
+
+	if (TESTING) {
+		for (const plname of arrMinus(fen.plorder, plmain)) {
+			fritz_present_player(plname, dMiddle);
+		}
+	}
+
+
+}
+function fritz_present_player(playername, dMiddle) {
+	let [fen, ui, stage] = [Z.fen, UI, Z.stage];
+	let pl = fen.players[playername];
+	let playerstyles = { w: '100%', bg: '#ffffff80', fg: 'black', padding: 4, margin: 4, rounding: 10, border: `2px ${get_user_color(playername)} solid` };
+	let d = mDiv(dMiddle, playerstyles, null, get_user_pic_html(playername, 25)); mFlexWrap(d); mLinebreak(d, 10);
+
+	//#region old handsorting code
+	// if (isdef(pl.handsorting)) {
+	// 	let bysuit = pl.handsorting.by == 'suit';
+	// 	let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
+	// 	pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, 'A23456789TJQK*').concat(arr2);
+	// }
+	//#endregion
+	pl.hand = correct_handsorting(pl.hand,playername);
+
+	let upl = ui.players[playername] = { div: d };
+	upl.hand = ui_type_hand(pl.hand, d, {}, `players.${playername}.hand`, 'hand', fritz_get_card);
+	upl.hand.items.map(x => x.source = 'hand');
+
+	let ploose = pl.loosecards;
+	if (!isEmpty(ploose)) {
+		//console.log('ploosecards', ploose);
+		upl.loose = ui_type_market(ploose, d, {}, `players.${playername}.loose`, 'untouchables', fritz_get_hint_card);
+		upl.loose.items.map(x => x.source = 'loose');
+	} else {
+		//console.log('player has no loose cards',pl);
+	}
+	ensure_buttons_visible_for(playername);
+
+}
+function fritz_activate_ui() {
+	//return;
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	A.autosubmit = false;
+
+	new_cards_animation(1);
+	round_change_animation(1);
+
+	//UI.players[uplayer].hand.items.map(x=>iDiv(x).onclick=()=>onclick_fritz_discard(x));
+	select_add_items(ui_get_hand_items(uplayer), end_of_turn_fritz, 'must drag drop cards to assemble groups, then discard 1 hand card', 0, 1);
+
+	A.items.map(x => iDiv(x).onclick = ev => {
+		let card = Items[x.id];
+		let item = x;
+		clear_quick_buttons();
+		select_last(item, select_toggle, ev);
+		if (item.index == A.selected[0]) {
+			//mach so einen button dorthin wo die mouse ist!
+			let pos = get_mouse_pos(ev);
+			//console.log('mouse pos', pos);
+			let b = DA.bQuick = mButton('discard', ev => {
+				b.remove();
+				end_of_turn_fritz();
+			}, document.body, { position: 'absolute', left: pos.x - 40, top: pos.y - 10 }, 'selectbutton');
+
+		}
+		//console.log('clicked card', card, '\nitem', item);
+		//output mouse position on page
+
+	});
+
+	UI.timer = select_timer(fen.players[uplayer].time_left + Z.options.seconds_per_move * 1000, end_of_turn_fritz);
+
+	ensure_buttons_visible_ferro();
+
+}
+
+function ferro_present_new(z, dParent, uplayer) {
+
+	if (DA.simulate == true) show('bRestartMove'); else hide('bRestartMove'); //console.log('DA', DA);
+	//DA.no_shield = true;
+	let [fen, ui, stage] = [z.fen, UI, z.stage];
+	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent);
+
+	ferro_stats_new(z, dRechts);
+
+	show_history(fen, dRechts);
+
+	let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', ferro_get_card);
+	let deck_discard = ui.deck_discard = ui_type_deck(fen.deck_discard, dOpenTable, { maleft: 12 }, 'deck_discard', '', ferro_get_card);
+	//console.log('deck_discard',deck_discard);
+	if (!isEmpty(deck_discard.items)) face_up(deck_discard.get_topcard());
+
+	let uname_plays = fen.plorder.includes(Z.uname);
+	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
+	//let order = TESTING ? fen.plorder : [show_first].concat(fen.plorder.filter(x => x != show_first));
+	order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first));
+	for (const plname of order) {
+		let pl = fen.players[plname];
+
+		let playerstyles = { w: '100%', bg: '#ffffff80', fg: 'black', padding: 4, margin: 4, rounding: 10, border: `2px ${get_user_color(plname)} solid` };
+		let d = mDiv(dMiddle, playerstyles, null, get_user_pic_html(plname, 25));
+
+		mFlexWrap(d);
+		mLinebreak(d, 10);
+
+		let hidden = compute_hidden(plname);
+
+		ferro_present_player_new(z, plname, d, hidden);
+	}
+
+	//console.log('playerdata changed', Z.playerdata_changed_for);
+	Z.isWaiting = false;
+	if (Z.stage == 'round_end') {
+		show_waiting_for_ack_message();
+
+		//*** auto resolve *** */
+	} else if (Z.stage == 'buy_or_pass' && uplayer == fen.trigger && ferro_check_resolve()) {
+		assertion(Z.stage == 'buy_or_pass', 'stage is not buy_or_pass when checking can_resolve!');
+		Z.stage = 'can_resolve';
+		[Z.turn, Z.stage] = [[get_multi_trigger()], 'can_resolve'];
+		take_turn_fen(); return;
+	} else if (Z.stage == 'buy_or_pass' && (Z.role != 'active' || is_playerdata_set(uplayer))) {
+
+		//console.log('HAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOO')
+
+		//get players in turn that have not yet set playerdata
+		assertion(isdef(Z.playerdata), 'playerdata is not defined in buy_or_pass (present ferro)');
+		let pl_not_done = Z.playerdata.filter(x => Z.turn.includes(x.name) && isEmpty(x.state)).map(x => x.name);
+		// show_waiting_message(`waiting for ${pl_not_done.join(', ')} to make buy decision`);
+		show_waiting_message(`waiting for possible buy decision...`);
+		Z.isWaiting = true;
+		//ich soll hier auch den statisTitle machen und sanduhr stoppen fuer diesen player!!! und alle players die bereits done sind!
+		//if (Z.role == 'active') { Z.role = 'waiting'; staticTitle('waiting for ' + pl_not_done.join(', ')); }
+	}
+
+	// //*** auto trigger remove players from turn who have made buy or pass decision!!!! *** */
+	// Ne das macht wieder das neue problem dass der timer dann neu startet, das will ich nicht!
+	// if (Z.stage == 'buy_or_pass' && uplayer == fen.trigger && !isEmpty(Z.playerdata_changed_for) && Z.playerdata_changed_for.length < Z.plorder){
+	// 	Z.playerdata_changed_for.map(x=>removeInPlace(Z.turn,x));
+	// 	take_turn_fen();
+	// 	return;
+	// }
+
+	new_cards_animation();
+
+
+}
+function ferro_present_player_new(g, plname, d, ishidden = false) {
+	let fen = g.fen;
+	let pl = fen.players[plname];
+	let ui = UI.players[plname] = { div: d };
+	Config.ui.card.h = ishidden ? 100 : 150;
+	Config.ui.container.h = Config.ui.card.h + 30;
+
+	//#region old handsorting code: split off newcards
+	// // no presorting!!! pl.hand = sort_cards(pl.hand, false, null, true, '23456789TJQKA*');
+	// //if (!TESTING) pl.hand = sort_cards(pl.hand, false, null, true, '23456789TJQKA*');
+	// // if (lookup(Clientdata['handsorting',plname])) pl.handsorting = lookup(Clientdata['handsorting',plname]);
+	// if (isdef(Clientdata.handsorting)) pl.handsorting = Clientdata.handsorting;
+	// if (isdef(pl.handsorting)) {
+	// 	let bysuit = pl.handsorting.by == 'suit';
+	// 	let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
+	// 	pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, '23456789TJQKA*').concat(arr2);
+	// }
+	//#endregion
+	if (!ishidden) pl.hand = correct_handsorting(pl.hand,plname);
+
+	let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ferro_get_card);
+	if (ishidden) { hand.items.map(x => face_down(x)); }
+	else {
+		//mStyle(d,{transform:'scale(2)'}); } 
+		//hand.items.map(x=>mStyle(iDiv(x),{h:200,w:100})); 
+		ensure_buttons_visible_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname);
+
+	}
+
+	ui.journeys = [];
+	let i = 0;
+	for (const j of pl.journeys) {
+		let jui = ui_type_lead_hand(j, d, { maleft: 12, h: 130 }, `players.${plname}.journeys.${i}`, '', ferro_get_card);//list, dParent, path, title, get_card_func
+		//jui.path = `players.${uplayer}.journeys.${i}`;
+		i += 1;
+		ui.journeys.push(jui);
+	}
+
+}
+function ferro_activate_ui() {
+	//first animations!!!!
+	let [stage, A, fen, plorder, uplayer, deck] = [Z.stage, Z.A, Z.fen, Z.plorder, Z.uplayer, Z.deck];
+	let pl = fen.players[uplayer];
+
+	//console.log('activate!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+	//new_cards_animation();
+	//round_change_animation();
+
+	ferro_pre_action();
+}
+
+
 function _drawcard(key,dParent,sz){
 	let d1;
 	let card = ari_get_card(key, sz);

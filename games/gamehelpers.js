@@ -406,6 +406,22 @@ function show_game_options(dParent, game) {
 	}
 
 }
+function show_handsorting_buttons_for(plname) {
+	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+
+	let fen = Z.fen;
+	let pl = fen.players[plname];
+	let plui = UI.players[plname];
+	if (pl.hand.length <= 1) return; 
+	let d = iDiv(plui);
+	mStyle(d, { position: 'relative' })
+	//console.log('d', d);
+	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	let bByRank = mButton('by rank', onclick_by_rank, dbPlayer, styles, 'enabled');
+	let bBySuit = mButton('by suit', onclick_by_suit, dbPlayer, styles, 'enabled');
+
+}
 function show_history(fen, dParent) {
 	if (!isEmpty(fen.history)) {
 		let html = '';
@@ -540,26 +556,32 @@ function show_role() {
 	let styles, text;
 	let boldstyle = { fg: 'red', weight: 'bold', fz: 20 };
 	let normalstyle = { fg: 'black', weight: null, fz: null };
+	let location= `<span style="color:dimgray;font-family:Algerian">${Z.friendly}: </span>`; // `in ${stringAfter(Z.friendly,'of ')}`;
 	if (hotseatplayer) {
 		styles = boldstyle;
-		text = `you turn for ${Z.uplayer}`;
+		text = `your turn for ${Z.uplayer}`;
+		// text = `your turn for ${Z.uplayer} ${location}`;
 	} else if (Z.role == 'spectator') {
 		styles = normalstyle;
 		text = `(spectating)`;
+		//text = `(spectating  ${location})`;
 	} else if (Z.role == 'active') {
 		styles = boldstyle;
-		text = `It's your turn!`;
+		text = `It's your turn!!!`;
+		//text = `It's your turn  ${location}!`;
 	} else if (Z.role == 'waiting') {
 		text = `waiting for players to complete their moves...`;
+		//text = `waiting for players to complete their moves ${location}...`;
 	} else {
 		assertion(Z.role == 'inactive', 'role is not active or inactive or spectating ' + Z.role);
 		styles = normalstyle;
 		text = `(${Z.turn[0]}'s turn)`;
+		//text = `(${Z.turn[0]}'s turn ${location})`;
 	}
 
 	// let styles = Z.role == 'active' || hotseatplayer ? { fg: 'red', weight: 'bold', fz: 20 } : { fg: 'black', weight: null, fz: null };
 	// let text = hotseatplayer ? `you turn for ${Z.uplayer}` : Z.role == 'active' ? `It's your turn!` : Z.role == 'spectator' ? "(spectating)" : `(${Z.turn[0]}'s turn)`;
-	d.innerHTML = text;
+	d.innerHTML = location + text;
 	mStyle(d, styles);
 }
 function show_settings(dParent) {
@@ -658,7 +680,7 @@ function show_tables(ms = 500) {
 	//mRise('dScreen', 1000); 
 }
 function show_title() {
-	mBy('dTitleMiddle').innerHTML = Z.friendly;
+	//mBy('dTitleMiddle').innerHTML = Z.friendly;
 	Z.func.state_info(mBy('dTitleLeft'));
 	show_settings(mBy('dTitleRight'));
 }

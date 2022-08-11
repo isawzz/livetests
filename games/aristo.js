@@ -1,5 +1,7 @@
 
 function aristo() {
+	const rankstr = 'A23456789TJQK*';
+
 	function aristo_activate() {
 		ari_pre_action();
 	}
@@ -51,7 +53,7 @@ function aristo() {
 		} else if (exp_rumors(options) && fen.plorder.length > 2) {
 			ari_history_list([`gossiping starts`], 'rumors', fen);
 			[fen.stage, fen.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
-		} else [fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
+		} else[fen.stage, fen.turn] = set_journey_or_stall_stage(fen, options, fen.phase);
 
 		return fen;
 	}
@@ -116,11 +118,10 @@ function aristo() {
 		let pl = fen.players[plname];
 		let ui = UI.players[plname] = {};
 
-		
 		// pl.hand = fen.stage == '1' ? sort_cards(pl.hand, true, 'CDSH', true, 'A23456789TJQK') : sort_cards(pl.hand, false, null, true, 'A23456789TJQK'); //pl.hand.sort(); GEHT!
 		//pl.hand = fen.stage == '1' ? sort_cards(pl.hand, true, 'CDSH', true, 'A23456789TJQK') : sort_cards(pl.hand, false, null, true, 'A23456789TJQK'); //pl.hand.sort(); GEHT!
-		
-		
+		if (!ishidden) pl.hand = correct_handsorting(pl.hand, plname);
+
 		let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ari_get_card);
 		if (ishidden) { hand.items.map(x => face_down(x)); }
 
@@ -132,11 +133,13 @@ function aristo() {
 			let i = 0;
 			for (const b of pl.buildings[k]) {
 				let type = k;
-				let b_ui = ui_type_building(b, d, { maleft: 8 }, `players.${plname}.buildings.${k}.${i}`, type, ari_get_card);
+				let b_ui = ui_type_building(b, d, { maleft: 8 }, `players.${plname}.buildings.${k}.${i}`, type, ari_get_card, true, ishidden);
 				b_ui.type = k;
 				ui.buildinglist.push(b_ui);
 
 				if (b.isblackmailed) { mStamp(b_ui.cardcontainer, 'blackmail'); }
+
+				//if (!ishidden) b_ui.items.map(x=>face_up(x));// {let j=0;b_ui.items.map(x=>{face_up(x));} //if (j++>0) mStyle(iDiv(x),{transform:'scale(.94)',origin:'bottom left'});});}
 
 				lookupAddToList(ui, ['buildings', k], b_ui); //GEHT!!!!!!!!!!!!!!!!!!!!!
 				i += 1;
@@ -148,8 +151,8 @@ function aristo() {
 
 		//present commissions
 		if (exp_commissions(g.options)) { //} && (!ishidden || isdef(fen.winners))) {
-			pl.commissions.sort();
-			ui.commissions = ui_type_market(pl.commissions, d, { maleft: 12 }, `players.${plname}.commissions`, 'commissions', ari_get_card);
+			if (!ishidden) pl.commissions = correct_handsorting(pl.commissions, plname);
+			ui.commissions = ui_type_market(pl.commissions, d, { maleft: 12 }, `players.${plname}.commissions`, 'commissions', Z.stage == 23 ? ari_get_card_large : ari_get_card);
 
 			if (ishidden) { ui.commissions.items.map(x => face_down(x)); }
 			else mMagnifyOnHoverControlPopup(ui.commissions.cardcontainer);
@@ -157,8 +160,8 @@ function aristo() {
 
 		//present rumors
 		if (exp_rumors(g.options)) { //} && (!ishidden || isdef(fen.winners))) {
-			pl.rumors.sort();
-			ui.rumors = ui_type_market(pl.rumors, d, { maleft: 12 }, `players.${plname}.rumors`, 'rumors', ari_get_card);
+			if (!ishidden) pl.rumors = correct_handsorting(pl.rumors, plname);
+			ui.rumors = ui_type_market(pl.rumors, d, { maleft: 12 }, `players.${plname}.rumors`, 'rumors', Z.stage == 24 ? ari_get_card_large : ari_get_card);
 
 			if (ishidden) { ui.rumors.items.map(x => face_down(x)); }
 			else mMagnifyOnHoverControlPopup(ui.rumors.cardcontainer);
@@ -198,8 +201,8 @@ function aristo() {
 			let list = pl.hand.concat(pl.stall);
 			let list_luxury = list.filter(x => x[2] == 'l');
 			player_stat_count('pinching hand', list.length, d);
-			let d1=player_stat_count('hand-holding-usd', list_luxury.length, d);
-			mStyle(d1.firstChild, {fg:'gold',fz:20})
+			let d1 = player_stat_count('hand-holding-usd', list_luxury.length, d);
+			mStyle(d1.firstChild, { fg: 'gold', fz: 20 })
 
 			if (!isEmpty(fen.players[plname].stall) && fen.stage >= 5 && fen.stage <= 6) {
 				player_stat_count('shinto shrine', !fen.actionsCompleted.includes(plname) || fen.stage < 6 ? calc_stall_value(fen, plname) : '_', d);
@@ -225,10 +228,10 @@ function aristo() {
 			//testing output
 			let html = `${Z.stage}`;
 			if (isdef(Z.playerdata)) {
-	
+
 				let trigger = get_multi_trigger();
 				if (trigger) html += ` trigger:${trigger}`;
-	
+
 				for (const data of Z.playerdata) {
 					if (data.name == trigger) continue;
 					let name = data.name;
@@ -241,11 +244,11 @@ function aristo() {
 				}
 				dParent.innerHTML += ` ${Z.playerdata.map(x => x.name)}`;
 			}
-	
+
 			dParent.innerHTML = html;
 			return;
 		}
-	
+
 		let user_html = get_user_pic_html(Z.uplayer, 30);
 		let phase_html = get_phase_html();
 
@@ -261,7 +264,11 @@ function aristo() {
 
 	}
 
-	return { state_info: aristo_state, setup: aristo_setup, present: aristo_present, present_player: ari_present_player, check_gameover: aristo_check_gameover, stats: ari_player_stats, activate_ui: aristo_activate };
+	function get_selection_color(item){
+		//console.log('stage', Z.stage, 'A.selected',Z.A.selected,'item', item);
+		if (Z.stage == 41 && Z.A.selected.length == 1) return 'blue'; return 'red';
+	}
+	return { get_selection_color, rankstr, state_info: aristo_state, setup: aristo_setup, present: aristo_present, present_player: ari_present_player, check_gameover: aristo_check_gameover, stats: ari_player_stats, activate_ui: aristo_activate };
 }
 
 function ari_pre_action() {
@@ -272,7 +279,7 @@ function ari_pre_action() {
 	show_stage();
 	switch (ARI.stage[stage]) {
 		case 'comm_weitergeben': select_add_items(ui_get_all_commission_items(uplayer), process_comm_setup, `must select ${fen.comm_setup_num} card${fen.comm_setup_num > 1 ? 's' : ''} to discard`, fen.comm_setup_num, fen.comm_setup_num); break;
-		case 'rumors_weitergeben': 
+		case 'rumors_weitergeben':
 			let rumitems = ui_get_rumors_and_players_items(uplayer);
 			if (isEmpty(rumitems)) {
 				//console.log('ALL ITEMS HAVE BEEN ASSIGNED!!!');
@@ -280,7 +287,7 @@ function ari_pre_action() {
 				let done = ari_try_resolve_rumors_distribution();
 				if (!done) autopoll();
 				//check if other playerdata are also complete, if yes and I am the trigger??? modify fen!
-			}else select_add_items(rumitems, process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2); 
+			} else select_add_items(rumitems, process_rumors_setup, `must select a player and a rumor to pass on`, 2, 2);
 			break;
 		case 'next_rumor_setup_stage': post_rumor_setup(); break;
 		// case 'rumor': select_add_items(ui_get_other_buildings_and_rumors(uplayer), process_rumor, 'must select a building and a rumor card to place', 2, 2); break;
@@ -366,7 +373,7 @@ function ari_pre_action() {
 				case 'pass': post_pass(); break;
 			}
 			break;
-		case 'build': select_add_items(ui_get_build_items(uplayer, A.payment), post_build, 'must select cards to build (first card determines rank)', 4, 6); break;
+		case 'build': select_add_items(ui_get_build_items(uplayer, A.payment), post_build, 'must select cards to build (first card determines rank)', 4, 6, true); break;
 		case 'commission_stall': select_add_items(ui_get_commission_stall_items(), process_commission_stall, 'must select matching stall card to discard', 1, 1); break;
 		case 'commission new': select_add_items(ui_get_commission_new_items(uplayer), post_commission, 'must select a new commission', 1, 1); break;
 		case 'upgrade': select_add_items(ui_get_build_items(uplayer, A.payment), process_upgrade, 'must select card(s) to upgrade a building', 1); break;
@@ -642,7 +649,7 @@ function ari_next_action() {
 
 //#region auction / buy
 function process_auction() {
-	let [fen, A, uplayer,plorder] = [Z.fen, Z.A, Z.uplayer,Z.plorder];
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 	//console.log('A', A.selected);
 	if (isEmpty(A.selected)) A.selected = [0];
 	let playerbid = Number(valf(A.items[A.selected[0]].a, '0')); //A.selected.map(x => A.items[x]); 
@@ -691,10 +698,10 @@ function process_auction() {
 function post_auction() {
 	console.assert(Z.stage == 13, 'WRONG STAGE IN POST AUCTION ' + Z.stage);
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
-	console.log('selected',A.selected)
+	console.log('selected', A.selected)
 	let item = A.selected.map(x => A.items[x])[0]; // A.items.filter(x => A.selected.includes(x.index)).map(x => x.key);
 
-	lookupSet(fen, ['buy', uplayer], {key:item.key,index:A.selected[0]});
+	lookupSet(fen, ['buy', uplayer], { key: item.key, index: A.selected[0] });
 	ari_history_list([`${uplayer} selects ${item.key}`], 'auction');
 
 	for (const plname of fen.maxplayers) {
@@ -710,7 +717,7 @@ function post_auction() {
 
 	//if 2 or more players selected the same card, this card is discarded
 	//otherwise the player buys the card
-	let buylist = dict2list(fen.buy,'playername');
+	let buylist = dict2list(fen.buy, 'playername');
 	console.log('buylist', buylist);
 
 	let discardlist = [];
@@ -718,10 +725,10 @@ function post_auction() {
 		let choice = fen.buy[plname]; //{key:item.key,index:A.selected[0]}
 		console.log('choice of', plname, 'was', choice)
 
-		let n=arrCount(buylist, x => x.index == choice.index);
+		let n = arrCount(buylist, x => x.index == choice.index);
 
-		let is_unique = n==1; //!firstCond(buylist, x => x.id != plname && x.key == choice);
-		console.log('choice',choice,'is_unique', is_unique);
+		let is_unique = n == 1; //!firstCond(buylist, x => x.id != plname && x.key == choice);
+		console.log('choice', choice, 'is_unique', is_unique);
 		if (is_unique) {
 			fen.players[plname].coins -= fen.second_most;
 			elem_from_to(choice.key, fen.market, fen.players[plname].hand);
@@ -754,7 +761,7 @@ function post_auction() {
 
 }
 function add_auction_history() {
-	let [fen,plorder]=[Z.fen,Z.plorder];
+	let [fen, plorder] = [Z.fen, Z.plorder];
 	for (const plname of fen.plorder) {
 		if (nundef(fen.buy[plname])) continue;
 		ari_history_list([`${plname} buys ${fen.buy[plname].a} for ${fen.second_most}`], 'auction');
@@ -848,7 +855,7 @@ function post_build() {
 
 	//console.log('===>player', uplayer, 'building a', building_type);
 
-	fen.players[uplayer].buildings[building_type].push({ list: building_items.map(x => x.key), h: null, lead: building_items[0].key });
+	fen.players[uplayer].buildings[building_type].push({ list: building_items.map(x => x.key), h: null, schweine:[], lead: building_items[0].key });
 
 	//remove building_items from hand/stall
 	for (const item of building_items) {
@@ -1232,13 +1239,13 @@ function post_comm_setup_stage() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 	for (const data of Z.playerdata) {
 		let state = data.state;
-		console.log('state',state)
+		console.log('state', state)
 		let giver = state.giver;
 		let receiver = state.receiver;
 		let keys = state.keys;
-		console.log('giver',giver,'receiver',receiver,'keys',keys);
+		console.log('giver', giver, 'receiver', receiver, 'keys', keys);
 
-		keys.map(x=>elem_from_to(x,fen.players[giver].commissions,fen.players[receiver].commissions));
+		keys.map(x => elem_from_to(x, fen.players[giver].commissions, fen.players[receiver].commissions));
 		//fen.players[giver].commissions = arrMinus(fen.players[giver].commissions, keys);
 		//fen.players[receiver].commissions = fen.players[receiver].commissions.concat(keys); //arrPlus(fen.players[receiver].commissions, keys);
 		//fen.players[receiver].commissions = arrPlus(fen.players[receiver].commissions, keys);
@@ -1252,25 +1259,100 @@ function post_comm_setup_stage() {
 		delete fen.keeppolling;
 		ari_history_list([`commission trading ends`], 'commissions');
 
-		if (exp_rumors  && plorder.length > 2) {
+		if (exp_rumors && plorder.length > 2) {
 			[Z.stage, Z.turn] = [24, fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
 			ari_history_list([`gossiping starts`], 'rumors');
 
 		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
-	}else{
-	
+	} else {
+
 		//muss auf jeden fen clear aufrufen!
 		//mach dasselbe wie beim ersten mal!
-		[Z.stage, Z.turn] = [23, fen.plorder]; 
+		[Z.stage, Z.turn] = [23, fen.plorder];
 	}
 
 	//if fen.comm_setup_num is 1, then go to next stage 
-	console.log('fen',fen);
+	console.log('fen', fen);
 	take_turn_fen_clear();
 }
 
+function process_commission_stall() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	console.log('process_commission_stall selected', A.selected, 'item', A.items[A.selected[0]]);
+	Z.A.commission_stall_item = A.items[A.selected[0]];
+	Z.stage = 16;
+	ari_pre_action();
+}
+function process_commission() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 
+	//console.log('process_commission:', A.items[A.selected[0]]);
 
+	//was muss jetzt passieren?
+	//1. frage den player was er auswaehlen wird?
+	A.commission = A.items[A.selected[0]];
+
+	//hier muss was her fuer wenn multiple stall items die passen hat!!!
+	if (A.commission.similar.length > 1) {
+		Z.stage = 37;
+	} else {
+		A.commission_stall_item = A.commission.similar[0];
+		Z.stage = 16;
+	}
+
+	ari_pre_action();
+}
+function post_commission() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+
+	let comm_selected = A.items[A.selected[0]];
+	let stall_item = A.commission_stall_item;
+	console.log('stall_item:', stall_item);
+
+	//console.log('process_commission:', comm_selected);
+
+	//1. berechne wieviel der player bekommt!
+	//first check N1 = wie oft im fen.commissioned der rank von A.commission schon vorkommt
+	//fen.commissioned koennte einfach sein: array of {rank:rank,count:count} und sorted by latest
+	let rank = A.commission.key[0];
+	if (nundef(fen.commissioned)) fen.commissioned = [];
+	let x = firstCond(fen.commissioned, x => x.rank == rank);
+	if (x) { removeInPlace(fen.commissioned, x); }
+	else { x = { key: A.commission.key, rank: rank, count: 0 }; }
+
+	//console.log('x', x)
+
+	x.count += 1;
+
+	//is the rank >= that the rank of the topmost commissioned card
+	let pl = fen.players[uplayer];
+	let top = isEmpty(fen.commissioned) ? null : arrLast(fen.commissioned);
+	let rankstr = 'A23456789TJQK';
+	let points = !top || get_rank_index(rank, rankstr) >= get_rank_index(top.rank, rankstr) ? 1 : 0;
+	points += Number(x.count);
+	pl.coins += points;
+	fen.commissioned.push(x);
+
+	// let key = A.commission.similar.key;
+	let key = stall_item.key;
+	removeInPlace(pl.stall, key); // das muss aendern!!!!!!!!!!!!!
+
+	if (comm_selected.path == 'open_commissions') {
+		//top comm deck card goes to open commissions
+		removeInPlace(fen.open_commissions, comm_selected.key);
+		top_elem_from_to(fen.deck_commission, fen.open_commissions);
+	} else {
+		removeInPlace(fen.deck_commission, comm_selected.key);
+	}
+
+	//console.log('pl', pl, pl.commissions);
+	arrReplace(pl.commissions, [A.commission.key], [comm_selected.key]);
+
+	//ari_history_list([`${uplayer} replaced commission card ${A.commission.key} by ${comm_selected.key}`, `${uplayer} gets ${points} for commissioning ${A.commission.key}`], 'commission');
+	ari_history_list([`${uplayer} commissions card ${A.commission.key}`, `${uplayer} gets ${points} coin${if_plural(points)} for commissioning ${A.commission.key}`], 'commission');
+
+	ari_next_action();
+}
 
 //#endregion
 
@@ -1411,35 +1493,7 @@ function ai_pick_legal_exchange() {
 
 }
 
-function post_exchange() {
-	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
-	//there should be exactly 2 selected actions and they should be in different groups
-	//the 2 actions correspond to the 2 legal cards to trade!
-	if (A.selected.length != 2) {
-		select_error('please, select exactly 2 cards!');
-		return;
-	}
-	let i0 = A.items[A.selected[0]];
-	let i1 = A.items[A.selected[1]];
-	//one of the cards has to be from a building
-	let [p0, p1] = [i0.path, i1.path];
-	if (p0.includes('build') == p1.includes('build')) {
-		select_error('select exactly one building card and one of your hand or stall cards!');
-		return;
-	}
 
-	exchange_items_in_fen(fen, i0, i1); //replace cards in otree
-	//the repaired building loses its schwein if any!
-	//console.log('exchange items', i0, i1);
-
-	let ibuilding = p0.includes('build') ? i0 : i1;
-	let obuilding = lookup(fen, ibuilding.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));
-	//console.log('obuilding', obuilding);
-	obuilding.schwein = null;
-
-	ari_history_list([`${uplayer} exchanges card in ${ari_get_building_type(obuilding)}`], 'exchange');
-	ari_next_action();
-}
 //#endregion
 
 //#region expansions
@@ -1536,9 +1590,9 @@ function ari_get_correct_buildings(buildings) {
 			let lead = list[0];
 			let iscorrect = true;
 			for (const key of arrFromIndex(list, 1)) {
-				if (key[0] != lead[0]) { iscorrect = false; continue; }//schweine building wird nicht gerechnet!
+				if (key[0] != lead[0]) { iscorrect = false; continue; }
 			}
-			//console.log('building',list,'is',iscorrect?'correct':'schwein!')
+			//console.log('building',list,'is',iscorrect?'correct':'_schwein!')
 			if (iscorrect) {
 				//console.log('type',type)
 				//realvps += (type == 'farm' ? 1 : type == 'estate' ? 2 : 3);
@@ -1554,7 +1608,7 @@ function ari_get_max_journey_length(fen, uplayer) {
 	let sorted_journeys = sortByDescending(pl.journeys.map(x => ({ arr: x, len: x.length })), 'len');
 	return isEmpty(pl.journeys) ? 0 : sorted_journeys[0].len;
 }
-function ari_history_list(lines, title = '',fen) {
+function ari_history_list(lines, title = '', fen) {
 	if (nundef(fen)) fen = Z.fen;
 	if (nundef(fen.history)) fen.history = [];
 
@@ -1721,7 +1775,7 @@ function follows_in_rank(c1, c2, rankstr) {
 	//console.log('follows_in_rank:',c1,c2)
 	let i1 = rankstr.indexOf(c1[0]);
 	let i2 = rankstr.indexOf(c2[0]);
-	console.log('follows?',c1,i1,c2,i2,i2-i1)
+	console.log('follows?', c1, i1, c2, i2, i2 - i1)
 	return rankstr.indexOf(c2[0]) - rankstr.indexOf(c1[0]) == 1;
 }
 function get_rank_index(ckey, rankstr = '23456789TJQKA') { return rankstr.indexOf(ckey[0]); }
@@ -1734,7 +1788,7 @@ function get_suitlists_sorted_by_rank(blatt, rankstr = '23456789TJQKA', remove_d
 	}
 	//let di_sorted = {};
 	for (const s in di) {
-		sortByRank(di[s],rankstr);
+		sortByRank(di[s], rankstr);
 	}
 	return di;
 }
@@ -1803,7 +1857,7 @@ function ui_get_rumors_and_players_items(uplayer) {
 	//console.log('ui: uplayer', Z.uplayer, 'data', data);
 	//sss();
 
-	if (!isDict(data.state)) data.state = {remaining:jsCopy(pl.rumors),receivers:[],di:{}};
+	if (!isDict(data.state)) data.state = { remaining: jsCopy(pl.rumors), receivers: [], di: {} };
 	let rem = data.state.remaining;
 	for (const k of rem) {
 		let o = firstCond(comm.items, x => x.key == k);
@@ -1894,13 +1948,13 @@ function ui_get_commission_items(uplayer) {
 	let items = [], i = 0;
 	let comm = UI.players[uplayer].commissions;
 	//let hand_and_stall = ui_get_hand_and_stall_items(uplayer); // nur comm from stall allowed!!!!
-	let stall = ui_get_stall_items(uplayer); 
+	let stall = ui_get_stall_items(uplayer);
 	for (const o of comm.items) {
 		let rank = o.key[0];
 		let similar = firstCond(stall, x => x.key[0] == rank);
 		if (!similar) continue;
 		//console.log('rank', rank, 'has similar')
-		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i, similar:stall.filter(x=>x.key[0] == rank)}; // similar: similar };
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i, similar: stall.filter(x => x.key[0] == rank) }; // similar: similar };
 		i++;
 		items.push(item);
 	}
@@ -1919,9 +1973,9 @@ function ui_get_commission_new_items(uplayer) {
 	//console.log('choose among:', items)
 	return items;
 }
-function ui_get_commission_stall_items(){
-	let [A,fen,uplayer]=[Z.A,Z.fen,Z.uplayer];
-	console.log('ui_get_commission_stall_items similar',A.commission.similar);
+function ui_get_commission_stall_items() {
+	let [A, fen, uplayer] = [Z.A, Z.fen, Z.uplayer];
+	console.log('ui_get_commission_stall_items similar', A.commission.similar);
 	let items = A.commission.similar;
 	reindex_items(items);
 	return items;
@@ -2750,44 +2804,6 @@ function post_rumor_both() {
 	ari_next_action();
 
 }
-function post_inspect() {
-	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
-	let item = A.items[A.selected[0]];
-
-	//console.log('building to inspect:', item.o);
-	//lead is item.o.keycard
-	//if the building has a schwein, and schwein is open, uplayer gets a rumor
-	let building = item.o;
-
-	if (isdef(building.schwein)) {
-		//uplayer gets a rumor from rumor deck
-		//output_arr_short(fen.deck_rumors);
-		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
-		fen.players[uplayer].rumors.push(rumor);
-		//console.log('...got rumor', rumor);
-		//output_arr_short(fen.deck_rumors);
-		ari_history_list([`${uplayer} inspects a schwein!`], 'inspect');
-
-		ari_next_action();
-	} else if (building_is_correct(building)) {
-		//uplayer need to chose a rumor card to discard!
-		//console.log('')
-		Z.stage = 29;
-		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
-		ari_pre_action();
-	} else {
-		//building is not correct: turn schwein up, both players get a rumor
-		//console.log('building is not correct')
-		//console.log('building', building);
-		A.owner = stringAfter(building.path, '.');
-		A.owner = stringBefore(A.owner, '.');
-		ari_history_list([`${uplayer} reveals a schwein!`], 'inspect');
-		turn_schwein_up(building);
-	}
-
-	// if the building has a schwein, and schwein is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
-	// if the building has no schwein, uplayer needs to select one of his rumors to pay
-}
 function post_buy_rumor() {
 
 	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
@@ -2980,20 +2996,6 @@ function post_blackmail() {
 	delete fen.blackmail;
 	ari_next_action();
 }
-function turn_schwein_up(b) {
-	let key = b.keycard.key;
-	let list = b.list;
-	//return true if all list elements have the same first letter as key
-	let schwein = firstCond(list, x => x[0] != key[0]);
-	assertion(isdef(schwein), 'WAS DA IST GARKEIN SCHWEIN!!!!!!!!!!', b);
-	let ui = firstCond(b.items, x => x.key == schwein);
-	//console.log('schwein card is',ui)
-	face_up(ui);
-
-	let obuilding = lookup(Z.fen, b.path.split('.'));
-	b.schwein = obuilding.schwein = schwein;
-	ari_open_rumors(32);
-}
 
 //#endregion
 
@@ -3168,51 +3170,6 @@ function get_trade_history(uplayer, i0, i1) {
 //#endregion
 
 //#region visit
-function process_visit() {
-	process_payment();
-	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
-	let item = A.items[A.selected[0]];
-	let obuilding = lookup(fen, item.path.split('.'));
-	let parts = item.path.split('.');
-	let owner = parts[1];
-
-	if (isdef(obuilding.schwein)) {
-
-		Z.stage = 46;
-		A.building = item;
-		A.obuilding = obuilding;
-		A.buildingowner = owner;
-		ari_pre_action();
-		return;
-
-	} else {
-
-		//this building is revealed
-		let cards = item.o.items;
-		let key = cards[0].rank;
-		let schweine = false;
-		let schwein = null;
-		for (const c of cards) {
-			if (c.rank != key) { schweine = true; schwein = c.key; face_up(c); break; }
-		}
-		if (schweine) {
-			if (fen.players[owner].coins > 0) {
-				fen.players[owner].coins--;
-				fen.players[uplayer].coins++;
-			}
-			let b = lookup(fen, item.path.split('.'));
-			b.schwein = schwein;
-		}
-
-		ari_history_list([
-			`${uplayer} visited ${ari_get_building_type(obuilding)} of ${owner} resulting in ${schweine ? 'schweine' : 'ok'} ${ari_get_building_type(obuilding)}`,
-		], 'visit');
-
-		ari_next_action(fen, uplayer);
-	}
-
-
-}
 function post_visit() {
 
 	//console.log('post visit!!!!!!!!!!!!!!!!!!!!!!!')

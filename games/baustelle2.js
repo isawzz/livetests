@@ -1,121 +1,235 @@
-function get_robot_personality(name) { return { erratic: 20, bluff: 20, random: 20, risk: 20, passive: 20, clairvoyant: 20, aggressive: 20 }; }
-function botbest(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	//console.log('uplayer',Z.uplayer)
-	if (nundef(DA.ctrandom))DA.ctrandom = 1;console.log(`${DA.ctrandom++}: ${Z.uplayer} using strategy`,Z.strategy)
-	let bot = window[`bot_${Z.strategy}`];
-	let [b, f] = bot(list, max, mmax, exp, nreas, n2, have2, words, fen);
 
-	assertion(!b || b[2]!=0, 'bot returned bid with n2==0');
-	//console.log('bot', stringAfter(bot.name, '_'), 'picked', b);
+function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card, separate_lead = false, ishidden = false) {
+	let cont = ui_make_container(dParent, get_container_styles(styles));
+	let cardcont = mDiv(cont);
+	let list = b.list;
+	let d = mDiv(dParent);
+	let items = list.map(x => get_card_func(x));
+	reindex_items(items);
 
-	//if (isdef(b) && isdef(fen.lastbid)) console.log('higher?',is_bid_higher_than(b, fen.lastbid));
+	let d_harvest = null;
+	if (isdef(b.h)) {
+		let keycard = items[0];
+		let d = iDiv(keycard);
+		mStyle(d, { position: 'relative' });
+		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
+	}
 
-	return [b, f];
-}
-function bot_clairvoyant(list, maxvalue, mmax, exp, nreas, n2, have2, words, fen) {
-	let reduced_list = list.filter(x=>x.value == list[0].value || x.mine);
-	//assertion(list.length>=2, 'list.length is < 2!!!!!'); NEIN, es kann 1 el haben wenn mine cards gleicher rank!
-	let res=reduced_list.length>=2?rChoose(list,2):[reduced_list[0],{value:0,rank:'_'}];
-	let max=res[0].value>=res[1].value?res[0]:res[1];let min=res[0].value<res[1].value?res[0]:res[1];
-	let b=[max.value,max.rank,min.value,min.rank];
-	//list.map(x => console.log(x)); //
-	//console.log('chose b:', b);
-	if (isdef(fen.lastbid)) {
-		//need to make sure that bid is high enough. if not, geht hoch!
-		let [n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
-		//if (n1<)
-		if (!is_bid_higher_than(bluff_convert2words(b), fen.lastbid)) {
-			return [null, handle_gehtHoch];
-		}
-		//if (b[0])
-	} 
-
-	return [bluff_convert2words(b), handle_bid];
-}
-function bot_perfect(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-
-
-	let i=0;while(list[i].rank == '2') i++;
-	let b = [list[i].value+n2, list[i].rank, list[i+1].value, list[i+1].rank];
-	list.map(x => console.log(x)); //
-	console.log('b:', b);
-	if (isdef(fen.lastbid)) {
-		//need to make sure that bid is high enough. if not, geht hoch!
-		let [n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
-		if (!is_bid_higher_than(bluff_convert2words(b), fen.lastbid)) {
-			return [null, handle_gehtHoch];
-		}
-		//if (b[0])
-	} 
-
-	return [bluff_convert2words(b), handle_bid];
-}
-function bot_random(list, max, mmax, exp, nreas, n2, have2, words, fen) {
-	let ranks = rChoose('3456789TJQKA', 2);
-	let b;
-	if (nundef(fen.lastbid)) b = [rNumber(1, nreas), ranks[0], rNumber(1, nreas), ranks[1]];
-	else if (fen.lastbid[0] > nreas + 2) {
-		return [null, handle_gehtHoch];
-	} else {
-		[n1, r1, n2, r2] = bluff_convert2ranks(fen.lastbid);
-		assertion(isNumber(n1) && n1>0 && isNumber(n2), 'bot_random: n1 or n2 is not a number OR n1<=0!!!!!!!',n1,n2);
-
-		if ((n1 + n2) / 2 > nreas && coin(50)) {
-			return [null, handle_gehtHoch];
-		} else if ((n1 + n2) / 2 <= nreas + 1) b = n1 <= nreas + 1 ? [n1 + 1, r1, n2, r2] : [n1, r1, n2 + 1, r2];
-		else {
-			let [i1, i2] = [BLUFF.rankstr.indexOf(r1), BLUFF.rankstr.indexOf(r2)];
-
-			//try increase i1: 
-			let s = '3456789TJQKA';
-			//split s into 4 parts: <min(i1,i2), between(i1,i2), between(i2,max), >max(i1,i2)
-			let imin = Math.min(i1, i2); let imax = Math.max(i1, i2); let i = imax == i1 ? 1 : 2;
-			let [smin, between, smax] = [s.substring(0, imin), s.substring(imin + 1, imax), s.substring(imax + 1, s.length)];
-
-			//which one to be replaced?
-
-			if (!isEmpty(smax)) { if (i == 1) b = [n1, rChoose(smax), n2, r2]; else b = [n1, r1, n2, rChoose(smax)]; }
-			else if (!isEmpty(between)) { if (i == 2) b = [n1, rChoose(between), n2, r2]; else b = [n1, r1, n2, rChoose(between)]; }
-			else return [null, handle_gehtHoch];
+	let d_rumors = null, rumorItems = [];
+	//console.log('b',b)
+	if (!isEmpty(b.rumors)) {
+		//console.log('ja, hat rumors!!!!!!!!!!!!!!')
+		let d = cont;
+		mStyle(d, { position: 'relative' });
+		d_rumors = mDiv(d, { display: 'flex', gap: 2, position: 'absolute', h: 30, bottom: 0, right: 0 }); //,bg:'green'});
+		for (const rumor of b.rumors) {
+			let dr = mDiv(d_rumors, { h: 24, w: 16, vmargin: 3, align: 'center', bg: 'dimgray', rounding: 2 }, null, 'R');
+			rumorItems.push({ div: dr, key: rumor });
 		}
 	}
 
+	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
+	//console.log('card',card)
+	let [ov, splay] = separate_lead ? [card.ov * 1.5, 5] : [card.ov, 2];
+	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
+	ui_add_cards_to_hand_container(cardcont, items, list);
+
+	ui_add_container_title(title, cont, items);
+
+	let uischweine = [];
 	//console.log('b', b);
-	return [bluff_convert2words(b), handle_bid];
+	for (let i = 1; i < items.length; i++) {
+
+		let item = items[i];
+		//console.log('item',item)
+		if (ishidden && !b.schweine.includes(i)) face_down(item);
+		else if (b.schweine.includes(i)) {
+			uischweine.push(item);
+			mStyle(iDiv(item), { transform: 'scale(1.05)', origin: 'bottom left' });
+		}
+	}
+
+	return {
+		ctype: 'hand',
+		list: list,
+		path: path,
+		container: cont,
+		cardcontainer: cardcont,
+		items: items,
+		schweine: uischweine,
+		harvest: d_harvest,
+		rumors: rumorItems,
+		keycard: items[0],
+
+	};
+}
+
+function post_inspect() {
+	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
+	let item = A.items[A.selected[0]];
+	let cards = item.o.items;
+	reveal_animation(cards, weiter_post_inspect);
+}
+
+function weiter_post_inspect() {
+	TO.main = setTimeout(weiter_post_inspect2,2000);
+}
+function weiter_post_inspect2() {
+
+	console.log('weiter_post_inspect2'); return;
+	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
+	let item = A.items[A.selected[0]];
+
+	let uibuilding = item.o;
+	let fenbuilding = lookup(fen, uibuilding.path.split('.'));
+	let key = uibuilding.keycard.key;
+	let cards = uibuilding.items;
+	let newschwein = A.newschwein;
+
+	if (isdef(uibuilding.schweine)) {
+		//uplayer gets a rumor from rumor deck
+		//output_arr_short(fen.deck_rumors);
+		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
+		fen.players[uplayer].rumors.push(rumor);
+		//console.log('...got rumor', rumor);
+		//output_arr_short(fen.deck_rumors);
+		ari_history_list([`${uplayer} inspects a schweine!`], 'inspect');
+
+		ari_next_action();
+	} else if (building_is_correct(uibuilding)) {
+		//uplayer need to chose a rumor card to discard!
+		//console.log('')
+		Z.stage = 29;
+		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
+		ari_pre_action();
+	} else {
+		//building is not correct: turn _schwein up, both players get a rumor
+		//console.log('building is not correct')
+		//console.log('building', building);
+		A.owner = stringAfter(uibuilding.path, '.');
+		A.owner = stringBefore(A.owner, '.');
+		ari_history_list([`${uplayer} reveals a schweine!`], 'inspect');
+		turn_new_schwein_up(uibuilding);
+	}
+
+	// if the building has a schweine, and schweine is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
+	// if the building has no schweine, uplayer needs to select one of his rumors to pay
 }
 
 
-function bluff_ai() {
-	//console.log('bluff_ai');
-	let [A, fen, uplayer, pl] = [Z.A, Z.fen, Z.uplayer, Z.pl];
-	const torank = { _: '_', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: 'T', jack: 'J', queen: 'Q', king: 'K', ace: 'A' };
-	const toword = { _: '_', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', T: 'ten', J: 'jack', Q: 'queen', K: 'king', A: 'ace' };
-	let words = get_keys(torank).slice(1); // words sind three, four, ..., king, ace
 
-	//all about ranks of cards in play
-	let all_hand_cards = aggregate_elements(dict2list(fen.players, 'name'), 'hand'); // all cards in play
-	let no_twos = all_hand_cards.filter(x => x[0] != '2'); // alle Karten ohne 2er
-	let rankstr = '3456789TJQKA2';
-	sortByRank(all_hand_cards, rankstr);
-	let byrank = aggregate_player_hands_by_rank(fen);
-	let rank_list = dict2list(byrank, 'rank');
-	let unique_ranks = sortByRank(get_keys(byrank));
-	let myranks = sortByRank(pl.hand.map(x => x[0]));
-	let my_unique = unique_ranks.filter(x => myranks.includes(x));
-	rank_list.map(x => { x.mine = myranks.includes(x.rank); x.irank = rankstr.indexOf(x.rank); x.i = x.irank + 100 * x.value; });
-	rank_list = rank_list.filter(x=>x.rank != '2');
-	sortByDescending(rank_list, 'i');
-	let maxcount = rank_list[0].value;
-	let mymaxcount = rank_list.filter(x => x.mine)[0].value;
-	//console.log('all_hand_cards:', all_hand_cards, '\nno_twos:', no_twos, '\nrankstr:', rankstr, '\nbyrank:', byrank, '\nrank_list:', rank_list, '\nunique_ranks:', unique_ranks, '\nmyranks:', myranks, '\nmy_unique:', my_unique);
-	//rank_list.map(x => console.log(x)); //console.log('rank_list:', rank_list);
-	//console.log('maxcount:', maxcount, 'mymaxcount:', mymaxcount);
+function turn_new_schwein_up(uibuilding) {
+	//b is uibuilding
+	let key = uibuilding.keycard.key;
+	let list = uibuilding.list;
 
-	let expected = all_hand_cards.length / 13; // auch 2er gibt es soviele!
-	let nreason = Math.max(1, Math.round(expected * 2));
-	let n_twos = all_hand_cards.filter(x => x[0] == '2').length;
-	let have2 = firstCond(rank_list,x=>x.rank=='2' && x.mine);
-	//console.log('expected:', expected, '\nnreason:', nreason, '\nn_twos:', n_twos, '\nhave 2:', have2);
+	let schweine = firstCond(list, x => x[0] != key[0]);
+	assertion(isdef(schweine), 'WAS DA IST GARKEIN SCHWEIN!!!!!!!!!!', uibuilding);
+	let ui = firstCond(uibuilding.items, x => x.key == schweine);
+	//console.log('schweine card is',ui)
+	face_up(ui);
 
-	return botbest(rank_list, maxcount, mymaxcount, expected, nreason, n_twos, have2, words, fen);
+	let fenbuilding = lookup(Z.fen, uibuilding.path.split('.'));
+	uibuilding.schweine = fenbuilding.schweine = schweine;
+	ari_open_rumors(32);
 }
+
+
+
+
+
+
+function post_exchange() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	//there should be exactly 2 selected actions and they should be in different groups
+	//the 2 actions correspond to the 2 legal cards to trade!
+	if (A.selected.length != 2) {
+		select_error('please, select exactly 2 cards!');
+		return;
+	}
+	let i0 = A.items[A.selected[0]];
+	let i1 = A.items[A.selected[1]];
+	//one of the cards has to be from a building
+	let [p0, p1] = [i0.path, i1.path];
+	if (p0.includes('build') == p1.includes('build')) {
+		select_error('select exactly one building card and one of your hand or stall cards!');
+		return;
+	}
+
+	exchange_items_in_fen(fen, i0, i1); //replace cards in otree
+	//the repaired building loses its _schwein if any!
+	//console.log('exchange items', i0, i1);
+
+	let ibuilding = p0.includes('build') ? i0 : i1;
+	let fenbuilding = lookup(fen, ibuilding.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));
+	//console.log('fenbuilding', fenbuilding);
+
+	//NEW!!!!
+	if (isdef(fenbuilding.schweine) && fenbuilding.schweine.includes(ibuilding.key)) {
+		removeInPlace(fenbuilding.schweine, ibuilding.key);
+		if (fenbuilding.schweine.length == 0) delete fenbuilding.schweine;
+	}
+	//fenbuilding.schweine = null; //STIMMT NICHT!!!! KOENNTEN MEHRERE SCHWEINE SEIN!
+
+	ari_history_list([`${uplayer} exchanges card in ${ari_get_building_type(fenbuilding)}`], 'exchange');
+	ari_next_action();
+}
+function process_visit() {
+	process_payment();
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	let item = A.items[A.selected[0]];
+	let obuilding = lookup(fen, item.path.split('.'));
+	let parts = item.path.split('.');
+	let owner = parts[1];
+
+	if (isdef(obuilding.schweine)) {
+
+		Z.stage = 46;
+		A.building = item;
+		A.obuilding = obuilding;
+		A.buildingowner = owner;
+		ari_pre_action();
+		return;
+
+	} else {
+
+		//this building is revealed
+		let cards = item.o.items;
+		let key = cards[0].rank;
+		//let schweine = false;
+		//let schweine = null;
+		for (const c of cards) {
+			if (c.rank != key) { schweine = true; schweine = c.key; face_up(c); break; }
+		}
+		if (schweine) {
+			if (fen.players[owner].coins > 0) {
+				fen.players[owner].coins--;
+				fen.players[uplayer].coins++;
+			}
+			let b = lookup(fen, item.path.split('.'));
+			b.schweine = schweine;
+		}
+
+		ari_history_list([
+			`${uplayer} visited ${ari_get_building_type(obuilding)} of ${owner} resulting in ${schweine ? 'schweine' : 'ok'} ${ari_get_building_type(obuilding)}`,
+		], 'visit');
+
+		reveal_animation(cards, () => ari_next_action(fen, uplayer));
+
+		//ari_next_action(fen, uplayer);
+	}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+

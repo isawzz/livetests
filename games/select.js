@@ -36,23 +36,23 @@ function phpPostSimulate(o, cmd) {
 		case "move":
 		case "table":
 		case "startgame":
-			let t = pack_table(o);
+			let result = pack_table(o);
 			//console.log('t', t);
 
-			let t1 = JSON.parse(t);
+			//let t1 = JSON.parse(result);
 			//console.log('t1', t1);
 
-			handle_result(t, cmd); break;
+			handle_result(result, cmd); break;
 		default: break; //console.log('unknown command', cmd); break;
 	}
 
 }
 function pack_table(o) {
-	for (const k of ['players', 'fen', 'expected', 'action', 'options', 'scoring', 'notes', 'turn']) {
+	for (const k of ['players', 'fen', 'state', 'player_status', 'options', 'scoring', 'notes', 'turn']) {
 		let val = o[k];
 		if (isdef(val)) o[k] = JSON.stringify(val);
 	}
-	return JSON.stringify({ table: o });
+	return JSON.stringify({ table: o, playerdata: JSON.stringify(o.playerdata) });
 }
 
 //#region select
@@ -93,7 +93,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 			item.div = mButton(item.a, handler, dInstruction, { maleft: 10, rounding: 6, padding: '4px 12px 5px 12px', border: '0px solid transparent', outline: 'none' }, null, id);
 		} else {
 			let ui = item.div = iDiv(item.o);
-			ui.onclick = ev => select_last(item, select_toggle, ev); // show_submit_button ? select_toggle : select_finalize;
+			ui.onclick = ev => select_last(item, select_toggle, ev); // show_submit_button ? _select_toggle : select_finalize;
 			ui.id = id;
 		}
 	}
@@ -231,7 +231,7 @@ function select_toggle() { //item,ev) {
 		ari_make_selected(item);
 
 		if (!DA.ai_is_moving && A.selected.length >= A.maxselected && A.autosubmit) {
-			//console.log('autosubmitting in select_toggle with 1 sec delay because cannot select more -  max reached!');
+			//console.log('autosubmitting in _select_toggle with 1 sec delay because cannot select more -  max reached!');
 			setTimeout(() => A.callback(), 100);
 		}
 	}
@@ -368,7 +368,14 @@ function ari_make_unselected(item) {
 // card
 function make_card_selectable(item) { let d = iDiv(item.o); mClass(d, 'selectable'); mClass(d.parentNode, 'selectable_parent'); spread_hand(item.path, .3); }
 function make_card_unselectable(item) { let d = iDiv(item.o); d.onclick = null; mClassRemove(d, 'selectable'); mClassRemove(d.parentNode, 'selectable_parent'); spread_hand(item.path); }
-function make_card_selected(item) { set_card_border(item, 13, 'red'); if (DA.magnify_on_select) mClass(iDiv(item.o), 'mag'); }
+function make_card_selected(item) { 
+
+	//selection color can be set bei game!
+	let color = isdef(Z.func.get_selection_color)?Z.func.get_selection_color(item):'red';
+
+	set_card_border(item, 13, color); 
+	if (DA.magnify_on_select) mClass(iDiv(item.o), 'mag'); 
+}
 function make_card_unselected(item) { set_card_border(item); if (DA.magnify_on_select) mClassRemove(iDiv(item.o), 'mag'); }
 
 //container

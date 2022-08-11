@@ -127,11 +127,16 @@ function fritz_present_player(playername, dMiddle) {
 	let pl = fen.players[playername];
 	let playerstyles = { w: '100%', bg: '#ffffff80', fg: 'black', padding: 4, margin: 4, rounding: 10, border: `2px ${get_user_color(playername)} solid` };
 	let d = mDiv(dMiddle, playerstyles, null, get_user_pic_html(playername, 25)); mFlexWrap(d); mLinebreak(d, 10);
-	if (isdef(pl.handsorting)) {
-		let bysuit = pl.handsorting.by == 'suit';
-		let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
-		pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, 'A23456789TJQK*').concat(arr2);
-	}
+
+	//#region old handsorting code
+	// if (isdef(pl.handsorting)) {
+	// 	let bysuit = pl.handsorting.by == 'suit';
+	// 	let [arr1, arr2] = arrSplitAtIndex(pl.hand, pl.handsorting.n - 1);
+	// 	pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, 'A23456789TJQK*').concat(arr2);
+	// }
+	//#endregion
+	pl.hand = correct_handsorting(pl.hand,playername);
+
 	let upl = ui.players[playername] = { div: d };
 	upl.hand = ui_type_hand(pl.hand, d, {}, `players.${playername}.hand`, 'hand', fritz_get_card);
 	upl.hand.items.map(x => x.source = 'hand');
@@ -144,27 +149,8 @@ function fritz_present_player(playername, dMiddle) {
 	} else {
 		//console.log('player has no loose cards',pl);
 	}
-	ensure_buttons_visible_for(playername);
+	show_handsorting_buttons_for(playername);
 
-}
-function fritz_stats_new(z, dParent) {
-	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
-	let fen = z.fen;
-	for (const uname in fen.players) {
-		let pl = fen.players[uname];
-		let item = player_stat_items[uname];
-		let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
-
-		player_stat_count('hand with fingers splayed', calc_hand_value(pl.hand.concat(pl.loosecards), fritz_get_card), d);
-		player_stat_count('star', pl.score, d);
-
-		if (fen.turn.includes(uname)) { show_hourglass(uname, d, 30, { left: -3, top: 0 }); }
-		else if (!fen.plorder.includes(uname)) mStyle(d, { opacity: 0.5 });
-	}
-}
-function fritz_state_info(dParent) {
-	let user_html = get_user_pic_html(Z.uplayer, 30);
-	dParent.innerHTML = `Round ${Z.round}:&nbsp;player: ${user_html} `;
 }
 function fritz_activate_ui() {
 	//return;
@@ -201,6 +187,25 @@ function fritz_activate_ui() {
 
 	ensure_buttons_visible_ferro();
 
+}
+function fritz_stats_new(z, dParent) {
+	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
+	let fen = z.fen;
+	for (const uname in fen.players) {
+		let pl = fen.players[uname];
+		let item = player_stat_items[uname];
+		let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
+
+		player_stat_count('hand with fingers splayed', calc_hand_value(pl.hand.concat(pl.loosecards), fritz_get_card), d);
+		player_stat_count('star', pl.score, d);
+
+		if (fen.turn.includes(uname)) { show_hourglass(uname, d, 30, { left: -3, top: 0 }); }
+		else if (!fen.plorder.includes(uname)) mStyle(d, { opacity: 0.5 });
+	}
+}
+function fritz_state_info(dParent) {
+	let user_html = get_user_pic_html(Z.uplayer, 30);
+	dParent.innerHTML = `Round ${Z.round}:&nbsp;player: ${user_html} `;
 }
 
 // #region fritz helpers
@@ -452,7 +457,7 @@ function frnew(card, ev) {
 
 	//making a new group in TJ
 	let id = getUID('g');
-	let d = mDiv(Items.dOpenTable, { bg: 'random', display: 'grid', margin: 10 }, id); //, transition:'all * .5s' }, id);
+	let d = mDiv(Items.dOpenTable, { display: 'grid', margin: 10 }, id); //, transition:'all * .5s' }, id);
 	let targetgroup = { div: d, id: id, ids: [], ov: .5222 };
 	assertion(isdef(DA.TJ), 'DA.TJ undefined in frnew!!!');
 	DA.TJ.push(targetgroup);

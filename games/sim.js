@@ -3,16 +3,16 @@ function ferro_ut0_create_staged() { //prep double visit
 	DA.test.number = 0;
 
 	//one player that is not uplayer should have coin = 0
-	let [fen,uplayer]=[o.fen,o.fen.turn[0]];
-	let otherplayer= firstCond(fen.plorder,(p)=>p!=uplayer);
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let otherplayer = firstCond(fen.plorder, (p) => p != uplayer);
 	let pl = fen.players[otherplayer];
-	pl.coins=0;
+	pl.coins = 0;
 
 	DA.fen0 = fen;
-	DA.auto_moves = [ [],
-		[['visit'],['last'],[0]],
-		[['visit'],['last'],[1]],
-		[['pass']],
+	DA.auto_moves = [[],
+	[['visit'], ['last'], [0]],
+	[['visit'], ['last'], [1]],
+	[['pass']],
 		// [['pass']], [['pass']], //end of jack phase
 		// [[0]], [[0]], //stall selection king phase
 		// [['pass']], [['pass']], //end of king phase
@@ -38,10 +38,10 @@ function ari_ut306_create_staged() { //prep double visit
 	fen.phase = 'queen';
 
 	DA.fen0 = fen;
-	DA.auto_moves = [ [],
-		[['visit'],['last'],[0]],
-		[['visit'],['last'],[1]],
-		[['pass']],
+	DA.auto_moves = [[],
+	[['visit'], ['last'], [0]],
+	[['visit'], ['last'], [1]],
+	[['pass']],
 		// [['pass']], [['pass']], //end of jack phase
 		// [[0]], [[0]], //stall selection king phase
 		// [['pass']], [['pass']], //end of king phase
@@ -1347,7 +1347,7 @@ function arisim_stage_4_all_mimi_starts(fen, n = 3) {
 	fen.action_number = 1;
 	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLOOOOOOOOO', minplayer, fen.num_actions)
 }
-function arisim_stage_4_all(fen, n = 3,changeturn=true) {
+function arisim_stage_4_all(fen, n = 3, changeturn = true) {
 	//move 2 or 3 cards to stalls
 	for (let i = 0; i < n; i++) top_elem_from_to(fen.players.mimi.hand, fen.players.mimi.stall);
 	let others = get_keys(fen.players).filter(x => x != 'mimi');
@@ -1382,9 +1382,9 @@ function ari_test_hand_to_discard(fen, uname, keep = 0) {
 function stage_building(fen, i_pl, type) {
 	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
 	let plname = fen.plorder[i_pl];
-	//console.log('fen',fen, plname)
-	lookupSet(fen.players[plname],['buildings',type],[]);
-	let building = { list: deck_deal(fen.deck, n), h: null, type: type };
+	//console.log('fen',fen, plname);
+	lookupSet(fen.players[plname], ['buildings', type], []);
+	let building = { list: deck_deal(fen.deck, n), h: null, type: type, schweine: [] };
 	building.lead = building.list[0];
 	fen.players[plname].buildings[type].push(building);
 	return building;
