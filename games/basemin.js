@@ -233,6 +233,7 @@ const ARI = {
 		35: 'blackmail_complete',
 		36: 'reject_blackmail',
 		37: 'commission_stall',
+		38: 'pick_schwein',
 
 		40: 'trade',
 		41: 'build',

@@ -1379,6 +1379,23 @@ function ari_test_hand_to_discard(fen, uname, keep = 0) {
 	//fen.players[uname].hand = [];
 
 }
+
+function stage_building_new(fen, i_pl, type, n_openschwein, n_closedschwein) {
+	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
+	let plname = fen.plorder[i_pl];
+	//console.log('fen',fen, plname);
+	lookupSet(fen.players[plname], ['buildings', type], []);
+	let building = { list: deck_deal(fen.deck, 1), h: null, type: type, schweine: [] };
+	let k = building.lead = building.list[0];
+	let other = k[0] == 'Q' ? '2' : 'Q';
+	let i, j;
+	for (i = 1; i <= n_openschwein; i++) { building.schweine.push(i); building.list.push(other + rSuit('CSHD') + 'n'); }
+	for (j = i; j <= i + n_closedschwein; j++) { building.list.push(other + rSuit('CSHD') + 'n'); }
+	while (j < n) { building.list.push(other + rSuit('CSHD') + 'n'); }
+	console.log('building', type, building.list);
+	building.list = fen.players[plname].buildings[type].push(building);
+	return building;
+}
 function stage_building(fen, i_pl, type) {
 	let n = type == 'chateau' ? 6 : type == 'estate' ? 5 : 4;
 	let plname = fen.plorder[i_pl];

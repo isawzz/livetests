@@ -22,7 +22,7 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest107_aristo_inspect_schwein(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest108_aristo_inspect_schwein(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 
 }
 function give_players_schwein(o) {
@@ -35,6 +35,26 @@ function give_players_schwein(o) {
 	}
 	[fen.turn, fen.stage] = [[uplayer], 5];
 	fen.phase = 'king';
+}
+function give_players_schweine_variety(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let b = stage_building(fen, 0, 'farm');	b.h = 'KHn'; b.schweine = [2];
+	b = stage_building_new(fen, 1, 'estate', 1, 1);
+	b = stage_building_new(fen, 1, 'farm', 1, 0);
+	b = stage_building_new(fen, 1, 'farm', 0, 0);
+	b = stage_building_new(fen, 1, 'farm', 0, 1);
+	b = stage_building_new(fen, 1, 'farm', 0, 2);
+	[fen.turn, fen.stage] = [[uplayer], 5];
+	fen.phase = 'king';
+}
+function ltest108_aristo_inspect_schwein() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schweine_variety, set_queen_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	console.log('hallo!!!!!!!!!!!!!');
+	DA.test.end = () => { };
+	DA.auto_moves = [];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest107_aristo_inspect_schwein() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_schwein, set_queen_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };

@@ -44,8 +44,7 @@ function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', ge
 		//console.log('item',item)
 		if (ishidden && !b.schweine.includes(i)) face_down(item);
 		else if (b.schweine.includes(i)) {
-			uischweine.push(item);
-			mStyle(iDiv(item), { transform: 'scale(1.05)', origin: 'bottom left' });
+			add_ui_schwein(item, uischweine);
 		}
 	}
 
@@ -70,50 +69,70 @@ function post_inspect() {
 	let cards = item.o.items;
 	reveal_animation(cards, weiter_post_inspect);
 }
-
 function weiter_post_inspect() {
-	TO.main = setTimeout(weiter_post_inspect2,2000);
+	TO.main = setTimeout(weiter_post_inspect2, 2000);
 }
 function weiter_post_inspect2() {
-
-	console.log('weiter_post_inspect2'); return;
 	let [stage, A, fen, uplayer] = [Z.stage, Z.A, Z.fen, Z.uplayer];
 	let item = A.items[A.selected[0]];
-
 	let uibuilding = item.o;
 	let fenbuilding = lookup(fen, uibuilding.path.split('.'));
 	let key = uibuilding.keycard.key;
 	let cards = uibuilding.items;
-	let newschwein = A.newschwein;
 
-	if (isdef(uibuilding.schweine)) {
-		//uplayer gets a rumor from rumor deck
-		//output_arr_short(fen.deck_rumors);
-		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
-		fen.players[uplayer].rumors.push(rumor);
-		//console.log('...got rumor', rumor);
-		//output_arr_short(fen.deck_rumors);
-		ari_history_list([`${uplayer} inspects a schweine!`], 'inspect');
+	//find candidates for new schwein
+	let schweine_cand = [];
+	for (let i = 1; i < cards.length; i++) {
 
-		ari_next_action();
-	} else if (building_is_correct(uibuilding)) {
-		//uplayer need to chose a rumor card to discard!
-		//console.log('')
+		if (fenbuilding.schweine.includes(i)) continue; //if index i is already in schweine, skip this card
+
+		//if card key == key, skip this card
+		let card = cards[i];
+		if (card.key == key) continue;
+
+		assertion(i == card.index, 'wrong card index!!!!')
+		schweine_cand.push(i); //add this card to schweine_cand
+	}
+
+	//if candidates have been found
+	if (schweine_cand.length > 1) {
+		//need to go to another step of selecting the new schwein
+		Z.stage = 38;
+		A.schweine_cand = schweine_cand;
+	} else if (schweine_cand.length == 1) {
+		//unique new schwein
+		//if this is the first schwein, both players get a rumor!
+		let is_first_schwein = isEmpty(fenbuilding.schweine);
+
+		add_schwein(schweine_cand[0], fenbuilding, uibuilding);
+		ari_history_list([`${uplayer} reveals a schwein!`], 'inspect');
+
+		if (is_first_schwein) {
+			let owner = stringAfter(uibuilding.path, '.');
+			owner = stringBefore(owner, '.');
+			console.log('owner', owner, 'uplayer', uplayer);
+			A.owner = owner;
+			ari_open_rumors(32);
+		} else {
+			let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
+			fen.players[uplayer].rumors.push(rumor);
+			ari_history_list([`${uplayer} inspects a schweine building!`], 'inspect');
+			ari_next_action();
+		}
+	} else if (isEmpty(fenbuilding.schweine)) {
+		//this building is completely correct! inspector does NOT get a rumor
 		Z.stage = 29;
 		ari_history_list([`${uplayer} inspects a correct building`], 'inspect');
 		ari_pre_action();
 	} else {
-		//building is not correct: turn _schwein up, both players get a rumor
-		//console.log('building is not correct')
-		//console.log('building', building);
-		A.owner = stringAfter(uibuilding.path, '.');
-		A.owner = stringBefore(A.owner, '.');
-		ari_history_list([`${uplayer} reveals a schweine!`], 'inspect');
-		turn_new_schwein_up(uibuilding);
+		// no new schweine candidate available: do nothing
+		// but there are already schweine in this building
+		// uplayer gets a rumor but owner does not
+		let rumor = fen.deck_rumors[0]; fen.deck_rumors.shift();
+		fen.players[uplayer].rumors.push(rumor);
+		ari_history_list([`${uplayer} inspects a schweine!`], 'inspect');
+		ari_next_action();
 	}
-
-	// if the building has a schweine, and schweine is closed, _ari_open_rumors, followed by stage: inspect_schwein_beide
-	// if the building has no schweine, uplayer needs to select one of his rumors to pay
 }
 
 

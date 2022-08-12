@@ -1,3 +1,42 @@
-1: *3:42 PM 6/22/2022-
-- brauch jetzt die bank entries!
-#857363
+
+10: *2:21 PM 8/11/2022-2:57 PM 8/11/2022
+9: *2:57 PM 8/11/2022-2:59 PM 8/11/2022
+8: *2:59 PM 8/11/2022-3:05 PM 8/11/2022
+7: *3:05 PM 8/11/2022-3:05 PM 8/11/2022
+6: *3:05 PM 8/11/2022-3:07 PM 8/11/2022
+5: *3:07 PM 8/11/2022-3:11 PM 8/11/2022
+4: *3:11 PM 8/11/2022-3:13 PM 8/11/2022
+5: *3:13 PM 8/11/2022-3:14 PM 8/11/2022
+4: *3:14 PM 8/11/2022-3:16 PM 8/11/2022
+3: *3:16 PM 8/11/2022-3:17 PM 8/11/2022
+2: *3:17 PM 8/11/2022-3:19 PM 8/11/2022
+1: *3:19 PM 8/11/2022-3:27 PM 8/11/2022
+11: *3:27 PM 8/11/2022-3:28 PM 8/11/2022
+12: *3:28 PM 8/11/2022-3:29 PM 8/11/2022
+13: *3:30 PM 8/11/2022-3:36 PM 8/11/2022
+14: *3:37 PM 8/11/2022-3:37 PM 8/11/2022
+15: *3:37 PM 8/11/2022-3:40 PM 8/11/2022
+16: *3:41 PM 8/11/2022-3:43 PM 8/11/2022
+ok - was wird von deck.splice returned? eine liste [1],  test [1,2,3,4].splice(0,1) 
+17: *3:44 PM 8/11/2022-3:57 PM 8/11/2022
+18: *3:57 PM 8/11/2022-4:13 PM 8/11/2022
+19: *4:13 PM 8/11/2022-
+- 
+- was ist stage 29?
+- deck_deal???
+- besserer test: der andere player soll 3 buildings haben: eines ist correct, eines hat 1 offenes schwein, eines hat ein closed schwein, eines hat 2 closed schweine, eines hat 1 offenes und 1 closed schwein
+- test: nur 1 schwein in farm!
+- test ob schweine richtig zeigt!
+WAY SHORTER!!!!
+
+- goto ui_type_building
+- turn fenbuilding uibuilding params around
+- how to add a schwein
+- if unique new schwein, turn this into schwein: add_schwein
+- mod stage, set A.schweine_cand, ari_pre_action
+- basemin: need another stage: 38: 'pick_schwein',
+- text next one!
+- fomrulate line 2
+- formulate line 1
+- goto weiter_post_inspect
+- get ready
