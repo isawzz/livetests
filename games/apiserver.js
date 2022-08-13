@@ -10,9 +10,10 @@ function handle_result(result, cmd) {
 
 	if (Clientdata.AUTORESET) { Clientdata.AUTORESET = false; if (result.auto == true) { console.log('message bounced'); return; } }
 
-	if (verbose) console.log('HANDLERESULT bekommt', jsCopy(obj));
+	//console.log('HANDLERESULT bekommt', jsCopy(obj));
 	DA.result = jsCopy(obj); //console.log('DA.result', DA.result);
 	processServerdata(obj, cmd);
+	//console.log('playerdata',Serverdata.playerdata);
 
 	// console.log('obj.fen', obj.fen,'obj.turn', obj.turn, 'obj.a', obj.a, 'obj.b', obj.b);
 	//console.log('obj.fen', obj.fen,'obj.turn', obj.turn, 'obj.a', obj.a, 'obj.b', obj.b);
@@ -108,7 +109,7 @@ function processServerdata(obj, cmd) {
 		let old_playerdata = valf(Serverdata.playerdata, []);
 		let di = list2dict(old_playerdata, 'name');
 
-		Serverdata.playerdata = obj.playerdata;
+		Serverdata.playerdata = isString(obj.playerdata)?JSON.parse(obj.playerdata):obj.playerdata;
 
 		Serverdata.playerdata_changed_for = [];
 		//Serverdata.playerstatus_changed_for = [];

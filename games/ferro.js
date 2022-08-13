@@ -294,8 +294,7 @@ function ferro_check_resolve() {
 function ferro_ack_uplayer_hotseat() {
 	let [A, fen, uplayer] = [Z.A, Z.fen, Z.uplayer];
 	let buy = !isEmpty(A.selected) && A.selected[0] == 0;
-	if (buy) { fen.buyer = uplayer;[Z.turn, Z.stage] = [[get_multi_trigger()], 'can_resolve']; }
-	if (uplayer == fen.lastplayer) { [Z.turn, Z.stage] = [[get_multi_trigger()], 'can_resolve']; }
+	if (buy || uplayer == fen.lastplayer) { fen.buyer = uplayer;[Z.turn, Z.stage] = [[get_multi_trigger()], 'can_resolve']; }
 	else { Z.turn = [get_next_in_list(uplayer, fen.canbuy)]; }
 	take_turn_fen();
 }
@@ -348,18 +347,36 @@ function calc_ferro_score(roundwinner) {
 		else pl.score += calc_hand_value(pl.hand);
 	}
 }
+function length_of_each_array(arr) {
+	let res = []
+	for(const a of arr){
+		res.push(a.length);
+	}
+	return res.sort((a, b) => b-a);
+
+	//return arr.map(x => x.length).sort((a, b) => b-a);
+}
+function longest_array(arr){
+	let max = 0;
+	for (const a of arr) {
+		if (a.length > max) max = a.length;
+	}
+	return max;
+	
+}
 function calc_ferro_highest_goal_achieved(pl) {
+	let jsorted = jsCopy(pl.journeys).sort((a, b) => b.length - a.length);
 	let di = {
-		'3': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3,
-		'33': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 3,
-		'4': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4,
-		'44': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 4,
-		'5': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5,
-		'55': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 5,
-		'7R': pl.journeys.length > 0 && is_sequence(pl.journeys[0]) && pl.journeys[0].length >= 7,
+		'3': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 3,
+		'33': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 3
+			&& is_group(jsorted[1]) && jsorted[1].length >= 3,
+		'4': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 4,
+		'44': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 4
+			&& is_group(jsorted[1]) && jsorted[1].length >= 4,
+		'5': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 5,
+		'55': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 5
+			&& is_group(jsorted[1]) && jsorted[1].length >= 5,
+		'7R': jsorted.length > 0 && is_sequence(jsorted[0]) && jsorted[0].length >= 7,
 	};
 
 	for (const k of Z.fen.availableGoals) { // ['7R', '55', '5', '44', '4', '33', '3']) {
@@ -367,7 +384,9 @@ function calc_ferro_highest_goal_achieved(pl) {
 			console.log('player', pl.name, 'already achieved goal', k);
 			continue;
 		}
-		if (di[k]) {
+		let achieved= di[k];
+		console.log('player', pl.name, 'achieved', k, achieved);
+		if (achieved) {
 			//console.log('goal', k, 'available to', pl.name);
 			return k;
 		}

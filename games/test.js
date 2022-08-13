@@ -22,21 +22,25 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest108_aristo_inspect_schwein(); //ltest86_ferro(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
-
+	ltest109_ferro(); //ltest108_aristo_inspect_schwein(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 }
-function give_players_schweine_variety(o) {
+function give_player_achieve_5(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-
-	let b = stage_building_new(fen, 1, 'farm', 1, 1);
-	b = stage_building_new(fen, 1, 'farm', 1, 0);
-	b = stage_building_new(fen, 1, 'farm', 0, 0);
-	b = stage_building_new(fen, 1, 'farm', 0, 1);
-	b = stage_building_new(fen, 1, 'farm', 0, 2);
-
-	b = stage_building(fen, 0, 'farm'); b.h = 'KHn'; b.schweine = [2];
-	[fen.turn, fen.stage] = [[uplayer], 5];
-	fen.phase = 'king';
+	let pl = fen.players[uplayer];
+	pl.hand = ['6Hn', '6Hn', '6Hn', '6Hn', '*Hn', '4Cn', '4Cn', '4Cn', '3Dn', '3Dn', '2Sn','KHn','QSn'];
+	for (const plname of fen.plorder) {
+		if (plname == uplayer) continue;
+		let pl1 = fen.players[plname];
+		pl1.journeys = [['2Cn', '2Hn', '*Hn']];
+	}
+}
+function ltest109_ferro() {
+	//let x=length_of_each_array([[3,3,3],[4,4,4,4],[1,1],[5,5,5,5,5],[5,5,5,5,5]]);	console.log('x',x);
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_achieve_5], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];
+	let playernames = ['mimi', 'felix', 'gul'];//, 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
+	startgame('ferro', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest108_aristo_inspect_schwein() {
 	//console.log('hallo');
@@ -57,14 +61,6 @@ function ltest107_aristo_inspect_schwein() {
 
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
-// function ltest106_aristo_schweine() {
-// 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_buildings,give_players_schwein,set_king_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
-// 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
-// 	DA.auto_moves = [];//[['random']];
-// 	let playernames = [U.name, 'felix'];
-
-// 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
-// }
 function ltest106_aristo_build() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_player_only_4_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -213,7 +209,6 @@ function ltest90_bluff() {
 
 	startgame('bluff', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
-//#region live server tests
 function ltest89_aristo_journey() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -1695,6 +1690,19 @@ function give_players_schwein(o) {
 		b.schweine = [2];
 		let b1 = stage_building(fen, i, 'estate');
 	}
+	[fen.turn, fen.stage] = [[uplayer], 5];
+	fen.phase = 'king';
+}
+function give_players_schweine_variety(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+
+	let b = stage_building_new(fen, 1, 'farm', 1, 1);
+	b = stage_building_new(fen, 1, 'farm', 1, 0);
+	b = stage_building_new(fen, 1, 'farm', 0, 0);
+	b = stage_building_new(fen, 1, 'farm', 0, 1);
+	b = stage_building_new(fen, 1, 'farm', 0, 2);
+
+	b = stage_building(fen, 0, 'farm'); b.h = 'KHn'; b.schweine = [2];
 	[fen.turn, fen.stage] = [[uplayer], 5];
 	fen.phase = 'king';
 }

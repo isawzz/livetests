@@ -1,4 +1,34 @@
 
+function calc_ferro_highest_goal_achieved(pl) {
+	let di = {
+		'3': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3,
+		'33': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3
+			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 3,
+		'4': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4,
+		'44': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4
+			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 4,
+		'5': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5,
+		'55': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5
+			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 5,
+		'7R': pl.journeys.length > 0 && is_sequence(pl.journeys[0]) && pl.journeys[0].length >= 7,
+	};
+
+	for (const k of Z.fen.availableGoals) { // ['7R', '55', '5', '44', '4', '33', '3']) {
+		if (pl.goals[k]) {
+			console.log('player', pl.name, 'already achieved goal', k);
+			continue;
+		}
+		let achieved= di[k];
+		console.log('player', pl.name, 'achieved', k, achieved);
+		if (achieved) {
+			//console.log('goal', k, 'available to', pl.name);
+			return k;
+		}
+	}
+	//console.log('no goal is available that matches the revealed sets! THIS SHOULD BE IMPOSSIBLE!!!!!!');
+	return null;
+}
+
 
 function reveal_animation(cards, callback) {
 

@@ -567,7 +567,7 @@ function show_role() {
 	let styles, text;
 	let boldstyle = { fg: 'red', weight: 'bold', fz: 20 };
 	let normalstyle = { fg: 'black', weight: null, fz: null };
-	let location = `<span style="color:dimgray;font-family:Algerian">${Z.friendly}: </span>`; // `in ${stringAfter(Z.friendly,'of ')}`;
+	let location = ''; //`<span style="color:dimgray;font-family:Algerian">${Z.friendly}  </span>`; // `in ${stringAfter(Z.friendly,'of ')}`;
 	if (hotseatplayer) {
 		styles = boldstyle;
 		text = `your turn for ${Z.uplayer}`;
@@ -694,6 +694,7 @@ function show_title() {
 	//mBy('dTitleMiddle').innerHTML = Z.friendly;
 	Z.func.state_info(mBy('dTitleLeft'));
 	show_settings(mBy('dTitleRight'));
+	mBy('dTablename').innerHTML = Z.friendly;
 }
 function show_username() {
 	let uname = U.name;

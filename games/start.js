@@ -77,12 +77,10 @@ function startgame(game, players, options = {}) {
 function gamestep() {
 
 	show_admin_ui();
-
-	DA.running = true; clear_screen();
-	dTable = mBy('dTable'); mClass('dTexture', 'wood');
-
-	if (Z.role != Clientdata.role || Z.mode == 'multi' && Z.role != 'active') mFall(dTable); //else mTableTransition(dTable, 2000);
-	Clientdata.role = Z.role;
+	DA.running = true; clear_screen(); dTable = mBy('dTable'); mClass('dTexture', 'wood');
+	//transition animation:
+	if (Z.game == 'aristo') { if (Z.role != Clientdata.role || Z.mode == 'multi' && Z.role != 'active') mFall(dTable); Clientdata.role = Z.role; }//else mTableTransition(dTable, 2000);
+	else mFall(dTable);
 
 	shield_off();
 	show_title();
@@ -148,13 +146,13 @@ function complexCompare(obj1, obj2) {
 
 	return true;
 }
-function exchange_by_index(arr1,i1,arr2,i2){	
+function exchange_by_index(arr1, i1, arr2, i2) {
 
-	console.log('exchange_by_index',arr1,i1,arr2,i2);
+	console.log('exchange_by_index', arr1, i1, arr2, i2);
 
-	let temp = arr1[i1];	
-	arr1[i1] = arr2[i2];	
-	arr2[i2] = temp; 
+	let temp = arr1[i1];
+	arr1[i1] = arr2[i2];
+	arr2[i2] = temp;
 }
 function if_plural(n) { return n == 1 ? '' : 's'; }
 function intersection(arr1, arr2) {
