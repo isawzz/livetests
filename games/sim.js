@@ -1386,14 +1386,20 @@ function stage_building_new(fen, i_pl, type, n_openschwein, n_closedschwein) {
 	//console.log('fen',fen, plname);
 	lookupSet(fen.players[plname], ['buildings', type], []);
 	let building = { list: deck_deal(fen.deck, 1), h: null, type: type, schweine: [] };
+	//console.log('building.list', building.list);
 	let k = building.lead = building.list[0];
+	//console.log('===>lead',k,'n_openschwein', n_openschwein, 'n_closedschwein', n_closedschwein);
 	let other = k[0] == 'Q' ? '2' : 'Q';
 	let i, j;
 	for (i = 1; i <= n_openschwein; i++) { building.schweine.push(i); building.list.push(other + rSuit('CSHD') + 'n'); }
-	for (j = i; j <= i + n_closedschwein; j++) { building.list.push(other + rSuit('CSHD') + 'n'); }
-	while (j < n) { building.list.push(other + rSuit('CSHD') + 'n'); }
-	console.log('building', type, building.list);
-	building.list = fen.players[plname].buildings[type].push(building);
+	//console.log('i', i, 'j', j, 'n', n, 'n_openschwein', n_openschwein);
+	for (j = 1; j <= n_closedschwein; j++) { building.list.push(other + rSuit('CSHD') + 'n'); }
+	//console.log('i', i, 'j', j, 'n', n, 'n_closedschwein', n_closedschwein);
+	while (building.list.length < n) { building.list.push(k); j++; }
+	//console.log('i', i, 'j', j);
+	//console.log('building', type, building.list);
+	fen.players[plname].buildings[type].push(building); 
+
 	return building;
 }
 function stage_building(fen, i_pl, type) {

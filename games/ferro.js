@@ -151,7 +151,6 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 		i += 1;
 		ui.journeys.push(jui);
 	}
-
 }
 function ferro_activate_ui() { ferro_pre_action(); }
 function ferro_state_new(dParent) {
@@ -799,7 +798,7 @@ function is_legal_if_7R(cards) {
 function onclick_clear_selection_ferro() { clear_selection(); }
 
 function ui_get_buy_or_pass_items() {
-	//console.log('uplayer',uplayer,UI.players[uplayer])
+	//console.log('uplayer',uplayer,_UI.players[uplayer])
 	let items = [], i = 0;
 	if (!isEmpty(UI.deck_discard.items)) items.push(ui_get_deck_item(UI.deck_discard));
 

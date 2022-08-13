@@ -90,7 +90,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 		let id = item.id = lookup(item, ['o', 'id']) ? item.o.id : getUID(); A.di[id] = item;
 		if (type == 'string') { //make button for this item!
 			let handler = ev => select_last(item, isdef(item.submit_on_click) ? callback : select_toggle, ev);
-			item.div = mButton(item.a, handler, dInstruction, { maleft: 10, rounding: 6, padding: '4px 12px 5px 12px', border: '0px solid transparent', outline: 'none' }, null, id);
+			item.div = mButton(item.a, handler, dInstruction, { maleft: 10, mabottom: 4, rounding: 6, padding: '4px 12px 5px 12px', border: '0px solid transparent', outline: 'none' }, null, id);
 		} else {
 			let ui = item.div = iDiv(item.o);
 			ui.onclick = ev => select_last(item, select_toggle, ev); // show_submit_button ? _select_toggle : select_finalize;
@@ -162,8 +162,8 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 		} else { activate_ui(); }
 	} else { activate_ui(); }
 }
-function select_confirm_weiter(callback){
-	select_add_items(ui_get_string_items(['weiter']), callback, 'may click to continue', 1, 1, Z.mode == 'multi'); 
+function select_confirm_weiter(callback) {
+	select_add_items(ui_get_string_items(['weiter']), callback, 'may click to continue', 1, 1, Z.mode == 'multi');
 }
 function select_last(item, callback, ev) {
 	//console.log('clicked',ev.target)
@@ -240,7 +240,6 @@ function select_toggle() { //item,ev) {
 	// if (!isEmpty(A.selected) && isdef(mBy('bClearSelection'))) { show('bClearSelection'); }
 	// else if (isEmpty(A.selected) && isdef(mBy('bClearSelection'))) { hide('bClearSelection'); }
 }
-
 function select_error(msg, callback = null, stay = false) {
 	let [A] = [Z.A];
 	DA.callback = callback;
@@ -252,7 +251,7 @@ function select_error(msg, callback = null, stay = false) {
 		ari_make_unselected(item);
 		A.selected = [];
 		//unselect A.items[A.selected[0]]
-	}else if (A.selected.length == 2){
+	} else if (A.selected.length == 2) {
 		//make second item unselected
 		let item = A.items[A.selected[1]];
 		ari_make_unselected(item);
@@ -322,7 +321,7 @@ function stop_timer() {
 		let res = DA.timer.clear();
 		DA.timer = null;
 		//console.log('time left in stop timer', res)
-		return isNumber(res)?res:0;
+		return isNumber(res) ? res : 0;
 	}
 	return 0;
 }
@@ -332,6 +331,7 @@ function stop_timer() {
 //#region making things selectable or selected
 function ari_make_selectable(item, dParent, dInstruction) {
 	let A = Z.A;
+	//console.log('itemtype', item.itemtype);
 	switch (item.itemtype) {
 		case 'card': make_card_selectable(item); break;
 		case 'container': make_container_selectable(item); break;
@@ -366,15 +366,18 @@ function ari_make_unselected(item) {
 
 }
 // card
-function make_card_selectable(item) { let d = iDiv(item.o); mClass(d, 'selectable'); mClass(d.parentNode, 'selectable_parent'); spread_hand(item.path, .3); }
+function make_card_selectable(item) { let d = iDiv(item.o); mClass(d, 'selectable'); if (Z.game != 'aristo') {spread_hand(item.path, .3); } mClass(d.parentNode, 'selectable_parent'); }
+
 function make_card_unselectable(item) { let d = iDiv(item.o); d.onclick = null; mClassRemove(d, 'selectable'); mClassRemove(d.parentNode, 'selectable_parent'); spread_hand(item.path); }
-function make_card_selected(item) { 
+function make_card_selected(item) {
+
+	//console.log('index', item.o.key,item.o.index);
 
 	//selection color can be set bei game!
-	let color = isdef(Z.func.get_selection_color)?Z.func.get_selection_color(item):'red';
+	let color = isdef(Z.func.get_selection_color) ? Z.func.get_selection_color(item) : 'red';
 
-	set_card_border(item, 13, color); 
-	if (DA.magnify_on_select) mClass(iDiv(item.o), 'mag'); 
+	set_card_border(item, 13, color);
+	if (DA.magnify_on_select) mClass(iDiv(item.o), 'mag');
 }
 function make_card_unselected(item) { set_card_border(item); if (DA.magnify_on_select) mClassRemove(iDiv(item.o), 'mag'); }
 

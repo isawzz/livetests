@@ -1,7 +1,160 @@
 
 
+function reveal_animation(cards, callback) {
 
-function post_inspect_NO(){
+	console.log("_reveal_animation!!!!!");
+	//console.log()
+	let bound = cards.length;
+	for (let i = 1; i < bound; i++) {
+		let c = cards[i];
+		if (c.faceUp) continue;
+		mFlip(c, 300, i == bound - 1 ? callback : null);
+	}
+}
+
+function show_instruction() {
+
+	let d = mBy('dAdminMiddle');
+	clearElement(d)
+	if (Z.role == 'spectator') {
+		let d = mBy('dInstruction');
+		mStyle(d, { display: 'flex', 'justify-content': 'end' });
+		mDiv(d, { maright: 10 }, null, 'SPECTATING');
+
+	} else if (Z.role == 'inactive') {
+		let d = mBy('dInstruction');
+		mStyle(d, { display: 'flex', 'justify-content': 'start' });
+		mDiv(d, { maleft: 10 }, null, 'NOT YOUR TURN');
+
+	} else if (isdef(Z.fen.instruction)) {
+		let d = mBy('dInstruction');
+		mStyle(d, { display: 'flex', 'justify-content': 'center' });
+		mDiv(d, {}, null, Z.fen.instruction);
+
+	}
+
+
+	//mBy('dInstruction'), Z.role == 'active' ? Z.fen.instruction : Z.role == 'inactive' ? 'NOT YOUR TURN' : '<span style="float:right;">Spectating</span>');
+}
+
+function ui_get_card_items(cards, uibuilding) {
+	//console.log('uplayer',uplayer,UI.players[uplayer])
+	let items = [], i = 0;
+	for (const o of cards) {
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: uibuilding.path, index: i };
+		i++;
+		items.push(item);
+	}
+	return items;
+}
+
+function post_exchange() {
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	//there should be exactly 2 selected actions and they should be in different groups
+	//the 2 actions correspond to the 2 legal cards to trade!
+	if (A.selected.length != 2) {
+		select_error('please, select exactly 2 cards!');
+		return;
+	}
+	let i0 = A.items[A.selected[0]];
+	let i1 = A.items[A.selected[1]];
+	//one of the cards has to be from a building
+	let [p0, p1] = [i0.path, i1.path];
+	if (p0.includes('build') == p1.includes('build')) {
+		select_error('select exactly one building card and one of your hand or stall cards!');
+		return;
+	}
+
+	console.log('i0', i0, 'i1', i1);
+
+	//exchange_items_in_fen(fen, i0, i1); 
+	//instead, need to exchange exactly at the same position!!!
+	let ibuilding = p0.includes('build') ? i0 : i1;
+	let ihandstall = ibuilding == i0 ? i1 : i0;
+	let fenbuilding = lookup(fen, ibuilding.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));
+
+	let ib_index = ibuilding.o.index; //index of the building card within building!
+
+	//if this index is in fenbuilding.schweine, remove index from schweine
+	if (fenbuilding.schweine.includes(ib_index)) {
+		fenbuilding.schweine.splice(fenbuilding.schweine.indexOf(ib_index), 1);
+	}
+
+	let pl = fen.players[uplayer];
+	let list2 = ihandstall.path.includes('hand') ? pl.hand : pl.stall;
+	let i2 = list2.indexOf(ihandstall.o.key)
+	exchange_by_index(fenbuilding.list, ib_index, list2, i2);
+
+	// //exchange the cards preserving index in fenbuilding.list
+	// let list = fenbuilding.list;
+	// list[ib_index] = ihandstall.o.key;
+	// ihandstall.o.index = ib_index;
+
+	// if (ihandstall.path.includes('hand')){
+	// 	//remove card from hand
+	// 	let hand = fen.players[uplayer].hand;
+	// 	hand[hand.indexOf(ihandstall.o.key)] = ibuilding.o.key;
+	// }else{
+	// 	//remove card from stall
+	// 	let stall = fen.players[uplayer].stall;
+	// 	stall[stall.indexOf(ihandstall.o.key)] = ibuilding.o.key;
+	// }
+
+	//the cards have been exchanged in fen!
+
+	//console.log('fenbuilding', fenbuilding);
+
+	//NEW!!!!
+	// if (isdef(fenbuilding.schweine) && fenbuilding.schweine.includes(ibuilding.key)) {
+	// 	removeInPlace(fenbuilding.schweine, ibuilding.key);
+	// 	if (fenbuilding.schweine.length == 0) delete fenbuilding.schweine;
+	// }
+	//fenbuilding.schweine = null; //STIMMT NICHT!!!! KOENNTEN MEHRERE SCHWEINE SEIN!
+
+	ari_history_list([`${uplayer} exchanges card in ${ari_get_building_type(fenbuilding)}`], 'exchange');
+	ari_next_action();
+}
+
+function make_card_selectable(item) {
+	let d = iDiv(item.o);
+	spread_hand(item.path, .3);
+	// console.log('d',d);
+	// d.onmouseenter = ()=>{mStyle(d,{display:'inline-block',transform:'scale(2)',border:'solid green 20px'});console.log('mouseenter');};
+	// d.onmouseleave = ()=>{mStyleRemove(d,'border');console.log('mouseleave');};
+	//mClass(d, 'selectable'); 
+	mStyle(d, { display: 'inline-block', transform: 'scale(1.1)', origin: 'bottom right' }); //, transform: 'scale(2)', border: 'solid green 20px' });
+	//mClass(d.parentNode, 'selectable_parent'); 
+}
+
+function ui_get_card_items(cards) {
+	let items = [], i = 0;
+	for (const o of cards) {
+		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: ``, index: i };
+		i++;
+		items.push(item);
+	}
+	return items;
+}
+
+function old_turn_schwein_up() {
+	//b is uibuilding
+	let key = uibuilding.keycard.key;
+	let list = uibuilding.list;
+
+	let schweine = firstCond(list, x => x[0] != key[0]);
+	assertion(isdef(schweine), 'WAS DA IST GARKEIN SCHWEIN!!!!!!!!!!', uibuilding);
+	let ui = firstCond(uibuilding.items, x => x.key == schweine);
+	//console.log('schweine card is',ui)
+	face_up(ui);
+
+	let fenbuilding = lookup(Z.fen, uibuilding.path.split('.'));
+	uibuilding.schweine = fenbuilding.schweine = schweine;
+	ari_open_rumors(32);
+}
+
+
+
+function post_inspect_NO() {
 	let uibuilding = item.o;
 	let fenbuilding = lookup(fen, uibuilding.path.split('.'));
 	let key = uibuilding.keycard.key;
@@ -9,10 +162,10 @@ function post_inspect_NO(){
 
 	//find ckey in list that is not key but is not in schweine already
 	//A.newschwein = firstCond(uibuilding.items, x => x.key != key && !fenbuilding.schweine.includes(uibuilding.list.indexOf(x.index)));
-	
+
 	//console.log('newschwein',A.newschwein); uibuilding.items.map(x=>face_up(x));
 	//newschwein ist ein card item!
-	
+
 	reveal_animation(cards, weiter_post_inspect);
 }
 function reveal_animation(cards, callback) {
@@ -25,10 +178,10 @@ function reveal_animation(cards, callback) {
 		mPulse1(d, () => { face_up(c); callback(); });
 	}
 
-	for(let i = 0; i < cards.length; i++){	}
+	for (let i = 0; i < cards.length; i++) { }
 	let i = -1;
 	for (const c of cards) {
-		if (++i == 0) continue; 
+		if (++i == 0) continue;
 		let d = iDiv(c);
 		if (c.rank != key) {
 			mPulse1(d, () => { face_up(c); if (i == cards.length) callback(); });
@@ -81,7 +234,7 @@ function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', ge
 
 	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
 	//console.log('card',card)
-	let [ov,splay]=separate_lead?[card.ov*1.5,5]:[card.ov,2];
+	let [ov, splay] = separate_lead ? [card.ov * 1.5, 5] : [card.ov, 2];
 	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
 	ui_add_cards_to_hand_container(cardcont, items, list);
 
@@ -110,7 +263,7 @@ function turn_new_schwein_up(uibuilding) {
 	let key = uibuilding.keycard.key;
 	let list = uibuilding.list;
 
-	let schweine = firstCond(list, x => x[0] != key[0] );
+	let schweine = firstCond(list, x => x[0] != key[0]);
 	assertion(isdef(schweine), 'WAS DA IST GARKEIN SCHWEIN!!!!!!!!!!', uibuilding);
 	let ui = firstCond(uibuilding.items, x => x.key == schweine);
 	//console.log('schweine card is',ui)
@@ -206,7 +359,7 @@ function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', ge
 
 	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
 	//console.log('card',card)
-	let [ov,splay]=separate_lead?[card.ov*1.5,5]:[card.ov,2];
+	let [ov, splay] = separate_lead ? [card.ov * 1.5, 5] : [card.ov, 2];
 	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
 	ui_add_cards_to_hand_container(cardcont, items, list);
 
@@ -253,9 +406,9 @@ function post_exchange() {
 	let ibuilding = p0.includes('build') ? i0 : i1;
 	let fenbuilding = lookup(fen, ibuilding.path.split('.')); //stringBeforeLast(ibuilding.path, '.').split('.'));
 	//console.log('fenbuilding', fenbuilding);
-	
+
 	//NEW!!!!
-	if (isdef(fenbuilding.schweine) && fenbuilding.schweine.includes(ibuilding.key)){
+	if (isdef(fenbuilding.schweine) && fenbuilding.schweine.includes(ibuilding.key)) {
 		removeInPlace(fenbuilding.schweine, ibuilding.key);
 		if (fenbuilding.schweine.length == 0) delete fenbuilding.schweine;
 	}
@@ -304,8 +457,8 @@ function process_visit() {
 			`${uplayer} visited ${ari_get_building_type(obuilding)} of ${owner} resulting in ${schweine ? 'schweine' : 'ok'} ${ari_get_building_type(obuilding)}`,
 		], 'visit');
 
-		reveal_animation(cards,()=>ari_next_action(fen,uplayer));
-		
+		reveal_animation(cards, () => ari_next_action(fen, uplayer));
+
 		//ari_next_action(fen, uplayer);
 	}
 
@@ -502,7 +655,7 @@ function fritz_present_player(playername, dMiddle) {
 	// 	pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, 'A23456789TJQK*').concat(arr2);
 	// }
 	//#endregion
-	pl.hand = correct_handsorting(pl.hand,playername);
+	pl.hand = correct_handsorting(pl.hand, playername);
 
 	let upl = ui.players[playername] = { div: d };
 	upl.hand = ui_type_hand(pl.hand, d, {}, `players.${playername}.hand`, 'hand', fritz_get_card);
@@ -645,7 +798,7 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 	// 	pl.hand = sort_cards(arr1, bysuit, 'CDSH', true, '23456789TJQKA*').concat(arr2);
 	// }
 	//#endregion
-	if (!ishidden) pl.hand = correct_handsorting(pl.hand,plname);
+	if (!ishidden) pl.hand = correct_handsorting(pl.hand, plname);
 
 	let hand = ui.hand = ui_type_hand(pl.hand, d, {}, `players.${plname}.hand`, 'hand', ferro_get_card);
 	if (ishidden) { hand.items.map(x => face_down(x)); }
@@ -679,19 +832,19 @@ function ferro_activate_ui() {
 }
 
 
-function _drawcard(key,dParent,sz){
+function _drawcard(key, dParent, sz) {
 	let d1;
 	let card = ari_get_card(key, sz);
 	mAppend(dParent, iDiv(card));
-	let d = iDiv(card); mStyle(d,{position:'relative',margin:20});
-	let wc=sz*0.6;
-	let hc=wc/5; 
-	let offx=card.w-hc;
-	console.log('wc',wc,'hc',hc);
+	let d = iDiv(card); mStyle(d, { position: 'relative', margin: 20 });
+	let wc = sz * 0.6;
+	let hc = wc / 5;
+	let offx = card.w - hc;
+	console.log('wc', wc, 'hc', hc);
 	let html = `<img width=${wc} height=${hc} src="./base/assets/images/icons/deco_v.png">`;
 	// d1 = mDiv(d, {position:'absolute',top:0,left:0, bg:'blue'}, null, html); 
 	// d1 = mDiv(d, {position:'absolute',bg:'red',top:hc,left:0}, null, html); 
-	d1 = mDiv(d, {position:'absolute','transform-origin':'top right',transform:`rotate(-90deg)`,top:card.h/4,right:card.w}, null, html); 
+	d1 = mDiv(d, { position: 'absolute', 'transform-origin': 'top right', transform: `rotate(-90deg)`, top: card.h / 4, right: card.w }, null, html);
 
 
 
@@ -710,8 +863,8 @@ function ari_get_card(ckey, h, w, ov = .2) {
 	let info = type == 'n' ? to_aristocard(ckey) : type == 'l' ? to_luxurycard(ckey) : to_commissioncard(ckey);
 	let card = cardFromInfo(info, h, w, ov);
 	if (type == 'l') {
-		let d=iDiv(card);
-		let sym=mSym('crow',d,{bg:'green',h:100,w:5},'tl');
+		let d = iDiv(card);
+		let sym = mSym('crow', d, { bg: 'green', h: 100, w: 5 }, 'tl');
 
 
 		//symbolcolor(card, 'royalblue');
@@ -721,11 +874,11 @@ function ari_get_card(ckey, h, w, ov = .2) {
 	return card;
 }
 
-function to_luxurycard(ckey, color = 'gold', sz = 100, w) { 
-	let card = to_aristocard(ckey, color); 
+function to_luxurycard(ckey, color = 'gold', sz = 100, w) {
+	let card = to_aristocard(ckey, color);
 
 	console.log('card', card);
-	set_card_style(card,{bg:'lightgoldenrodyellow'});
+	set_card_style(card, { bg: 'lightgoldenrodyellow' });
 
 
 	return card;
@@ -734,7 +887,7 @@ function post_commission() {
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
 
 	let comm_selected = A.items[A.selected[0]];
-	
+
 	//console.log('process_commission:', comm_selected);
 
 	//1. berechne wieviel der player bekommt!
@@ -802,7 +955,7 @@ function ai_move(ms = 100) {
 	} else if (Z.game == 'bluff') {
 
 		//testing 
-		let [newbid, handler] = bluff_ai(); 
+		let [newbid, handler] = bluff_ai();
 		//console.log('newbid',newbid,'handler',handler.name);
 		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } //console.log('newbid', newbid); }
 		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
@@ -958,9 +1111,9 @@ function _bluff_generate_random_bid() {
 
 			let rankstr = '3456789TJQKA';
 			let w1 = di2[b[1]];
-			let idx = isdef(w1)?rankstr.indexOf(w1):-1;
+			let idx = isdef(w1) ? rankstr.indexOf(w1) : -1;
 			if (idx >= 0 && idx < rankstr.length - 2) {
-				let r = rankstr[idx+1];
+				let r = rankstr[idx + 1];
 				b[1] = di[r];
 				done = true;
 			}
@@ -1095,10 +1248,10 @@ function ui_get_rumors_and_players_items(uplayer) {
 	let data = firstCond(Z.playerdata, x => x.name == uplayer);
 	assertion(isdef(data), 'no data for player ' + uplayer);
 
-	let remaining = valf(lookup(data,['state','remaining']), jsCopy(Z.fen.players[uplayer].rumors));
+	let remaining = valf(lookup(data, ['state', 'remaining']), jsCopy(Z.fen.players[uplayer].rumors));
 
 	for (const o of comm.items) {
-		
+
 		let item = { o: o, a: o.key, key: o.key, friendly: o.short, path: comm.path, index: i };
 		i++;
 		items.push(item);
@@ -1107,7 +1260,7 @@ function ui_get_rumors_and_players_items(uplayer) {
 	let players = [];
 	// let received = valf(Z.fen.rumor_setup_receivers, []);
 
-	let received = valf(lookup(data,['state','rumor_setup_receivers']), []);
+	let received = valf(lookup(data, ['state', 'rumor_setup_receivers']), []);
 	for (const plname in UI.players) {
 		if (plname == uplayer || received.includes(plname)) continue;
 		players.push(plname);
@@ -1188,11 +1341,11 @@ function process_comm_setup_orig() {
 
 		ari_history_list([`commission trading ends`], 'commissions');
 
-		if (exp_rumors) { 
-			[Z.stage, Z.turn] = [24, [plorder[0]]]; 
+		if (exp_rumors) {
+			[Z.stage, Z.turn] = [24, [plorder[0]]];
 			ari_history_list([`gossiping starts`], 'rumors');
-		
-		}else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
+
+		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
 
 	} else if (next == plorder[0]) {
 		//next commission round starts
@@ -1326,7 +1479,7 @@ function gamestep() {
 }
 
 //#region comm pass trial 1
-function ari_transfer_commission_cards_to_di(){
+function ari_transfer_commission_cards_to_di() {
 	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
 
 	//console.log('we are in stage ' + Z.stage);
@@ -1359,7 +1512,7 @@ function process_comm_setup() {
 		// 
 	}
 }
-function old_process_comm_setup(){
+function old_process_comm_setup() {
 	if (is_setup_commissions_complete()) {
 		for (const plname of plorder) {
 			let pl = fen.players[plname];
@@ -1371,11 +1524,11 @@ function old_process_comm_setup(){
 
 		ari_history_list([`commission trading ends`], 'commissions');
 
-		if (exp_rumors) { 
-			[Z.stage, Z.turn] = [24, [plorder[0]]]; 
+		if (exp_rumors) {
+			[Z.stage, Z.turn] = [24, [plorder[0]]];
 			ari_history_list([`gossiping starts`], 'rumors');
-		
-		}else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
+
+		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
 
 	} else if (next == plorder[0]) {
 		//next commission round starts
@@ -1486,7 +1639,7 @@ function new_cards_animation(n = 2) {
 }
 
 function turn_send_move_update(action_star = false) {
-	take_turn_fen(); 
+	take_turn_fen();
 }
 
 

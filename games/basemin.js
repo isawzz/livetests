@@ -1279,12 +1279,15 @@ function mYaml(d, js) {
 //#endregion
 
 //#region m prefix anim
+function mTableTransition(d, ms = 800) {
+	toElem(d).animate([{ opacity: .25 }, { opacity: 1 },], { fill: 'both', duration: ms, easing: 'ease' });
+}
 function mAppear(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 1, callback, ms); }
 function mFade(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, callback, ms); }
 function mFadeRemove(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, () => { mRemove(d); if (callback) callback(); }, ms); }
 function mFadeClear(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacity', 0, () => { mClear(d); if (callback) callback(); }, ms); }
 function mFadeClearShow(d, ms = 800, callback = null) { return mAnimate(d, 'opacity', [1, 0], () => { mClear(d); if (callback) callback(); }, ms); }
-function mFall(d, ms = 800) { toElem(d).animate([{ opacity: 0, transform: 'translateY(-50px)' }, { opacity: 1, transform: 'translateY(0px)' },], { fill: 'both', duration: ms, easing: 'ease' }); }
+function mFall(d, ms = 800, dist=50) { toElem(d).animate([{ opacity: 0, transform: `translateY(-${dist}px)` }, { opacity: 1, transform: 'translateY(0px)' },], { fill: 'both', duration: ms, easing: 'ease' }); }
 function mPulse(d, ms, callback = null) { mClass(d, 'onPulse'); TO[getUID()] = setTimeout(() => { mClassRemove(d, 'onPulse'); if (callback) callback(); }, ms); }
 function mPulse1(d, callback) { mPulse(d, 1000); }
 function mPulse2(d, callback) { mPulse(d, 2000); }
@@ -1307,6 +1310,11 @@ function mTranslate(child, newParent, ms = 800, callback = null) {
 	let [dx, dy] = get_screen_distance(child, newParent);
 	onend = () => { mAppend(newParent, child); if (callback) callback(); };
 	mAnimate(child, 'transform', [`translateX(${dx}px) translateY(${dy}px)`], onend, ms, 'ease'); //translate(${dx}px,${dy}px)`
+	//let anim = toElem(child).animate([{ transform: `scale(${1},${1})` }, { transform: `scale(${x},${y})` },], { fill: 'both', duration: ms, easing: 'ease' });
+	//anim.onfinish = callback;
+}
+function mTranslateBy(elem,x,y, ms = 800, callback = null) {
+	mAnimate(elem, 'transform', [`translateX(${x}px) translateY(${y}px)`], callback, ms, 'ease'); //translate(${dx}px,${dy}px)`
 	//let anim = toElem(child).animate([{ transform: `scale(${1},${1})` }, { transform: `scale(${x},${y})` },], { fill: 'both', duration: ms, easing: 'ease' });
 	//anim.onfinish = callback;
 }

@@ -34,7 +34,7 @@ function luxury_card_deco(card) {
 	let html = `<img height=${18} src="../base/assets/images/icons/deco0.svg" style="transform:scaleX(-1);">`;
 	d1 = mDiv(d, { position: 'absolute', bottom: -2, left: 3, opacity: .25 }, null, html);
 }
-function ari_get_card(ckey, h, w, ov = .2) {
+function ari_get_card(ckey, h, w, ov = .3) {
 	//console.log('ckey', ckey);
 	let type = ckey[2];
 	let sz = { largecard: 100, smallcard: 50 };
@@ -177,6 +177,70 @@ function anim_face_up(item, ms=300, callback=null) {	face_down(item);anim_toggle
 function anim_face_down(item, ms=300, callback=null) {	face_up(item);anim_toggle_face(item,callback);}
 
 //#region ui_type_...
+function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card, separate_lead = false, ishidden = false) {
+	let cont = ui_make_container(dParent, get_container_styles(styles));
+	let cardcont = mDiv(cont);
+	let list = b.list;
+	let d = mDiv(dParent);
+	//console.log(b)
+	let items = list.map(x => get_card_func(x));
+	reindex_items(items);
+
+	let d_harvest = null;
+	if (isdef(b.h)) {
+		let keycard = items[0];
+		let d = iDiv(keycard);
+		mStyle(d, { position: 'relative' });
+		d_harvest = mDiv(d, { position: 'absolute', w: 20, h: 20, bg: 'orange', opacity: .5, fg: 'black', top: '45%', left: -10, rounding: '50%', align: 'center' }, null, 'H');
+	}
+
+	let d_rumors = null, rumorItems = [];
+	//console.log('b',b)
+	if (!isEmpty(b.rumors)) {
+		//console.log('ja, hat rumors!!!!!!!!!!!!!!')
+		let d = cont;
+		mStyle(d, { position: 'relative' });
+		d_rumors = mDiv(d, { display: 'flex', gap: 2, position: 'absolute', h: 30, bottom: 0, right: 0 }); //,bg:'green'});
+		for (const rumor of b.rumors) {
+			let dr = mDiv(d_rumors, { h: 24, w: 16, vmargin: 3, align: 'center', bg: 'dimgray', rounding: 2 }, null, 'R');
+			rumorItems.push({ div: dr, key: rumor });
+		}
+	}
+
+	let card = isEmpty(items) ? { w: 1, h: 100, ov: 0 } : items[0];
+	//console.log('card',card)
+	let [ov, splay] = separate_lead ? [card.ov * 1.5, 5] : [card.ov, 2];
+	mContainerSplay(cardcont, 5, card.w, card.h, items.length, card.ov * 1.5 * card.w);
+	ui_add_cards_to_hand_container(cardcont, items, list);
+
+	ui_add_container_title(title, cont, items);
+
+	let uischweine = [];
+	//console.log('b', b);
+	for (let i = 1; i < items.length; i++) {
+
+		let item = items[i];
+		//console.log('item',item)
+		if (ishidden && !b.schweine.includes(i)) face_down(item);
+		else if (b.schweine.includes(i)) {
+			add_ui_schwein(item, uischweine);
+		}
+	}
+
+	return {
+		ctype: 'hand',
+		list: list,
+		path: path,
+		container: cont,
+		cardcontainer: cardcont,
+		items: items,
+		schweine: uischweine,
+		harvest: d_harvest,
+		rumors: rumorItems,
+		keycard: items[0],
+
+	};
+}
 function ui_type_deck(list, dParent, styles = {}, path = 'deck', title = 'deck', get_card_func = ari_get_card, show_if_empty = false) {
 	let cont = ui_make_container(dParent, get_container_styles(styles));
 	let cardcont = mDiv(cont);

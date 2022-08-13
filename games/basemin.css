@@ -383,6 +383,7 @@ fieldset .disabled {
 .mag {
 	transform-origin: bottom right;
 	transform: scale(1.05);
+	display: inline-block;
 }
 .card_selected {
 	transform-origin: bottom right;

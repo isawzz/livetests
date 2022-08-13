@@ -48,7 +48,7 @@ function startgame(game, players, options = {}) {
 	if (nundef(fen.turn)) fen.turn = [fen.plorder[0]];
 
 	//ensure playmode and strategy for each player in fen.players (players abandoned here!!!)
-	players.map(x => {let pl = fen.players[x.name];pl.playmode = valf(x.playmode,'human');pl.strategy = valf(x.strategy,valf(options.strategy,'random'));});
+	players.map(x => { let pl = fen.players[x.name]; pl.playmode = valf(x.playmode, 'human'); pl.strategy = valf(x.strategy, valf(options.strategy, 'random')); });
 	//correct playmode settings for solo mode: host is human, all others are bots!
 	if (options.mode == 'solo') {
 		let me = isdef(U) && isdef(fen.players[U.name]) ? U.name : rChoose(playernames);
@@ -79,7 +79,10 @@ function gamestep() {
 	show_admin_ui();
 
 	DA.running = true; clear_screen();
-	dTable = mBy('dTable'); mFall(dTable); mClass('dTexture', 'wood');
+	dTable = mBy('dTable'); mClass('dTexture', 'wood');
+
+	if (Z.role != Clientdata.role || Z.mode == 'multi' && Z.role != 'active') mFall(dTable); //else mTableTransition(dTable, 2000);
+	Clientdata.role = Z.role;
 
 	shield_off();
 	show_title();
@@ -107,29 +110,20 @@ function gamestep() {
 		//console.log('player_status',Z.uplayer_data.player_status);
 		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') autopoll();
 	}
-	if (TESTING==true) landing();
+	if (TESTING == true) landing();
 }
 
 //#region basemin NEW HELPERS!!!!!
-function object2string(o, props = [], except_props = []) {
-	let s = '';
-	if (nundef(o)) return s;
-	if (isString(o)) return o;
-	let keys = Object.keys(o).sort();
-	//console.log('keys',keys);
-	for (const k of keys) {
-		if (!isEmpty(props) && props.includes(k) || !except_props.includes(k)) {
-			let val = isList(o[k]) ? o[k].join(',') : isDict(o[k]) ? object2string(o[k].props, except_props) : o[k];
-			let key_part = isEmpty(s) ? '' : `, ${k}:`;
-			s += val;
+function aggregate_elements(list_of_object, propname) {
+	let result = [];
+	for (let i = 0; i < list_of_object.length; i++) {
+		let obj = list_of_object[i];
+		let arr = obj[propname];
+		for (let j = 0; j < arr.length; j++) {
+			result.push(arr[j]);
 		}
 	}
-	return s;
-}
-function simpleCompare(o1, o2) {
-	let s1 = object2string(o1);
-	let s2 = object2string(o2);
-	return s1 == s2;
+	return result;
 }
 function complexCompare(obj1, obj2) {
 	const obj1Keys = Object.keys(obj1);
@@ -154,17 +148,15 @@ function complexCompare(obj1, obj2) {
 
 	return true;
 }
-function aggregate_elements(list_of_object, propname) {
-	let result = [];
-	for (let i = 0; i < list_of_object.length; i++) {
-		let obj = list_of_object[i];
-		let arr = obj[propname];
-		for (let j = 0; j < arr.length; j++) {
-			result.push(arr[j]);
-		}
-	}
-	return result;
+function exchange_by_index(arr1,i1,arr2,i2){	
+
+	console.log('exchange_by_index',arr1,i1,arr2,i2);
+
+	let temp = arr1[i1];	
+	arr1[i1] = arr2[i2];	
+	arr2[i2] = temp; 
 }
+function if_plural(n) { return n == 1 ? '' : 's'; }
 function intersection(arr1, arr2) {
 	//each el in result will be unique
 	let res = [];
@@ -175,9 +167,35 @@ function intersection(arr1, arr2) {
 	}
 	return res;
 }
-function if_plural(n){return n==1?'':'s';}
-
-
+function mFlip(card, ms, callback) {
+	let a = mAnimate(iDiv(card), 'transform', [`scale(1,1)`, `scale(0,1)`],
+		() => {
+			if (card.faceUp) face_down(card); else face_up(card);
+			mAnimate(iDiv(card), 'transform', [`scale(0,1)`, `scale(1,1)`], callback, ms / 2, 'ease-in', 0, 'both');
+		},
+		ms / 2, 'ease-out', 0, 'both');
+	//a.onfinish = callback;
+}
+function object2string(o, props = [], except_props = []) {
+	let s = '';
+	if (nundef(o)) return s;
+	if (isString(o)) return o;
+	let keys = Object.keys(o).sort();
+	//console.log('keys',keys);
+	for (const k of keys) {
+		if (!isEmpty(props) && props.includes(k) || !except_props.includes(k)) {
+			let val = isList(o[k]) ? o[k].join(',') : isDict(o[k]) ? object2string(o[k].props, except_props) : o[k];
+			let key_part = isEmpty(s) ? '' : `, ${k}:`;
+			s += val;
+		}
+	}
+	return s;
+}
+function simpleCompare(o1, o2) {
+	let s1 = object2string(o1);
+	let s2 = object2string(o2);
+	return s1 == s2;
+}
 
 //#region helpers
 function ai_move(ms = 100) {
@@ -203,9 +221,9 @@ function ai_move(ms = 100) {
 		//console.log('A', A)
 	} else if (Z.game == 'bluff') {
 
-		let [newbid, handler] = bluff_ai(); 
+		let [newbid, handler] = bluff_ai();
 		//console.log('newbid',newbid,'handler',handler.name);
-		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); } 
+		if (newbid) { fen.newbid = newbid; UI.dAnzeige.innerHTML = bid_to_string(newbid); }
 		else if (handler != handle_gehtHoch) { bluff_generate_random_bid(); }
 		A.callback = handler;
 		selitems = [];

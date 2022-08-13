@@ -29,7 +29,7 @@ games:
     friendly: Aristocracy
     logo: crown
     color: indigo
-    defaulthandsorting: rank
+    defaulthandsorting: none
     options:
       #mode: 'solo,hotseat,multi'
       mode: 'solo,hotseat,multi'

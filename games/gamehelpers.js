@@ -1,3 +1,19 @@
+
+function animate_card_exchange(i0, i1, callback) {
+	ari_make_unselectable(i0);
+	ari_make_unselectable(i1);
+	let d0 = iDiv(i0.o);
+	let d1 = iDiv(i1.o);
+	let r0 = getRect(d0);
+	let r1 = getRect(d1);
+	//get center of rectangles
+	let c0 = { x: r0.x + r0.w / 2, y: r0.y + r0.h / 2 };
+	let c1 = { x: r1.x + r1.w / 2, y: r1.y + r1.h / 2 };
+	//get vector from c0 to c1
+	let v = { x: c1.x - c0.x, y: c1.y - c0.y };
+	mTranslateBy(d0, v.x, v.y);
+	mTranslateBy(d1, -v.x, -v.y, 700, callback);
+}
 function activate_ui() {
 
 	if (uiActivated) { DA.ai_is_moving = false; return; }
@@ -412,14 +428,33 @@ function show_handsorting_buttons_for(plname) {
 	let fen = Z.fen;
 	let pl = fen.players[plname];
 	let plui = UI.players[plname];
-	if (pl.hand.length <= 1) return; 
+	if (pl.hand.length <= 1) return;
 	let d = iDiv(plui);
+	//console.log('d', d,plui);
 	mStyle(d, { position: 'relative' })
-	//console.log('d', d);
 	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
 	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
 	let bByRank = mButton('by rank', onclick_by_rank, dbPlayer, styles, 'enabled');
 	let bBySuit = mButton('by suit', onclick_by_suit, dbPlayer, styles, 'enabled');
+
+}
+function ari_show_handsorting_buttons_for(plname) {
+	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+
+	let fen = Z.fen;
+	let pl = fen.players[plname];
+	let plui = UI.players[plname].hand;
+
+	if (pl.hand.length <= 1) return;
+	let d = plui.container;
+	//console.log('d', d,plui);
+	mStyle(d, { position: 'relative' })
+	let dbPlayer = mDiv(d, { position: 'absolute', bottom: -2, left: 52, height: 25 }, 'dbPlayer');
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	let bByRank = mButton('sort', onclick_by_rank, dbPlayer, styles, 'enabled');
+
+
+	//let bBySuit = mButton('by suit', onclick_by_suit, dbPlayer, styles, 'enabled');
 
 }
 function show_history(fen, dParent) {
@@ -482,34 +517,10 @@ function show_hourglass(uname, d, sz, stylesPos = {}) {
 	let dw = mDiv(d, stylesPos, `dh_${uname}`, html);
 
 }
-function show_instruction() {
+function show_instruction(msg) { mBy('dSelections0').innerHTML = msg; }
 
-	let d = mBy('dAdminMiddle');
-	clearElement(d)
-	if (Z.role == 'spectator') {
-		let d = mBy('dInstruction');
-		mStyle(d, { display: 'flex', 'justify-content': 'end' });
-		mDiv(d, { maright: 10 }, null, 'SPECTATING');
+function show_MMM(msg) { show_fleeting_message(msg, mBy('dMMM')); }
 
-	} else if (Z.role == 'inactive') {
-		let d = mBy('dInstruction');
-		mStyle(d, { display: 'flex', 'justify-content': 'start' });
-		mDiv(d, { maleft: 10 }, null, 'NOT YOUR TURN');
-
-	} else if (isdef(Z.fen.instruction)) {
-		let d = mBy('dInstruction');
-		mStyle(d, { display: 'flex', 'justify-content': 'center' });
-		mDiv(d, {}, null, Z.fen.instruction);
-
-	}
-
-
-	//mBy('dInstruction'), Z.role == 'active' ? Z.fen.instruction : Z.role == 'inactive' ? 'NOT YOUR TURN' : '<span style="float:right;">Spectating</span>');
-}
-function show_MMM(msg) {
-	show_fleeting_message(msg, mBy('dMMM'));//(s, dParent, styles, id, ms = 2000)
-
-}
 function show_message(msg = '', stay = false) {
 	mStyle(dTable, { transition: 'all 1s ease' });
 	let d = mBy('dMessage'); d.innerHTML = msg;
@@ -556,7 +567,7 @@ function show_role() {
 	let styles, text;
 	let boldstyle = { fg: 'red', weight: 'bold', fz: 20 };
 	let normalstyle = { fg: 'black', weight: null, fz: null };
-	let location= `<span style="color:dimgray;font-family:Algerian">${Z.friendly}: </span>`; // `in ${stringAfter(Z.friendly,'of ')}`;
+	let location = `<span style="color:dimgray;font-family:Algerian">${Z.friendly}: </span>`; // `in ${stringAfter(Z.friendly,'of ')}`;
 	if (hotseatplayer) {
 		styles = boldstyle;
 		text = `your turn for ${Z.uplayer}`;
@@ -671,7 +682,7 @@ function show_tables(ms = 500) {
 	for (const ri of t.rowitems) {
 		let r = iDiv(ri);
 		let h = hFunc('delete', 'delete_table', ri.o.friendly);
-		c = mAppend(r, mCreate('td')); 
+		c = mAppend(r, mCreate('td'));
 		c.innerHTML = h;
 	}
 

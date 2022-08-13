@@ -52,6 +52,22 @@ function onclick_by_rank() {
 	}
 	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
+function onclick_by_rank_ari() {
+
+	let items = UI.players[Z.uplayer].hand.items; //ui_get_hand_items(Z.uplayer).map(x => x.o);
+	console.log('items', items);
+	let s1=items.map(x=>`${x.index}:${x.key}`).join(',');
+
+	return;
+	console.log('onclick_by_rank',s1);
+
+	onclick_by_rank();
+
+	reindex_items(items);
+	let s2=items.map(x=>`${x.index}:${x.key}`).join(',');
+	console.log('...items', items.map(x=>`${x.index}:${x.key}`));
+
+}
 function onclick_by_suit() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 	let items = ui_get_hand_items(uplayer).map(x => x.o);
