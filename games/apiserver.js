@@ -109,7 +109,7 @@ function processServerdata(obj, cmd) {
 		let old_playerdata = valf(Serverdata.playerdata, []);
 		let di = list2dict(old_playerdata, 'name');
 
-		Serverdata.playerdata = isString(obj.playerdata)?JSON.parse(obj.playerdata):obj.playerdata;
+		Serverdata.playerdata = if_stringified(obj.playerdata);
 
 		Serverdata.playerdata_changed_for = [];
 		//Serverdata.playerstatus_changed_for = [];
@@ -117,7 +117,8 @@ function processServerdata(obj, cmd) {
 		for (const o of Serverdata.playerdata) {
 
 			let old = di[o.name];
-			o.state = isEmpty(o.state) ? '' : JSON.parse(o.state);
+			//console.log('o.state', o.state, 'old', old);
+			o.state = isEmpty(o.state) ? '' : if_stringified(o.state);
 			let changed = nundef(old) ? true : !simpleCompare(old, o);
 			//console.log('playerdata for', o.name, 'changed', changed);
 			if (changed) {
@@ -125,19 +126,8 @@ function processServerdata(obj, cmd) {
 				// console.log('______playerdata for', o.name, 'changed');
 				// console.log('old state',nundef(old)?'null':old.state,'\nnew state',o.state,'\nold player_status',nundef(old)?'null':old.player_status,'\nnew player_status',o.player_status)
 			}
-			//console.log('state', o.state, typeof o.state);
-			//console.log('isEmpty?',isEmpty(o.state),'isdef',isdef(o.state),'isString?',isString(o.state));
-			// if (isEmpty(o.state)) o.state = ''; else o.state = JSON.parse(o.state);
-
-			// o.player_status = isEmpty(o.player_status) ? '' : o.player_status;
-			// let changed = nundef(old) ? true : !simpleCompare(old, o);
-			// //console.log('playerdata for', o.name, 'changed', changed);
-			// if (changed) { Serverdata.playerdata_changed_for.push(o.name); }
 
 		}
-		//Serverdata.playerdata.map(x=>x.state = isEmpty(x.state) ? x.state : JSON.parse(x.state));
-		//console.log('playerdata processed:', Serverdata.playerdata);
-		//console.log('playerdata processed:', Serverdata.playerdata);
 	} else if (isdef(Serverdata.playerdata)) {
 		Serverdata.playerdata_changed_for = Serverdata.playerdata.map(x => x.name);
 		Serverdata.playerdata = [];

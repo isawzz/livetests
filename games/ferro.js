@@ -1,19 +1,12 @@
 
-
-
 function ferro() {
 	const rankstr = '23456789TJQKA*';
-	function clear_ack() {
-		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
-		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
-	}
-	function state_info(dParent) { ferro_state_new(dParent); }
 	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: [] };
 		options.jokers_per_group = 1;
 		fen.allGoals = ['7R', '55', '5', '44', '4', '33', '3'];
 		fen.availableGoals = options.maxrounds == 1 ? [rChoose(fen.allGoals)] : options.maxrounds < 7 ? rChoose(fen.allGoals, options.maxrounds) : fen.allGoals;
-
+		fen.roundGoals = arrReverse(fen.availableGoals);
 		//console.log('availableGoals', fen.availableGoals);
 
 		//calc how many decks are needed (basically 1 suit per person, plus 1 for the deck)
@@ -48,33 +41,38 @@ function ferro() {
 		[fen.stage, fen.turn] = ['card_selection', [starter]];
 		return fen;
 	}
-	function present(z, dParent, uplayer) { ferro_present_new(z, dParent, uplayer); }
-	function present_player(g, plname, d, ishidden = false) { ferro_present_player_new(g, plname, d, ishidden = false) }
-	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
-	function stats(Z, dParent) { ferro_stats_new(dParent); }
 	function activate_ui() { ferro_activate_ui(); }
-	return { rankstr, clear_ack, state_info, setup, present, present_player, check_gameover, stats, activate_ui };
+	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
+	function clear_ack() {
+		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
+		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
+	}
+	function present(dParent) { ferro_present(dParent); }
+	function stats(dParent) { ferro_stats(dParent); }
+	function state_info(dParent) { ferro_state(dParent); }
+	return { rankstr, setup, activate_ui, check_gameover, clear_ack, present, state_info, stats };
 }
 
 function ferro_pre_action() {
 	let [stage, A, fen, plorder, uplayer, deck] = [Z.stage, Z.A, Z.fen, Z.plorder, Z.uplayer, Z.deck];
 	switch (stage) {
 		case 'can_resolve': if (Z.options.auto_weiter) ferro_change_to_card_selection(); else { select_add_items(ui_get_string_items(['weiter']), ferro_change_to_card_selection, 'may click to continue', 1, 1, Z.mode == 'multi'); select_timer(2000, ferro_change_to_card_selection); } break;
-		case 'buy_or_pass': if (!is_playerdata_set(uplayer)) { select_add_items(ui_get_buy_or_pass_items(), ferro_ack_uplayer, 'may click discard pile to buy or pass', 1, 1); select_timer(Z.options.thinking_time * 1000, ferro_ack_uplayer); } break;
+		case 'buy_or_pass': if (!is_playerdata_set(uplayer)) { select_add_items(ui_get_buy_or_pass_items(), ferro_ack_uplayer, 'may click discard pile to buy or pass', 1, 1); if (uplayer != 'nasi') select_timer(Z.options.thinking_time * 1000, ferro_ack_uplayer); } break;
 		case 'card_selection': select_add_items(ui_get_ferro_items(uplayer), fp_card_selection, 'must select one or more cards', 1, 100); break;
 		default: console.log('stage is', stage); break;
 	}
 	//ensure_buttons_visible_ferro();
 }
 
-function ferro_present_new(z, dParent, uplayer) {
+//main
+function ferro_present(dParent) {
 
 	if (DA.simulate == true) show('bRestartMove'); else hide('bRestartMove'); //console.log('DA', DA);
 
-	let [fen, ui, stage] = [z.fen, UI, z.stage];
+	let [fen, ui, uplayer, stage, pl] = [Z.fen, UI, Z.uplayer, Z.stage, Z.pl];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent);
 
-	ferro_stats_new(z, dRechts);
+	ferro_stats(dRechts);
 
 	show_history(fen, dRechts);
 
@@ -83,10 +81,7 @@ function ferro_present_new(z, dParent, uplayer) {
 	//console.log('deck_discard',deck_discard);
 	if (!isEmpty(deck_discard.items)) face_up(deck_discard.get_topcard());
 
-	let uname_plays = fen.plorder.includes(Z.uname);
-	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
-
-	order = arrCycle(fen.plorder, fen.plorder.indexOf(show_first));
+	order = get_present_order();
 	for (const plname of order) {
 		let pl = fen.players[plname];
 
@@ -98,7 +93,7 @@ function ferro_present_new(z, dParent, uplayer) {
 
 		let hidden = compute_hidden(plname);
 
-		ferro_present_player_new(z, plname, d, hidden);
+		ferro_present_player(plname, d, hidden);
 	}
 
 	//console.log('playerdata changed', Z.playerdata_changed_for);
@@ -126,13 +121,13 @@ function ferro_present_new(z, dParent, uplayer) {
 		//if (Z.role == 'active') { Z.role = 'waiting'; staticTitle('waiting for ' + pl_not_done.join(', ')); }
 	}
 
-	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname);
+	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname,{bottom:-2});
 	new_cards_animation();
 
 
 }
-function ferro_present_player_new(g, plname, d, ishidden = false) {
-	let fen = g.fen;
+function ferro_present_player(plname, d, ishidden = false) {
+	let fen = Z.fen;
 	let pl = fen.players[plname];
 	let ui = UI.players[plname] = { div: d };
 	Config.ui.card.h = ishidden ? 100 : 150;
@@ -153,7 +148,7 @@ function ferro_present_player_new(g, plname, d, ishidden = false) {
 	}
 }
 function ferro_activate_ui() { ferro_pre_action(); }
-function ferro_state_new(dParent) {
+function ferro_state(dParent) {
 
 	if (DA.TEST0 == true) {
 		//testing output
@@ -193,10 +188,10 @@ function ferro_state_new(dParent) {
 		dParent.innerHTML = `Round ${Z.round}:&nbsp;${Z.stage == 'buy_or_pass' ? 'next ' : ''}turn: ${user_html} `;
 	}
 }
-function ferro_stats_new(z, dParent) {
-	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
-	let fen = z.fen;
-	for (const plname of fen.plorder) {
+function ferro_stats(dParent) {
+	let player_stat_items = UI.player_stat_items = ui_player_info(dParent);
+	let fen = Z.fen;
+	for (const plname in fen.players) {
 		let pl = fen.players[plname];
 		let item = player_stat_items[plname];
 		let d = iDiv(item); mCenterFlex(d); mStyle(d, { wmin: 150 }); mLinebreak(d);
@@ -208,14 +203,15 @@ function ferro_stats_new(z, dParent) {
 		player_stat_count('star', pl.score, d);
 
 		mLinebreak(d, 4);
-		//console.log('is fixed goal', is_fixed_goal());
+		//console.log('is _fixed goal', _is_fixed_goal());
 		if (!is_fixed_goal()) {
 			let d2 = mDiv(d, { padding: 4, display: 'flex' }, `d_${plname}_goals`);
 			if (fen.availableGoals.length < 4) { mStyle(d2, { wmin: 120 }); mCenterFlex(d2); }
 			let sz = 16;
 			let styles_done = { h: sz, fz: sz, maleft: 6, fg: 'grey', 'text-decoration': 'line-through green', weight: 'bold' };
 			let styles_todo = { h: sz, fz: sz, maleft: 6, border: 'red', weight: 'bold', padding: 4, 'line-height': sz }; // 'text-decoration': 'underline red', 
-			for (const k in pl.goals) {
+
+			for (const k of fen.roundGoals) { //in pl.goals) {
 				mText(k, d2, pl.goals[k] ? styles_done : styles_todo);
 			}
 		}
@@ -349,20 +345,20 @@ function calc_ferro_score(roundwinner) {
 }
 function length_of_each_array(arr) {
 	let res = []
-	for(const a of arr){
+	for (const a of arr) {
 		res.push(a.length);
 	}
-	return res.sort((a, b) => b-a);
+	return res.sort((a, b) => b - a);
 
 	//return arr.map(x => x.length).sort((a, b) => b-a);
 }
-function longest_array(arr){
+function longest_array(arr) {
 	let max = 0;
 	for (const a of arr) {
 		if (a.length > max) max = a.length;
 	}
 	return max;
-	
+
 }
 function calc_ferro_highest_goal_achieved(pl) {
 	let jsorted = jsCopy(pl.journeys).sort((a, b) => b.length - a.length);
@@ -384,7 +380,7 @@ function calc_ferro_highest_goal_achieved(pl) {
 			console.log('player', pl.name, 'already achieved goal', k);
 			continue;
 		}
-		let achieved= di[k];
+		let achieved = di[k];
 		//console.log('player', pl.name, 'achieved', k, achieved);
 		if (achieved) {
 			//console.log('goal', k, 'available to', pl.name);
@@ -410,6 +406,7 @@ function end_of_round_ferro() {
 	let pl = fen.players[uplayer];
 	//score all players
 	calc_ferro_score(uplayer);
+	if (Z.options.phase_order == 'anti') { for (const pl of plorder) { fen.players[pl].goals[get_round_goal()] = true; } }
 	ari_history_list([`${uplayer} wins the round`], 'round');
 	fen.round_winner = uplayer;
 
@@ -760,7 +757,7 @@ function get_available_goals(plname) {
 	//return ['3', '33', '4', '44', '5', '55', '7R'].filter(x => !Z.fen.players[plname].goals[x]);
 	return Z.fen.availableGoals.filter(x => !Z.fen.players[plname].goals[x]);
 }
-function get_round_goal() { return get_keys(Z.fen.players[Z.uplayer].goals).sort()[Z.round - 1]; }
+function get_round_goal() { return Z.fen.roundGoals[Z.round - 1]; } //get_keys(Z.fen.players[Z.uplayer].goals).sort()[Z.round - 1]; }
 function is_correct_group(j, n = 3) { let r = j[0][0]; return j.length >= n && has_at_most_n_jolly(j, Z.options.jokers_per_group) && j.every(x => is_jolly(x) || x[0] == r); }
 function is_fixed_goal() { return Z.options.phase_order == 'fixed'; }
 function is_group(j) {

@@ -85,7 +85,7 @@ function gamestep() {
 	shield_off();
 	show_title();
 	show_role();
-	Z.func.present(Z, dTable, Z.uplayer);	// *** Z.uname und Z.uplayer ist IMMER da! ***
+	Z.func.present(dTable);	// *** Z.uname und Z.uplayer ist IMMER da! ***
 
 	//console.log('_____uname:'+Z.uname,'role:'+Z.role,'player:'+Z.uplayer,'host:'+Z.host,'curplayer:'+Z.turn[0],'bot?',is_current_player_bot()?'YES':'no');
 	if (isdef(Z.scoring.winners)) { show_winners(); animatedTitle('GAMEOVER!'); }
@@ -155,6 +155,8 @@ function exchange_by_index(arr1, i1, arr2, i2) {
 	arr2[i2] = temp;
 }
 function if_plural(n) { return n == 1 ? '' : 's'; }
+function if_stringified(obj) { return is_stringified(obj) ? JSON.parse(obj) : obj; }
+function is_stringified(obj) { return typeof obj == 'string' && ['"', '{'].includes(obj[0]); }
 function intersection(arr1, arr2) {
 	//each el in result will be unique
 	let res = [];

@@ -1,5 +1,4 @@
 function spotit() {
-	function state_info(dParent) { spotit_state(dParent); }
 	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), turn: [players[0]], stage: 'init', phase: '' };
 		for (const plname of players) {
@@ -13,12 +12,18 @@ function spotit() {
 		//console.log('fen', fen)
 		return fen;
 	}
-	function present(z, dParent, uplayer) { spotit_present(z, dParent, uplayer); }
-	function present_player(g, plname, d, ishidden = false) { ferro_present_player_new(g, plname, d, ishidden = false) }
-	function check_gameover() { return spotit_check_gameover(Z); }
-	function stats(Z, dParent) { spotit_stats(dParent); }
+	function check_gameover() {
+		for (const uname of Z.plorder) {
+			let cond = get_player_score(uname) >= Z.options.winning_score;
+			if (cond) { Z.fen.winners = [uname]; return Z.fen.winners; }
+		}
+		return false;
+	}
+	function state_info(dParent) { spotit_state(dParent); }
+	function present(dParent) { spotit_present(dParent); }
+	function stats(dParent) { spotit_stats(dParent); }
 	function activate_ui() { spotit_activate(); }
-	return { state_info, setup, present, present_player, check_gameover, stats, activate_ui };
+	return { setup, activate_ui, check_gameover, present, state_info, stats };
 }
 
 function spotit_activate() {
@@ -33,15 +38,8 @@ function spotit_activate() {
 		TO.main = setTimeout(() => spotit_move(bot, true), rNumber(2000, 9000));
 	}
 }
-function spotit_check_gameover(z) {
-	for (const uname of z.plorder) {
-		let cond = get_player_score(uname) >= z.options.winning_score;
-		if (cond) { z.fen.winners = [uname]; return z.fen.winners; }
-	}
-	return false;
-}
-function spotit_present(z, dParent, uplayer) {
-	let [fen, ui, stage] = [z.fen, UI, z.stage];
+function spotit_present(dParent) {
+	let [fen, ui, stage, uplayer] = [Z.fen, UI, Z.stage, Z.uplayer];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 1, 0); ///tableLayoutOMR(dParent, 5, 1);
 
 	//let pldata = Z.playerdata;
@@ -53,14 +51,14 @@ function spotit_present(z, dParent, uplayer) {
 
 	let dt = dOpenTable; clearElement(dt); mCenterFlex(dt);
 
-	spotit_stats(z, dt, fen.players);
+	spotit_stats(dt);
 
 	mLinebreak(dt, 10);
 
 	//console.log('fen.items', fen.items); //ex.: 'bird:0.5 shark:0.75 rat:0.75 dragon:0.5 bat:0.5 tomato:0.5 basket:1.2,crown:1.2 rocket:0.75 shark:1 tangerine:1 ladybug:1 owl:1.2 fly:1.2'
 	let ks_for_cards = fen.items.split(',');
 	let numCards = ks_for_cards.length;
-	let items = z.items = [];
+	let items = Z.items = [];
 	Items = [];
 	let i = 0;
 	for (const s of ks_for_cards) {
@@ -76,8 +74,8 @@ function spotit_present(z, dParent, uplayer) {
 		items.push(item);
 	}
 
-	z.cards = [];
-	let is_adaptive = z.options.adaptive == 'yes';
+	Z.cards = [];
+	let is_adaptive = Z.options.adaptive == 'yes';
 	let nsyms = is_adaptive ? cal_num_syms_adaptive() : Z.options.num_symbols;
 
 	for (const item of items) {
@@ -87,9 +85,9 @@ function spotit_present(z, dParent, uplayer) {
 		if (is_adaptive) { modify_item_for_adaptive(item, items, nsyms); }
 
 		let card = spotit_card(item, dt, { margin: 20, padding: 10 }, spotit_interact);
-		z.cards.push(card);
+		Z.cards.push(card);
 
-		if (z.stage == 'init') {
+		if (Z.stage == 'init') {
 			face_down(card, GREEN, 'food');
 
 			// let d=iDiv(card);
@@ -106,12 +104,12 @@ function spotit_present(z, dParent, uplayer) {
 
 
 }
-function spotit_stats(z, d) {
-	let players = z.fen.players;
+function spotit_stats(d) {
+	let players = Z.fen.players;
 	let d1 = mDiv(d, { display: 'flex', 'justify-content': 'center', 'align-items': 'space-evenly' });
-	for (const plname in players) {
+	for (const plname of get_present_order()) {
 		let pl = players[plname];
-		let onturn = z.turn.includes(plname);
+		let onturn = Z.turn.includes(plname);
 		let sz = 50; //onturn?100:50;
 		//let border = onturn ? plname == Z.uplayer ? 'solid 5px lime' : 'solid 5px red' : 'solid medium white';
 		// let border = plname == Z.uplayer ? 'solid 5px lime' : 0;
@@ -133,10 +131,11 @@ function ensure_score(plname) {
 	let sc = 0;
 	//console.log('ensure_score',Z.playerdata)
 	if (isdef(Z.playerdata)) {
-		let pldata = valf(firstCond(Z.playerdata, x => x.name == plname),{name:plname,state:{score:0}});
+		//console.log('Z.playerdata', Z.playerdata);		
+		let pldata = valf(firstCond(Z.playerdata, x => x.name == plname), { name: plname, state: { score: 0 } });
 		//console.log('state for player', pldata.name, pldata.state);
-		sc = pldata.state.score;
-	}else Z.playerdata=[];
+		sc = isdef(pldata.state)?pldata.state.score:0;
+	} else Z.playerdata = Z.plorder.map(x=>[{name:x,state:{score:0}}]);
 	lookupSet(Z.fen, ['players', plname, 'score'], sc);
 }
 function get_player_score(plname) { ensure_score(plname); return Z.fen.players[plname].score; }
@@ -332,9 +331,9 @@ function spotit_create_sample(numCards, numSyms, vocab, lang, min_scale, max_sca
 
 	return infos;
 }
-function spotit_find_shared(z, card, keyClicked) {
+function spotit_find_shared(card, keyClicked) {
 	let success = false, othercard = null;
-	for (const c of z.cards) {
+	for (const c of Z.cards) {
 		if (c == card) continue;
 		if (c.keys.includes(keyClicked)) { success = true; othercard = c; }
 	}
@@ -376,7 +375,7 @@ function spotit_interact(ev, key) {
 		let card = Items[id];
 
 		//find if symbol is shared!
-		let [success, othercard] = spotit_find_shared(Z, card, keyClicked);
+		let [success, othercard] = spotit_find_shared(card, keyClicked);
 		spotit_move(Z.uplayer, success);
 	}
 }
@@ -391,7 +390,7 @@ function spotit_move(uplayer, success) {
 		assertion(get_player_score(uplayer) >= 1, 'player score should be >= 1');
 
 		Z.fen.items = spotit_item_fen(Z.options);
-		Z.state = {score:get_player_score(uplayer)};
+		Z.state = { score: get_player_score(uplayer) };
 		take_turn_spotit();
 
 	} else {
@@ -400,13 +399,13 @@ function spotit_move(uplayer, success) {
 		TO.spotit_penalty = setTimeout(() => d.remove(), 2000);
 	}
 }
-function spotit_read_all_scores(){
-	if (nundef(Z.playerdata)){
+function spotit_read_all_scores() {
+	if (nundef(Z.playerdata)) {
 		Z.playerdata = [];
-		for(const pl in Z.fen.players){
+		for (const pl in Z.fen.players) {
 			Z.playerdata.push({
-				name:pl,
-				state:{score:0},
+				name: pl,
+				state: { score: 0 },
 			});
 		}
 	}

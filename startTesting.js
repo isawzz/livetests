@@ -77,6 +77,7 @@ function phpPost(o, cmd) {
 
 			// }else console.log('WTF2aaaaa!!!.......................\nfen.turn vor handle_result ist:', t1.fen);
 
+			//console.log('t', t);
 			handle_result(t, cmd); break;
 		default: break; //console.log('unknown command', cmd); break;
 	}

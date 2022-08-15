@@ -293,7 +293,7 @@ function onclick_view_buildings(){
 
 	for(const b of buildings) b.items.map(x=>face_up(x));
 	TO.buildings = setTimeout(hide_buildings,5000);
-	console.log('buildings',buildings);
+	//console.log('buildings',buildings);
 }
 
 function toggle_select(item, funcs) {

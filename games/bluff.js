@@ -125,9 +125,7 @@ function bluff_ai() {
 
 function bluff() {
 	const rankstr = '3456789TJQKA2';	
-	function bluff_clear_ack() { if (Z.stage == 1) { bluff_change_to_turn_round(); take_turn_fen(); } }
-	function bluff_check_gameover(Z) { let pls = get_keys(Z.fen.players); if (pls.length < 2) Z.fen.winners = pls; return valf(Z.fen.winners, false); }
-	function bluff_setup(players, options) {
+	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: {}, stage: 'move', phase: '' };
 
 		//how many decks? 
@@ -157,17 +155,17 @@ function bluff() {
 		fen.stage = 0;
 		return fen;
 	}
+	function clear_ack() { if (Z.stage == 1) { bluff_change_to_turn_round(); take_turn_fen(); } }
+	function check_gameover(Z) { let pls = get_keys(Z.fen.players); if (pls.length < 2) Z.fen.winners = pls; return valf(Z.fen.winners, false); }
+	function activate_ui() { bluff_activate_new(); }
+	function present(dParent) { bluff_present(dParent); }
+	function stats(dParent) { bluff_stats(dParent); }
+	function state_info(dParent) { bluff_state(dParent); }
 
-	function bluff_activate() { bluff_activate_new(); }
-	function bluff_present(Z, dParent, uplayer) { bluff_present_new(dParent); }
-	function bluff_stats(Z, dParent) { bluff_stats_new(dParent); }
-	function bluff_state(dParent) { bluff_state_new(dParent); }
-
-	return { rankstr, clear_ack: bluff_clear_ack, state_info: bluff_state, setup: bluff_setup, present: bluff_present, check_gameover: bluff_check_gameover, stats: bluff_stats, activate_ui: bluff_activate };
-
+	return { rankstr, setup, activate_ui, check_gameover, clear_ack, present, state_info, stats };
 }
 
-function bluff_present_new(dParent) {
+function bluff_present(dParent) {
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 1, 0); ///tableLayoutOMR(dParent, 5, 1);
 	let [fen, uplayer, ui, stage, dt] = [Z.fen, Z.uplayer, UI, Z.stage, dOpenTable];
 	clearElement(dt); mCenterFlex(dt);
@@ -175,7 +173,7 @@ function bluff_present_new(dParent) {
 	//state update
 	if (stage == 1) { DA.no_shield = true; } else { DA.ack = {}; DA.no_shield = false; }
 
-	bluff_stats_new(dt);
+	bluff_stats(dt);
 
 	mLinebreak(dt, 10);
 
@@ -203,8 +201,8 @@ function bluff_activate_new() {
 	let [z, A, fen, stage, uplayer, ui, dt] = [Z, Z.A, Z.fen, Z.stage, Z.uplayer, UI, UI.dOpenTable];
 	if (stage == 1) bluff_activate_stage1(); else { bluff_activate_stage0(); if (is_ai_player()) ai_move(1000); }
 }
-function bluff_stats_new(dParent) {
-	let player_stat_items = UI.player_stat_items = ui_player_info(Z, dParent, {}, { 'border-width': 1, margin: 10, wmax: 180 });
+function bluff_stats(dParent) {
+	let player_stat_items = UI.player_stat_items = ui_player_info(dParent, {}, { 'border-width': 1, margin: 10, wmax: 180 });
 	let fen = Z.fen;
 	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];
@@ -225,7 +223,7 @@ function bluff_stats_new(dParent) {
 	}
 	return player_stat_items[Z.uplayer];
 }
-function bluff_state_new(dParent) {
+function bluff_state(dParent) {
 	let user_html = get_user_pic_html(Z.uplayer, 30);
 	dParent.innerHTML = `Round ${Z.round}:&nbsp;player: ${user_html} `;
 	//dParent.innerHTML = `Round ${Z.round}`; 

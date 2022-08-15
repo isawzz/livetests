@@ -22,8 +22,8 @@ function animate_card_approx(card, goal, ms, callback) {
 	let c = { x: r.x + r.w / 2, y: r.y + r.h / 2 };
 	let cgoal = { x: rgoal.x + rgoal.w / 2, y: rgoal.y + rgoal.h / 2 };
 	let v = { x: cgoal.x - c.x, y: cgoal.y - c.y };
-	mAnimateList(d, {transform:`translateX(${v.x}px) translateY(${v.y}px)`,opacity:0}, callback, ms, 'linear');
-	
+	mAnimateList(d, { transform: `translateX(${v.x}px) translateY(${v.y}px)`, opacity: 0 }, callback, ms, 'linear');
+
 }
 function animate_card_transfer(card, goal, callback) {
 	let d = iDiv(card);
@@ -207,7 +207,12 @@ function get_next_human_player(plname) {
 	//console.log('next player should be',plnew);
 	return plnew;
 }
-
+function get_present_order() {
+	let [fen, uplayer, uname] = [Z.fen, Z.uplayer, Z.uname];
+	let uname_plays = fen.plorder.includes(Z.uname);
+	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
+	return arrCycle(Z.fen.plorder, Z.fen.plorder.indexOf(show_first));
+}
 function get_waiting_html() { return `<img src="../base/assets/images/active_player.gif" height="30" style="margin:0px 10px" />`; }
 function get_waiting_html(sz = 30) { return `<img src="../base/assets/images/active_player.gif" height="${sz}" style="margin:0px ${sz / 3}px" />`; }
 function get_default_options(gamename) {
@@ -265,15 +270,15 @@ function get_user_pic_and_name(uname, dParent, sz = 50, border = 'solid medium w
 	return elem;
 }
 function get_texture(name) { return `url(../base/assets/images/textures/${name}.png)`; }
-function hide_buildings(){
+function hide_buildings() {
 	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLOOOOOOOOOOOOOO')
-	let uplayer=Z.uplayer;
+	let uplayer = Z.uplayer;
 	let buildings = UI.players[uplayer].buildinglist;
-	for(const b of buildings){
-		console.log('b.schweine',b.schweine);
-		for(let i=1;i<b.items.length;i++){
-			let card=b.items[i];
-			if (b.schweine.includes(card))continue;
+	for (const b of buildings) {
+		//console.log('b.schweine', b.schweine);
+		for (let i = 1; i < b.items.length; i++) {
+			let card = b.items[i];
+			if (b.schweine.includes(card)) continue;
 			face_down(b.items[i]);
 		}
 	}
@@ -464,27 +469,19 @@ function show_player_button(caption, ui_item, handler) {
 	let b = mButton(caption, handler, d, styles, 'enabled');
 	return b;
 }
-function show_handsorting_buttons_for(plname) {
+function show_handsorting_buttons_for(plname, styles = {}) {
 	if (Z.role == 'spectator' || isdef(mBy('dHandButtons'))) return;
 
 	let fen = Z.fen;
 	let pl = fen.players[plname];
 	if (pl.hand.length <= 1) return;
 
-	let d = UI.players[plname].hand.container;
-	let dHandButtons = mDiv(d, { position: 'absolute', bottom: -8, left: 58, height: 25 }, 'dHandButtons');
+	let d = UI.players[plname].hand.container; mStyle(d, { position: 'relative' }); //,bg:'green' });
+	addKeys({ position: 'absolute', left: 58, bottom: -8, height: 25 }, styles); 
+	let dHandButtons = mDiv(d, styles, 'dHandButtons');
 
 	show_player_button('by rank', dHandButtons, onclick_by_rank);
 	show_player_button('by suit', dHandButtons, onclick_by_suit);
-
-	// let d = iDiv(ui_item);
-	// //console.log('d', d,plui);
-	// mStyle(d, { position: 'relative' })
-	// let dHandButtons = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dHandButtons');
-	// let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
-	// let bByRank = mButton('by rank', onclick_by_rank, dHandButtons, styles, 'enabled');
-	// let bBySuit = mButton('by suit', onclick_by_suit, dHandButtons, styles, 'enabled');
-
 }
 function ari_show_handsorting_buttons_for(plname) {
 	if (Z.role == 'spectator' || isdef(mBy('dHandButtons'))) return;
@@ -566,6 +563,9 @@ function show_home_logo() {
 	clearElement(dParent);
 	let d = miPic('castle', dParent, { cursor: 'pointer', fz: 24, padding: 6, h: 36, box: true, margin: 2 }); //, bg: bg, rounding: '50%' });
 	d.onclick = onclick_home;
+	let version = 'v0.0.1';
+	let html = `version ${version}`
+	mText(html,dParent,{fz:12});
 }
 function show_hourglass(uname, d, sz, stylesPos = {}) {
 	let html = get_waiting_html(sz);
@@ -878,16 +878,19 @@ function HPLayout() {
 	mInsert(UI.dRechts, UI.dHistory);
 	Clientdata.historyLayout = 'hp';
 }
-function ui_player_info(g, dParent, outerStyles = { dir: 'column' }, innerStyles = {}) {
-	let fen = g.fen;
-	let players = dict2list(fen.players, 'name');
-	players = sortByFunc(players, x => fen.plorder.indexOf(x.name));
+function ui_player_info(dParent, outerStyles = { dir: 'column' }, innerStyles = {}) {
+	let fen = Z.fen;
+	// let players = dict2list(fen.players, 'name');
+	// players = sortByFunc(players, x => fen.plorder.indexOf(x.name));
 	if (nundef(outerStyles.display)) outerStyles.display = 'flex';
 	mStyle(dParent, outerStyles);
 
 	let items = {};
 	let styles = jsCopy(innerStyles); addKeys({ rounding: 10, bg: '#00000050', margin: 4, padding: 4, patop: 12, box: true, 'border-style': 'solid', 'border-width': 6 }, styles);
-	for (const pl of players) {
+	let order = get_present_order();
+	//console.log('order', order);
+	for (const plname of order) {
+		let pl = fen.players[plname];
 		let uname = pl.name;
 		let imgPath = `../base/assets/images/${uname}.jpg`;
 		styles['border-color'] = get_user_color(uname);

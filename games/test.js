@@ -22,12 +22,20 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest108_animate_coin(); //ltest82_ferro(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest99_fritz(); //ltest108_animate_coin(); //ltest82_ferro(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+}
+
+function ltest109_spotit() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; 
+	DA.auto_moves = [];
+	let playernames = [U.name, 'felix'];
+	startgame('spotit', playernames.map(x => ({ name: x, playmode: 'human' })), {  });
 }
 function ltest108_animate_coin() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_players_schweine_variety], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
-	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
-	DA.auto_moves = [];//[['random']];
+	DA.test.end = () => { }; 
+	DA.auto_moves = [];
 	let playernames = [U.name, 'felix'];
 
 	DA.landing = () => {
@@ -692,7 +700,7 @@ function ltest38_ferro_end_of_round() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_group, give_player_only_one_card], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { };
 	DA.auto_moves = [];
-	startgame('ferro', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }, { name: 'felix', playmode: 'human' }, { name: 'gul', playmode: 'human' }], { mode: 'hotseat' });
+	startgame('ferro', [{ name: U.name, playmode: 'human' }, { name: 'nasi', playmode: 'human' }, { name: 'felix', playmode: 'human' }, { name: 'gul', playmode: 'human' }], { mode: 'hotseat' });
 }
 function ltest37_ferro_4_players() {
 	DA.magnify_on_select = true;

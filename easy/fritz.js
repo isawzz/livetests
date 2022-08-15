@@ -30,13 +30,13 @@ function fritz() {
 		[fen.phase, fen.stage, fen.turn] = ['', 'card_selection', [starter]];
 		return fen;
 	}
-	function present(z, dParent, uplayer) { fritz_present_new(z, dParent, uplayer); }
+	function present(z, dParent, uplayer) { fritz_present(z, dParent, uplayer); }
 	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
 	function activate_ui() { fritz_activate_ui(); }
 	return { state_info, setup, present, check_gameover, activate_ui };
 }
 
-function fritz_present_new(z, dParent, uplayer) {
+function fritz_present(z, dParent, uplayer) {
 	//console.log('present')
 	DA.hovergroup = null;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
@@ -61,7 +61,7 @@ function fritz_present_new(z, dParent, uplayer) {
 	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
-	fritz_stats_new(z, dRechts);
+	fritz_stats(z, dRechts);
 
 	show_history(fen, dRechts);
 
@@ -146,7 +146,7 @@ function fritz_present_player(playername, dMiddle) {
 	ensure_buttons_visible_for(playername);
 
 }
-function fritz_stats_new(z, dParent) {
+function fritz_stats(z, dParent) {
 	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
 	let fen = z.fen;
 	for (const uname in fen.players) {

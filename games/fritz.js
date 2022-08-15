@@ -1,7 +1,6 @@
 
 function fritz() {
 	const rankstr = 'A23456789TJQK*';
-	function state_info(dParent) { fritz_state_info(dParent); }
 	function setup(players, options) {
 		let fen = { players: {}, plorder: jsCopy(players), history: [], maxrounds: options.cycles * players.length };
 
@@ -31,16 +30,18 @@ function fritz() {
 		[fen.phase, fen.stage, fen.turn] = ['', 'card_selection', [starter]];
 		return fen;
 	}
-	function present(z, dParent, uplayer) { fritz_present_new(z, dParent, uplayer); }
-	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
 	function activate_ui() { fritz_activate_ui(); }
-	return { rankstr, state_info, setup, present, check_gameover, activate_ui };
+	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
+	function present(dParent) { fritz_present(dParent); }
+	function stats(dParent) { fritz_stats(dParent); }
+	function state_info(dParent) { fritz_state_info(dParent); }
+	return { rankstr, setup, activate_ui, check_gameover, present, state_info, stats };
 }
 
-function fritz_present_new(z, dParent, uplayer) {
+function fritz_present(dParent) {
 	//console.log('present')
 	DA.hovergroup = null;
-	let [fen, ui, stage] = [z.fen, UI, z.stage];
+	let [fen, ui, uplayer, stage, pl] = [Z.fen, UI, Z.uplayer, Z.stage, Z.pl];
 	//fen.shield=true;
 	//console.log('role',Z.role)
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent); mFlexWrap(dOpenTable)
@@ -49,20 +50,23 @@ function fritz_present_new(z, dParent, uplayer) {
 
 	//let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', fritz_get_card);
 	if (isEmpty(fen.deck_discard)) {
-		mText('discard empty', dOpenTable);
+		mText('discard pile is empty!', dOpenTable);
 		ui.deck_discard = { items: [] }
 	} else {
-		let deck_discard = ui.deck_discard = ui_type_hand(fen.deck_discard, dOpenTable, { maright: 25 }, 'deck_discard', 'discard', fritz_get_card, true);
+		mText('discard pile:', dOpenTable);mLinebreak(dOpenTable);
+		let deck_discard = ui.deck_discard = ui_type_hand(fen.deck_discard, dOpenTable, { maright: 25 }, 'deck_discard', null, fritz_get_card, true);
 		let i = 0; deck_discard.items.map(x => { x.source = 'discard'; x.index = i++ });
 	}
 	mLinebreak(dOpenTable);
+	mDiv(dOpenTable, { box:true,w:'100%' }, null, '<hr>');
+	//mLinebreak(dOpenTable,2,`<hr style="width:100%">`);
 
 
 	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, hmin: 162, wmin: 245, padding: '5px 50px 5px 5px', margin: 5 });
 	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
-	fritz_stats_new(z, dRechts);
+	fritz_stats(dRechts);
 
 	show_history(fen, dRechts);
 
@@ -120,6 +124,7 @@ function fritz_present_new(z, dParent, uplayer) {
 		}
 	}
 
+	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname,{left: 58, bottom:-1});
 
 }
 function fritz_present_player(playername, dMiddle) {
@@ -149,7 +154,6 @@ function fritz_present_player(playername, dMiddle) {
 	} else {
 		//console.log('player has no loose cards',pl);
 	}
-	show_handsorting_buttons_for(playername);
 
 }
 function fritz_activate_ui() {
@@ -185,12 +189,10 @@ function fritz_activate_ui() {
 
 	UI.timer = select_timer(fen.players[uplayer].time_left + Z.options.seconds_per_move * 1000, end_of_turn_fritz);
 
-	ensure_buttons_visible_ferro();
-
 }
-function fritz_stats_new(z, dParent) {
-	let player_stat_items = UI.player_stat_items = ui_player_info(z, dParent);
-	let fen = z.fen;
+function fritz_stats(dParent) {
+	let player_stat_items = UI.player_stat_items = ui_player_info(dParent);
+	let fen = Z.fen;
 	for (const uname in fen.players) {
 		let pl = fen.players[uname];
 		let item = player_stat_items[uname];

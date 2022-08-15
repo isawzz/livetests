@@ -1709,7 +1709,7 @@ function arrRotate(arr, count) {
 	unshift.apply(arr1, splice.call(arr1, count % len, len));
 	return arr1;
 }
-function arrReverse(arr) { return arr.reverse(); }
+function arrReverse(arr) { return jsCopy(arr).reverse(); }
 function arrSplitAtIndex(arr, i) {
 	return [arr.slice(0, i), arr.slice(i)];
 }
@@ -3223,8 +3223,6 @@ function getKeySets() {
 	//let ks = localStorage.getItem('KeySets');
 
 	makeCategories();	//console.log('Categories',Categories)
-
-	//if (isdef(ks)) { return JSON.parse(ks); }
 
 	//console.log('hallo'); return [];
 	let res = {};

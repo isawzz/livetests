@@ -628,7 +628,7 @@ function ensure_buttons_visible_ferro() {
 
 }
 
-function fritz_present_new(z, dParent, uplayer) {
+function fritz_present(z, dParent, uplayer) {
 	//console.log('present')
 	DA.hovergroup = null;
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
@@ -653,7 +653,7 @@ function fritz_present_new(z, dParent, uplayer) {
 	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
-	fritz_stats_new(z, dRechts);
+	fritz_stats(z, dRechts);
 
 	show_history(fen, dRechts);
 
@@ -3088,7 +3088,7 @@ function end_of_turn_fritz() {
 }
 
 
-function fritz_present_new(z, dParent, uplayer) {
+function fritz_present(z, dParent, uplayer) {
 
 	let [fen, ui, stage] = [z.fen, UI, z.stage];
 	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent, 5, 1); mFlexWrap(dOpenTable)
@@ -3110,7 +3110,7 @@ function fritz_present_new(z, dParent, uplayer) {
 	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
-	fritz_stats_new(z, dRechts);
+	fritz_stats(z, dRechts);
 
 	show_history(fen, dRechts);
 

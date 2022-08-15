@@ -39,9 +39,6 @@ function phpPostSimulate(o, cmd) {
 			let result = pack_table(o);
 			//console.log('t', t);
 
-			//let t1 = JSON.parse(result);
-			//console.log('t1', t1);
-
 			handle_result(result, cmd); break;
 		default: break; //console.log('unknown command', cmd); break;
 	}
