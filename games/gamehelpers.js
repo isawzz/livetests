@@ -14,6 +14,27 @@ function animate_card_exchange(i0, i1, callback) {
 	mTranslateBy(d0, v.x, v.y);
 	mTranslateBy(d1, -v.x, -v.y, 700, callback);
 }
+function animate_card_approx(card, goal, ms, callback) {
+	let d = iDiv(card);
+	let dgoal = iDiv(goal); //das muss irgendein UI item sein!
+	let r = getRect(d);
+	let rgoal = getRect(dgoal);
+	let c = { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+	let cgoal = { x: rgoal.x + rgoal.w / 2, y: rgoal.y + rgoal.h / 2 };
+	let v = { x: cgoal.x - c.x, y: cgoal.y - c.y };
+	mAnimateList(d, {transform:`translateX(${v.x}px) translateY(${v.y}px)`,opacity:0}, callback, ms, 'linear');
+	
+}
+function animate_card_transfer(card, goal, callback) {
+	let d = iDiv(card);
+	let dgoal = iDiv(goal); //das muss irgendein UI item sein!
+	let r = getRect(d);
+	let rgoal = getRect(dgoal);
+	let c = { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+	let cgoal = { x: rgoal.x + rgoal.w / 2, y: rgoal.y + rgoal.h / 2 };
+	let v = { x: cgoal.x - c.x, y: cgoal.y - c.y };
+	mTranslateBy(d, v.x, v.y, 700, callback);
+}
 function activate_ui() {
 
 	if (uiActivated) { DA.ai_is_moving = false; return; }
@@ -125,6 +146,7 @@ function compute_hidden(plname) {
 }
 function delete_table(friendly) { stopgame(); phpPost({ friendly: friendly }, 'delete_table'); }
 function ev_to_gname(ev) { evNoBubble(ev); return evToTargetAttribute(ev, 'gamename'); }
+function find_card(index, ui_item) { return ui_item.items[index]; }
 function generate_table_name(n) {
 	let existing = Serverdata.tables.map(x => x.friendly);
 	while (true) {
@@ -243,6 +265,19 @@ function get_user_pic_and_name(uname, dParent, sz = 50, border = 'solid medium w
 	return elem;
 }
 function get_texture(name) { return `url(../base/assets/images/textures/${name}.png)`; }
+function hide_buildings(){
+	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLOOOOOOOOOOOOOO')
+	let uplayer=Z.uplayer;
+	let buildings = UI.players[uplayer].buildinglist;
+	for(const b of buildings){
+		console.log('b.schweine',b.schweine);
+		for(let i=1;i<b.items.length;i++){
+			let card=b.items[i];
+			if (b.schweine.includes(card))continue;
+			face_down(b.items[i]);
+		}
+	}
+}
 function hFunc(content, funcname, arg1, arg2, arg3) {
 	//console.log('arg2',arg2,typeof arg2)
 	let html = `<a style='color:blue' href="javascript:${funcname}('${arg1}','${arg2}','${arg3}');">${content}</a>`;
@@ -422,42 +457,64 @@ function show_game_options(dParent, game) {
 	}
 
 }
+function show_player_button(caption, ui_item, handler) {
+	let d = ui_item.container ?? iDiv(ui_item);
+	//console.log('d', d);
+	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	let b = mButton(caption, handler, d, styles, 'enabled');
+	return b;
+}
 function show_handsorting_buttons_for(plname) {
-	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+	if (Z.role == 'spectator' || isdef(mBy('dHandButtons'))) return;
 
 	let fen = Z.fen;
 	let pl = fen.players[plname];
-	let plui = UI.players[plname];
 	if (pl.hand.length <= 1) return;
-	let d = iDiv(plui);
-	//console.log('d', d,plui);
-	mStyle(d, { position: 'relative' })
-	let dbPlayer = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dbPlayer');
-	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
-	let bByRank = mButton('by rank', onclick_by_rank, dbPlayer, styles, 'enabled');
-	let bBySuit = mButton('by suit', onclick_by_suit, dbPlayer, styles, 'enabled');
+
+	let d = UI.players[plname].hand.container;
+	let dHandButtons = mDiv(d, { position: 'absolute', bottom: -8, left: 58, height: 25 }, 'dHandButtons');
+
+	show_player_button('by rank', dHandButtons, onclick_by_rank);
+	show_player_button('by suit', dHandButtons, onclick_by_suit);
+
+	// let d = iDiv(ui_item);
+	// //console.log('d', d,plui);
+	// mStyle(d, { position: 'relative' })
+	// let dHandButtons = mDiv(d, { position: 'absolute', bottom: 2, left: 100, height: 25 }, 'dHandButtons');
+	// let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
+	// let bByRank = mButton('by rank', onclick_by_rank, dHandButtons, styles, 'enabled');
+	// let bBySuit = mButton('by suit', onclick_by_suit, dHandButtons, styles, 'enabled');
 
 }
 function ari_show_handsorting_buttons_for(plname) {
-	if (Z.role == 'spectator' || isdef(mBy('dbPlayer'))) return;
+	if (Z.role == 'spectator' || isdef(mBy('dHandButtons'))) return;
 
 	let fen = Z.fen;
 	let pl = fen.players[plname];
-	let plui = UI.players[plname].hand;
 
 	if (pl.hand.length <= 1) return;
-	let d = plui.container;
-	//console.log('d', d,plui);
-	mStyle(d, { position: 'relative' })
-	let dbPlayer = mDiv(d, { position: 'absolute', bottom: -2, left: 52, height: 25 }, 'dbPlayer');
-	let styles = { rounding: 6, bg: 'silver', fg: 'black', border: 0, maleft: 10 };
-	let bByRank = mButton('sort', onclick_by_rank, dbPlayer, styles, 'enabled');
 
-
-	//let bBySuit = mButton('by suit', onclick_by_suit, dbPlayer, styles, 'enabled');
+	let d = UI.players[plname].hand.container; mStyle(d, { position: 'relative' });
+	let dHandButtons = mDiv(d, { position: 'absolute', bottom: -2, left: 52, height: 25 }, 'dHandButtons');
+	show_player_button('sort', dHandButtons, onclick_by_rank);
 
 }
-function show_history(fen, dParent) {
+function show_view_buildings_button(plname) {
+	if (Z.role == 'spectator' || isdef(mBy('dPlayerButtons'))) return;
+
+	//let fen = Z.fen;
+	//let pl = fen.players[plname];
+	//console.log('buildings empty',isEmpty(UI.players[plname].buildinglist));
+	if (isEmpty(UI.players[plname].buildinglist)) return;
+
+	//let d = mBy(`d_${plname}`); mStyle(d,{bg:'red'});
+	let d1 = iDiv(UI.players[plname]); mStyle(d1, { position: 'relative' });
+	let d2 = mDiv(d1, { position: 'absolute', top: 8, left: 50, height: 25 }, 'dPlayerButtons');
+	//mStyle(d,{position:'relative'});
+	//let dPlayerButtons = mDiv(d, { position: 'absolute', top: 8, left: 52, height: 25, width: 200, bg:'green' }, 'dPlayerButtons');
+	show_player_button('view buildings', d2, onclick_view_buildings);
+
+} function show_history(fen, dParent) {
 	if (!isEmpty(fen.history)) {
 		let html = '';
 		for (const o of jsCopy(fen.history).reverse()) {

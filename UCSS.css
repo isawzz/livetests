@@ -1,4 +1,89 @@
 
+.shadow {
+	animation: animateGlow 1s linear infinite;
+}
+
+@keyframes animateGlow {
+	0% {
+		/* box-shadow: 0 0 20px #fff700; */
+		outline: 1px solid #fff700;
+		/* box-shadow: 0 0 5px #fff700, 0 0 10px #fff700, 0 0 20px #fff700, 0 0 40px #fff700; */
+	}
+	50% {
+		outline: 5px solid #fff700;
+		/* box-shadow: 0 0 10px #fff700; */
+	}
+}
+
+
+.shadow {
+	background: linear-gradient(
+		to left,
+		#ff5770,
+		#e4428d,
+		#c42da8,
+		#9e16c3,
+		#6501de,
+		#9e16c3,
+		#c42da8,
+		#e4428d,
+		#ff5770
+	);
+	background-size: 200% 200%;
+	animation: animateGlow 1.25s linear infinite;
+}
+
+@keyframes animateGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+
+
+@keyframes shadow-rotate {
+	from {
+		box-shadow: 10px -55px 30px 15px #823ca6, 24px -10px 47px 10px #aab3d2, -21px -25px 97px 10px #5acee3, 51px 5px 17px 10px #1b7d8f, 3px 2px 77px 10px #f30bf5;
+	}
+	to {
+		box-shadow: 10px -55px 30px 15px #f30bf5, 24px -10px 47px 10px #823ca6, -21px -25px 97px 10px #aab3d2, 51px 5px 17px 10px #5acee3, 3px 2px 77px 10px #1b7d8f;
+	}
+}
+.shadow{
+	box-shadow: 10px -55px 30px 15px #823ca6, 24px -10px 47px 10px #aab3d2, -21px -25px 97px 10px #5acee3, 51px 5px 17px 10px #1b7d8f, 3px 2px 77px 10px #f30bf5;
+	animation: shadow-rotate .1s linear infinite;
+	/* box-shadow: 1px 1px 2px #fd0c99, 1px 1px 2px #ff00dd; */
+
+}
+@keyframes shadow-rotate1 {
+	from {
+			transform: translate(-50%, -50%) rotate(0deg);
+	}
+	to {
+			transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
+.shadow1 {
+	/* width: 400px; */
+	/* height: 400px; */
+	/* position: absolute; */
+	/* top: 50%; */
+	/* left: 50%; */
+	/* transform: translate(-50%, -50%); */
+	/* border-radius: 100%; */
+	border-radius: 12px;
+	z-index: 1;
+	box-shadow: 10px -55px 30px 15px #823ca6, 24px -10px 47px 10px #aab3d2, -21px -25px 97px 10px #5acee3, 51px 5px 17px 10px #1b7d8f, 3px 2px 77px 10px #f30bf5;
+	animation: shadow-rotate 1.5s linear infinite;
+	transform-origin: center;
+}
+
+
+
+
 .rubberstamp{
   position: relative;
   display: inline-block;

@@ -148,7 +148,7 @@ function complexCompare(obj1, obj2) {
 }
 function exchange_by_index(arr1, i1, arr2, i2) {
 
-	console.log('exchange_by_index', arr1, i1, arr2, i2);
+	//console.log('exchange_by_index', arr1, i1, arr2, i2);
 
 	let temp = arr1[i1];
 	arr1[i1] = arr2[i2];

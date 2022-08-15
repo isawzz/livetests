@@ -35,9 +35,10 @@ function onclick_by_rank() {
 	//console.log('sorting for', uplayer);
 	let items = ui_get_hand_items(uplayer).map(x => x.o);
 	let h = UI.players[uplayer].hand;
-	pl.handsorting = { n: items.length, by: 'rank' };
+	pl.handsorting = 'rank'; //{ n: items.length, by: 'rank' };
 	//lookupSetOverride(Clientdata,['handsorting',uplayer],pl.handsorting);
 	Clientdata.handsorting = pl.handsorting;
+	localStorage.setItem('handsorting', Clientdata.handsorting);
 	//console.log('h ui', h);
 	//console.log('items', items);
 	let cardcont = h.cardcontainer;
@@ -52,27 +53,12 @@ function onclick_by_rank() {
 	}
 	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
-function onclick_by_rank_ari() {
-
-	let items = UI.players[Z.uplayer].hand.items; //ui_get_hand_items(Z.uplayer).map(x => x.o);
-	console.log('items', items);
-	let s1=items.map(x=>`${x.index}:${x.key}`).join(',');
-
-	return;
-	console.log('onclick_by_rank',s1);
-
-	onclick_by_rank();
-
-	reindex_items(items);
-	let s2=items.map(x=>`${x.index}:${x.key}`).join(',');
-	console.log('...items', items.map(x=>`${x.index}:${x.key}`));
-
-}
 function onclick_by_suit() {
 	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
 	let items = ui_get_hand_items(uplayer).map(x => x.o);
 	let h = UI.players[uplayer].hand;
-	pl.handsorting = { n: items.length, by: 'suit' };
+	Clientdata.handsorting = pl.handsorting = 'suit'; //{ n: items.length, by: 'suit' };
+	localStorage.setItem('handsorting', Clientdata.handsorting);
 	//console.log('h ui', h);
 	let cardcont = h.cardcontainer;
 	let ch = arrChildren(cardcont);
@@ -243,15 +229,6 @@ function onclick_restart() {
 	take_turn_fen_clear();
 }
 function onclick_restart_move() { clear_transaction(); onclick_reload(); }
-// 	if (isdef(Clientdata.snapshot)) {
-// 		Z.fen = Clientdata.snapshot;
-// 		clear_transaction();
-// 		take_turn_fen();
-// 	} else {
-// 		clear_transaction();
-// 		onclick_reload();
-// 	}
-// }
 function onclick_reset_all() { stopgame(); phpPost({ app: 'simple' }, 'delete_tables'); }
 function onclick_skip() {
 	//removeInPlace(Z.turn,Z.uplayer);
@@ -286,17 +263,6 @@ function onclick_table(tablename) {
 	//ensure_polling();
 	send_or_sim({ friendly: tablename, uname: U.name }, 'table');
 }
-function onclick_user(uname) {
-	//console.log('onclick_user',uname);
-	U = firstCond(Serverdata.users, x => x.name == uname);
-	localStorage.setItem('uname', U.name);
-	let elem = firstCond(arrChildren('dUsers'), x => x.getAttribute('username') == uname);
-	let img = elem.children[0];
-
-	mShrinkTranslate(img, .75, 'dAdminRight', 400, show_username);
-	mFadeClear('dUsers', 300);
-
-}
 function onclick_tables() { phpPost({ app: 'simple' }, 'tables'); }
 function onclick_tithe_all() {
 
@@ -309,6 +275,25 @@ function onclick_tithe_all() {
 	}
 
 	proceed_to_newcards_selection();
+}
+function onclick_user(uname) {
+	//console.log('onclick_user',uname);
+	U = firstCond(Serverdata.users, x => x.name == uname);
+	localStorage.setItem('uname', U.name);
+	let elem = firstCond(arrChildren('dUsers'), x => x.getAttribute('username') == uname);
+	let img = elem.children[0];
+
+	mShrinkTranslate(img, .75, 'dAdminRight', 400, show_username);
+	mFadeClear('dUsers', 300);
+
+}
+function onclick_view_buildings(){
+	let [game, fen, uplayer, turn, stage] = [Z.game, Z.fen, Z.uplayer, Z.turn, Z.stage];
+	let buildings = UI.players[uplayer].buildinglist;
+
+	for(const b of buildings) b.items.map(x=>face_up(x));
+	TO.buildings = setTimeout(hide_buildings,5000);
+	console.log('buildings',buildings);
 }
 
 function toggle_select(item, funcs) {

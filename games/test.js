@@ -1,4 +1,4 @@
-function landing() { if (!TESTING) return; } //onclick_by_rank(); } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
+function landing() { if (!TESTING) return; if (isdef(DA.landing)) DA.landing(); } //onclick_by_rank(); } //show_strategy_popup(); } //onclick_random(); }//show_history_popup(); }
 function start_tests() {
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
@@ -22,17 +22,48 @@ function start_tests() {
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//#endregion
-	ltest109_ferro(); //ltest108_aristo_inspect_schwein(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest108_animate_coin(); //ltest82_ferro(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 }
-function give_player_achieve_5(o) {
-	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
-	let pl = fen.players[uplayer];
-	pl.hand = ['6Hn', '6Hn', '6Hn', '6Hn', '*Hn', '4Cn', '4Cn', '4Cn', '3Dn', '3Dn', '2Sn','KHn','QSn'];
-	for (const plname of fen.plorder) {
-		if (plname == uplayer) continue;
-		let pl1 = fen.players[plname];
-		pl1.journeys = [['2Cn', '2Hn', '*Hn']];
-	}
+function ltest108_animate_coin() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_players_schweine_variety], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix'];
+
+	DA.landing = () => {
+		// let d = iDiv(UI.player_stat_items[Z.uplayer]); //.dCoin;
+		d=UI.player_stat_items[Z.uplayer].dCoin;
+		anim1(d);
+		// let els = document.getElementsByTagName('div');
+		// //animate all els
+		// for (let i = 0; i < els.length; i++) {
+		// 	let x = els[i];
+		// 	let svg=x.getElementsByTagName('svg')[0];
+		// 	if (isdef(svg)) anim1(x);
+		// 	//if (startsWith(x.id,'u_') && mGetStyle(x,'height') == 100) anim1(x); 
+		// }
+		//console.log('was',ui);
+		//mPulse3(ui);
+		//anipulse(UI.player_stat_items[Z.uplayer].dCoin,3000,()=>console.log('HA!'));		
+	};
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest107_aristo_build() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_players_schweine_variety], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+}
+function ltest110_auction() {
+	TESTING = true; DA.testing = true; DA.test = { mods: [set_auction_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
+	DA.auto_moves = [];//[['random']];
+	let playernames = [U.name, 'felix']; //, 'amanda', 'lauren'];
+
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
 function ltest109_ferro() {
 	//let x=length_of_each_array([[3,3,3],[4,4,4,4],[1,1],[5,5,5,5,5],[5,5,5,5,5]]);	console.log('x',x);
@@ -1615,6 +1646,16 @@ function give_various_buildings_to(o, plname) {
 
 	let b3 = stage_building(fen, i, 'farm');
 	return plname;
+}
+function give_player_achieve_5(o) {
+	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
+	let pl = fen.players[uplayer];
+	pl.hand = ['6Hn', '6Hn', '6Hn', '6Hn', '*Hn', '4Cn', '4Cn', '4Cn', '3Dn', '3Dn', '2Sn', 'KHn', 'QSn'];
+	for (const plname of fen.plorder) {
+		if (plname == uplayer) continue;
+		let pl1 = fen.players[plname];
+		pl1.journeys = [['2Cn', '2Hn', '*Hn']];
+	}
 }
 function give_players_buildings(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];

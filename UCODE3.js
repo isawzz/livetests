@@ -1,4 +1,45 @@
 
+
+function animate_build_action(cards,is_coin_pay,callback){
+	if (is_coin_pay) animcoin(Z.uplayer, 800, callback);
+}
+
+function redraw_hand(){
+	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];
+	let ui = UI.players[uplayer];
+	let dplayer = iDiv(ui);
+	let chi = arrChildren(dplayer);
+	let ihand = chi.indexOf(iDiv(ui.hand));
+	console.log('index of hand div is', ihand);
+}
+
+
+
+function animate_build_action(cards,is_coin_pay,callback){
+	//console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
+	// let ms=3000;
+	// for (const item of building_items) {
+	// 	ari_make_unselectable(item);
+	// 	mPulse(iDiv(item.o),DA.duration);
+	// 	//animate_card_approx(item.o, UI.players[uplayer], DA.duration);
+	// }
+	//let d=UI.player_stat_items[Z.uplayer].dCoin;
+	if (is_coin_pay) animate_coin_pay(); //anim1(d,700,callback);
+	//anipulse(UI.player_stat_items[uplayer].dCoin,3000,callback);
+	//setTimeout(ari_next_action, DA.duration); //ari_next_action();
+}
+
+function animate_coin_pay() {
+	let uplayer = Z.uplayer;
+	let stand = Z.fen.players[uplayer].coins;
+	let ui_item = UI.player_stat_items[uplayer];
+	//console.log('ui_item', ui_item);
+	//ui_item.dAmount.innerHTML = stand;
+	mPulse(ui_item.dCoin, DA.duration, () => { ui_item.dAmount.innerHTML = stand; mStyle(ui_item.dAmount, { fg: 'red' }); })
+	//.innerHTML = stand);
+
+}
+
 function calc_ferro_highest_goal_achieved(pl) {
 	let di = {
 		'3': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3,

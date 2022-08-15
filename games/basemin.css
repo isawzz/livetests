@@ -293,14 +293,26 @@ fieldset .disabled {
 }
 
 @-webkit-keyframes AnimationName {
-	0%{background-position:0% 50%}
-	50%{background-position:100% 50%}
-	100%{background-position:0% 50%}
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }
 @keyframes AnimationName {
-	0%{background-position:0% 50%}
-	50%{background-position:100% 50%}
-	100%{background-position:0% 50%}
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }
 
 .section {
@@ -335,7 +347,7 @@ fieldset .disabled {
 }
 
 #dTexture {
-	min-height: 500px; 
+	min-height: 500px;
 	/* min-height: calc(100vh - 100px); */
 	/* padding-bottom: 10px;
 	box-sizing: border-box; */
@@ -488,35 +500,35 @@ fieldset .disabled {
 	font-size: 14px;
 	box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 3px 1px -2px rgb(0 0 0 / 20%), 0 1px 5px 0 rgb(0 0 0 / 12%);
 }
-.btn{
+.btn {
 	padding: 12px;
-	cursor:pointer;
+	cursor: pointer;
 }
-.btn:hover{
+.btn:hover {
 	background: #ffffffa0;
 	filter: invert();
 	opacity: 0.5;
 }
-.btn:active{
+.btn:active {
 	background: #000000a0;
 	color: white;
 }
-.btnX{
+.btnX {
 	color: dimgray;
 	cursor: pointer;
 }
-.btnX:hover{
+.btnX:hover {
 	filter: invert();
 	opacity: 0.7;
 }
-.btnX:active{
+.btnX:active {
 	color: white;
 }
-.no_outline{
+.no_outline {
 	outline: none;
 	border: 0;
 }
-.coinput{
+.coinput {
 	pointer-events: auto;
 	box-sizing: border-box;
 	font: inherit;
@@ -530,22 +542,22 @@ fieldset .disabled {
 	line-height: 1.5;
 	border-radius: 0;
 	background-color: transparent;
-	color: rgba(0,0,0,0.87);
+	color: rgba(0, 0, 0, 0.87);
 	box-shadow: none;
 	padding: 8px 0 4px;
 	border: 0;
-	border-bottom: 1px solid rgba(0,0,0,0.42);
+	border-bottom: 1px solid rgba(0, 0, 0, 0.42);
 	transition: border-bottom 0.2s, padding-bottom 0.2s;
 	height: initial;
 	margin-bottom: 8px;
 	text-align: left;
 }
-.coinput:hover{
+.coinput:hover {
 	-webkit-text-size-adjust: 100%;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 	border-bottom: 2px solid rgba(0, 0, 0, 0.87);
 	padding-bottom: 3px;
-	text-align: left;	
+	text-align: left;
 }
 .coinput:active,
 .coinput:focus {
@@ -555,7 +567,7 @@ fieldset .disabled {
 	border-bottom: 2px solid #66afe9;
 	padding-bottom: 3px;
 }
-.coform{
+.coform {
 	width: 96%;
 	min-height: 200px;
 	padding-bottom: 10px;
@@ -574,7 +586,6 @@ fieldset .disabled {
 	background-color: transparent;
 	color: transparent;
 }
-
 
 .toolbarButtonClass {
 	height: 10px;
@@ -612,27 +623,30 @@ fieldset .disabled {
 	filter: brightness(0.75);
 }
 
-.greenstamp{
-	color: #0A9928;
+.greenstamp {
+	color: #0a9928;
 }
-.redstamp{
+.redstamp {
 	color: crimson;
 }
-.bluestamp{
+.bluestamp {
 	color: navy;
 }
 
 
+@keyframes flash {
+  /* (B1) FROM RED */
+  from {
+    box-shadow:
+    0 0 5px #fc0303, 0 0 10px #fc0303,
+    0 0 20px #fc0303, 0 0 40px #fc0303;
+  }
+  /* (B2) TO BLUE */
+  to {
+    box-shadow:
+    0 0 5px #03cafc, 0 0 10px #03cafc,
+    0 0 20px #03cafc, 0 0 40px #03cafc;
+  }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+.shadow { animation: flash 0.25s ease 4 alternate; }

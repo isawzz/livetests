@@ -385,7 +385,7 @@ function calc_ferro_highest_goal_achieved(pl) {
 			continue;
 		}
 		let achieved= di[k];
-		console.log('player', pl.name, 'achieved', k, achieved);
+		//console.log('player', pl.name, 'achieved', k, achieved);
 		if (achieved) {
 			//console.log('goal', k, 'available to', pl.name);
 			return k;

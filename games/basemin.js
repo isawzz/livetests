@@ -356,6 +356,20 @@ function mAnimateTo(elem, prop, val, callback, msDuration = 1000, easing = 'cubi
 	// if (isdef(callback)) a.onfinish = ()=>{delete DA.anim;callback()}; else a.onfinish = ()=>delete DA.anim;
 	// DA.anim = a; return a;
 }
+function mAnimateList(elem, ogoal, callback, msDuration = 1000, easing = 'cubic-bezier(1,-0.03,.86,.68)', delay = 0) {
+	//usage: mAnimateTo(elem, 'opacity', 1, somefunc, 2000, 'ease-in', 1000);
+	for(const k in ogoal) {
+		ogoal[k] = isString(ogoal[k]) || k == 'opacity' ? ogoal[k] : '' + ogoal[k] + 'px';
+	}
+	let kflist = [ogoal];
+	let opts = { duration: msDuration, fill: 'forwards', easing: easing, delay: delay };
+	let a = toElem(elem).animate(kflist, opts);
+
+	if (isdef(callback)) { a.onfinish = callback; }
+	return a;
+	// if (isdef(callback)) a.onfinish = ()=>{delete DA.anim;callback()}; else a.onfinish = ()=>delete DA.anim;
+	// DA.anim = a; return a;
+}
 function mAppend(d, child) { toElem(d).appendChild(child); return child; }
 function mButton(caption, handler, dParent, styles, classes, id) {
 	let x = mCreate('button');
@@ -1289,9 +1303,9 @@ function mFadeClear(d, ms = 800, callback = null) { return mAnimateTo(d, 'opacit
 function mFadeClearShow(d, ms = 800, callback = null) { return mAnimate(d, 'opacity', [1, 0], () => { mClear(d); if (callback) callback(); }, ms); }
 function mFall(d, ms = 800, dist=50) { toElem(d).animate([{ opacity: 0, transform: `translateY(-${dist}px)` }, { opacity: 1, transform: 'translateY(0px)' },], { fill: 'both', duration: ms, easing: 'ease' }); }
 function mPulse(d, ms, callback = null) { mClass(d, 'onPulse'); TO[getUID()] = setTimeout(() => { mClassRemove(d, 'onPulse'); if (callback) callback(); }, ms); }
-function mPulse1(d, callback) { mPulse(d, 1000); }
-function mPulse2(d, callback) { mPulse(d, 2000); }
-function mPulse3(d, callback) { mPulse(d, 3000); }
+function mPulse1(d, callback) { mPulse(d, 1000, callback); }
+function mPulse2(d, callback) { mPulse(d, 2000, callback); }
+function mPulse3(d, callback) { mPulse(d, 3000, callback); }
 
 function mHide(d, ms = 0) { if (ms > 0) mFade(d, ms); else mStyle(d, { opacity: 0 }); }
 function mShow(d, ms = 0) { if (ms > 0) mAppear(d, ms); else mStyle(d, { opacity: 1 }); }
@@ -1315,6 +1329,15 @@ function mTranslate(child, newParent, ms = 800, callback = null) {
 }
 function mTranslateBy(elem,x,y, ms = 800, callback = null) {
 	mAnimate(elem, 'transform', [`translateX(${x}px) translateY(${y}px)`], callback, ms, 'ease'); //translate(${dx}px,${dy}px)`
+	//let anim = toElem(child).animate([{ transform: `scale(${1},${1})` }, { transform: `scale(${x},${y})` },], { fill: 'both', duration: ms, easing: 'ease' });
+	//anim.onfinish = callback;
+}
+function mTranslateByFade(elem,x,y, ms = 800, callback = null) {
+
+	mAnimate(elem, 'transform', [`translateX(${x}px) translateY(${y}px)`], callback, ms, 'ease'); //translate(${dx}px,${dy}px)`
+	let a = toElem(elem).animate([{ opacity: .25 }, { opacity: 1 },], { fill: 'both', duration: ms, easing: 'ease' });
+
+	//mAnimate(elem, 'transform', [`translateX(${x}px) translateY(${y}px)`], callback, ms, 'ease'); //translate(${dx}px,${dy}px)`
 	//let anim = toElem(child).animate([{ transform: `scale(${1},${1})` }, { transform: `scale(${x},${y})` },], { fill: 'both', duration: ms, easing: 'ease' });
 	//anim.onfinish = callback;
 }

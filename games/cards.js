@@ -1,21 +1,11 @@
-function correct_handsorting(hand,plname) {
+function correct_handsorting(hand, plname) {
 	let pl = Z.fen.players[plname];
 	//console.log('pl',pl,'Clientdata',Clientdata);
-	let [cs, pls] = [Clientdata.handsorting, pl.handsorting];
-
-	if (nundef(cs) && nundef(pls)) {
-		let hs = localStorage.getItem('handsorting');
-		if (hs) Clientdata.handsorting = JSON.parse(hs);
-		else Clientdata.handsorting = Config.games[Z.game].defaulthandsorting;
-		pls = pl.handsorting = Clientdata.handsorting;
-		localStorage.setItem('handsorting', JSON.stringify(pls)); 
-	}	else if (nundef(cs)) { Clientdata.handsorting = pls; localStorage.setItem('handsorting', JSON.stringify(pls)); }
-	if (isdef(cs) && isdef(pls) && cs != pls) { pls = pl.handsorting = cs; localStorage.setItem('handsorting', JSON.stringify(pls)); }; //update from current
-
-	//pls is now the correct sorting
-	hand = sort_cards(hand, pls=='suit', 'CDSH', true, Z.func.rankstr);
+	let [cs, pls, locs] = [Clientdata.handsorting, pl.handsorting, localStorage.getItem('handsorting')];
+	//console.log('correct_handsorting:', 'client', cs, 'pl', pls, 'stor', locs);
+	let s = cs ?? pls ?? locs ?? Config.games[Z.game].defaulthandsorting;
+	hand = sort_cards(hand, s == 'suit', 'CDSH', true, Z.func.rankstr);
 	return hand;
-
 }
 
 //#region get_card and card assets
@@ -165,7 +155,7 @@ function face_up(item) {
 	item.faceUp = true;
 }
 function toggle_face(item) { if (item.faceUp) face_down(item); else face_up(item); }
-function anim_toggle_face(item, ms=300, callback=null) {
+function anim_toggle_face(item, ms = 300, callback = null) {
 	let d = iDiv(item);
 	mClass(d, 'aniflip');
 	TO.anim = setTimeout(() => {
@@ -173,8 +163,8 @@ function anim_toggle_face(item, ms=300, callback=null) {
 		if (isdef(callback)) callback();
 	}, ms);
 }
-function anim_face_up(item, ms=300, callback=null) {	face_down(item);anim_toggle_face(item,callback);}
-function anim_face_down(item, ms=300, callback=null) {	face_up(item);anim_toggle_face(item,callback);}
+function anim_face_up(item, ms = 300, callback = null) { face_down(item); anim_toggle_face(item, callback); }
+function anim_face_down(item, ms = 300, callback = null) { face_up(item); anim_toggle_face(item, callback); }
 
 //#region ui_type_...
 function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', get_card_func = ari_get_card, separate_lead = false, ishidden = false) {
@@ -221,10 +211,13 @@ function ui_type_building(b, dParent, styles = {}, path = 'farm', title = '', ge
 
 		let item = items[i];
 		//console.log('item',item)
-		if (ishidden && !b.schweine.includes(i)) face_down(item);
-		else if (b.schweine.includes(i)) {
-			add_ui_schwein(item, uischweine);
-		}
+
+		// uncomment the following code to keep own buildings always open!
+		// if (ishidden && !b.schweine.includes(i)) face_down(item); //wenn ich immer offen sehen will!
+		// else if (b.schweine.includes(i)) add_ui_schwein(item, uischweine);
+
+		// uncomment the following code to show buildings closed by default!
+		if (!b.schweine.includes(i)) face_down(item); else add_ui_schwein(item, uischweine);
 	}
 
 	return {
