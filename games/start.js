@@ -75,7 +75,6 @@ function startgame(game, players, options = {}) {
 	phpPost(o, 'startgame');
 }
 function gamestep() {
-
 	show_admin_ui();
 	DA.running = true; clear_screen(); dTable = mBy('dTable'); mClass('dTexture', 'wood');
 	//transition animation:
@@ -106,6 +105,9 @@ function gamestep() {
 		//console.log('Z.waiting:', Z.isWaiting);
 		if (Z.isWaiting == true || Z.mode != 'multi') staticTitle(); else animatedTitle();
 		//console.log('player_status',Z.uplayer_data.player_status);
+
+		//let doNOTpoll = Z.options.zen_mode == 'yes' || Z.mode == 'hotseat' || ;
+		//functioniert das folgende?
 		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') autopoll();
 	}
 	if (TESTING == true) landing();
@@ -327,6 +329,8 @@ function take_turn_fen_write() { take_turn(true, true); }
 
 function take_turn_multi() { if (isdef(Z.state)) take_turn(false, true); else take_turn(false, false); }
 function take_turn_write() { take_turn_multi(); }
+
+//next 2 can be eliminated: stay on client during partial playerdata writes!
 function take_turn_write_partial() { if (isdef(Z.state)) take_turn(false, true, false, 'stop'); else take_turn(false, false, false, 'stop'); }
 function take_turn_write_complete() { take_turn(false, true, false, null); } //if (isdef(Z.state)) else take_turn(false, true, false, null); }
 

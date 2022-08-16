@@ -19,10 +19,9 @@ function rollback() {
 		Z.phase = DA.snapshot.phase;
 		Z.turn = DA.snapshot.turn;
 	}
-
 }
 function phpPostSimulate(o, cmd) {
-	//console.log('!!!!!!!!!!!!simulate', o, cmd);
+	console.log('!!!!!!!!!!!!simulate', o, cmd);
 	FORCE_REDRAW = true;
 
 	if (nundef(o.options) && isdef(Z)) {

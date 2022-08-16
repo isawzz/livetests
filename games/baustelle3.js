@@ -1,75 +1,90 @@
 
-function post_comm_setup_stage() {
+function process_rumors_setup() {
 
-	//erst uebertrage alle cards from pldata.state.keys to pldata.state.receiver
-	let [fen, A, uplayer, plorder, pl] = [Z.fen, Z.A, Z.uplayer, Z.plorder, Z.pl];
-	// console.log('OK 3: resolving__________________',uplayer);
-	
-	// console.log('playerdata',jsCopy(Z.playerdata));
-	let achtungHack=false;
-	let new_playerdata=[];
-	for (const data of Z.playerdata) {
-		let o=data;
-		if (is_stringified(data)){
-			console.log('achtungHack: data is stringified');
-			o=JSON.parse(data);
-			achtungHack=true;
-		}else if (is_stringified(data.state)){
-			console.log('achtungHack: data.state is stringified');
-			o.state = JSON.parse(data.state);
-			achtungHack = true;
+	let [fen, A, uplayer, plorder, data] = [Z.fen, Z.A, Z.uplayer, Z.plorder, Z.uplayer_data];
+
+	let items = A.selected.map(x => A.items[x]);
+	let receiver = firstCond(items, x => plorder.includes(x.key)).key;
+	let rumor = firstCond(items, x => !plorder.includes(x.key));
+	if (nundef(receiver) || nundef(rumor)) {
+		select_error('you must select exactly one player and one rumor card!');
+		return;
+	}
+
+	assertion(isdef(data), 'no data for player ' + uplayer); //	sss(); //console.log('data',data);
+
+	let remaining = arrMinus(data.state.remaining, rumor.key); //fen.players[uplayer].rumors = arrMinus(fen.players[uplayer].rumors, rumor.key);
+	lookupAddToList(data, ['state', 'di', receiver], rumor.key);
+	lookupAddToList(data, ['state', 'receivers'], receiver);
+	lookupSetOverride(data, ['state', 'remaining'], remaining);
+
+	//console.log('state nach auswahl von', rumor.key, 'fuer', receiver, data.state);
+
+	Z.state = data.state; //genau DAS muss gesendet werden!!!!!
+
+	//check can_resolve (das ist weenn ALLE rumors von ALLEN spielern verteilt sind!)
+	let done = ari_try_resolve_rumors_distribution();
+	//console.log('===>ALL DONE!', done, 'remaining', remaining);
+	if (!done) {
+		if (isEmpty(remaining)) {
+			take_turn_write_complete();
+		} else {
+			//console.log('WRITING STOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!',uplayer)
+			take_turn_write_partial();
 		}
-		new_playerdata.push(o);
-		//if (!isDict(data)) data
-		let state = o.state;
-		//console.log('state', state)
-		let giver = state.giver;
-		let receiver = state.receiver;
-		let keys = state.keys;
-		// console.log('giver', giver, fen.players[giver].commissions)
-		// console.log('receiver', receiver, fen.players[receiver].commissions);
-		// console.log('state.keys', keys);
-
-		keys.map(x => elem_from_to(x, fen.players[giver].commissions, fen.players[receiver].commissions));
-		//fen.players[giver].commissions = arrMinus(fen.players[giver].commissions, keys);
-		//fen.players[receiver].commissions = fen.players[receiver].commissions.concat(keys); //arrPlus(fen.players[receiver].commissions, keys);
-		//fen.players[receiver].commissions = arrPlus(fen.players[receiver].commissions, keys);
 	}
-	if (achtungHack) {Z.playerdata = new_playerdata;}
+}
+function ari_try_resolve_rumors_distribution() {
+	if (!i_am_host()) return false;
+	//console.log('HAAAAAAAAAAAAAAAAAAAAAAAA')
+	let can_resolve = true;
+	for (const pldata of Z.playerdata) {
+		//let data1 = pldata;
+		//console.log('pldata', pldata, pldata.state, pldata.remaining);
 
-	fen.comm_setup_num -= 1;
+		// if (isEmpty(pldata.state)) { console.log('empty, break'); can_resolve = false; break; }
+		// else if (!isEmpty(pldata.state.remaining)) { console.log('some remaining!, break'); can_resolve = false; break; }
 
-	//console.log('OK 4',fen.comm_setup_num);
-	// console.log('mimi commissions',pl.commissions);
-	// console.log('felix commissions',fen.players.felix.commissions);
-	//assertion(fen.comm_setup_num > 1, "fen.comm_setup_num must be > 1");
+		//let receivers = data1.receivers;		if (receivers.length < Z.plorder.length-1) { can_resolve = false; break; }
 
+		if (isEmpty(pldata.state)) { can_resolve = false; break; }
+		else if (!isEmpty(pldata.state.remaining)) { can_resolve = false; break; }
 
-	//return;
-
-	if (fen.comm_setup_num <= 0) {
-		delete fen.comm_setup_di;
-		delete fen.comm_setup_num;
-		delete fen.keeppolling;
-		ari_history_list([`commission trading ends`], 'commissions');
-
-		if (exp_rumors && plorder.length > 2) {
-			[Z.stage, Z.turn] = [24, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
-			ari_history_list([`gossiping starts`], 'rumors');
-
-		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
-	} else {
-
-		//muss auf jeden fen clear aufrufen!
-		//mach dasselbe wie beim ersten mal!
-		[Z.stage, Z.turn] = [23, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder];
-		//
 	}
 
-	//DA.hallo=true;
+	// console.log('can_resolve', can_resolve);
+	if (can_resolve) {
+		//console.log('HAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOO');
+		Z.turn = [Z.host];
+		Z.stage = 105; //'next_rumors_setup_stage';
+		take_turn_fen_write();
+		return true;
+	}
+	return false;
+}
+function post_rumor_setup() {
+	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
+
+	for (const plname of plorder) { fen.players[plname].rumors = []; }
+
+
+	for (const plname of plorder) {
+		//if (plname == uplayer) continue;
+		//let pl = fen.players[plname];
+		let data = firstCond(Z.playerdata, x => x.name == plname);
+		let di = data.state.di;
+		//console.log('di', plname, di);
+		for (const k in di) arrPlus(fen.players[k].rumors, di[k]);
+		// 	assertion(isdef(fen.rumor_setup_di[plname]), 'no rumors for ' + plname);
+		// 	pl.rumors = fen.rumor_setup_di[plname];
+	}
+	// delete fen.rumor_setup_di;
+	// delete fen.rumor_setup_receivers;
+	ari_history_list([`gossiping ends`], 'rumors');
+
+
+	[Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase);
 	take_turn_fen_clear();
-	//if fen.comm_setup_num is 1, then go to next stage 
-	//console.log('fen', fen);
 }
 
 

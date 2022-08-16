@@ -273,7 +273,7 @@ function _poll() {
 	//console.log('polling...');
 	show_polling_signal();
 
-	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; //console.log('DA.pollCounter', DA.pollCounter);
+	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; console.log('polling', DA.pollCounter);
 
 	send_or_sim({ friendly: Z.friendly, uname: Z.uplayer, auto: true }, 'table');
 }
