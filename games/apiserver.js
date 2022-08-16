@@ -84,6 +84,17 @@ function phpPost(data, cmd) {
 	clear_transaction();
 
 	pollStop();
+
+	var o = {};
+	o.data = valf(data, {});
+	o.cmd = cmd;
+	o = JSON.stringify(o);
+
+	if (DA.SIMSIM === true && ['table','startgame'].includes(cmd)) { 
+		sendSIMSIM(o, DA.exclusive); 
+		if (DA.exclusive) return; 
+	}
+	
 	var xml = new XMLHttpRequest();
 	loader_on();
 	xml.onload = function () {
@@ -92,10 +103,6 @@ function phpPost(data, cmd) {
 			handle_result(xml.responseText, cmd);
 		} else { console.log('WTF?????') }
 	}
-	var o = {};
-	o.data = valf(data, {});
-	o.cmd = cmd;
-	o = JSON.stringify(o);
 	xml.open("POST", "api.php", true);
 	xml.send(o);
 }
@@ -166,7 +173,7 @@ function unpack_table(table) {
 	for (const k of ['players', 'fen', 'options', 'scoring']) {
 		let val = table[k];
 		//console.log('k',k, 'val',val, table[k]);
-		if (isdef(table[k])) table[k] = JSON.parse(table[k]); else table[k] = {};
+		if (isdef(table[k])) table[k] = if_stringified(val); if (nundef(table[k])) table[k]={}; //JSON.parse(table[k]); else table[k] = {};
 	}
 	if (isdef(table.modified)) { table.timestamp = new Date(Number(table.modified)); table.stime = stringBeforeLast(table.timestamp.toString(), 'G').trim(); }
 
@@ -212,6 +219,7 @@ function update_table() {
 
 	//set Z.uplayer
 	let [uname, turn, mode, host] = [Z.uname, fen.turn, Z.mode, Z.host];
+	//console.log('uname', uname, 'turn', turn, 'mode', mode, 'host', host);
 	let upl = Z.role == 'active' ? uname : turn[0];
 	if (mode == 'hotseat' && turn.length > 1) { let next = get_next_human_player(Z.prev.uplayer); if (next) upl = next; }
 	if (mode == 'multi' && Z.role == 'inactive' && (uname != host || is_human_player(upl))) { upl = uname; }
@@ -274,6 +282,7 @@ function _poll() {
 	show_polling_signal();
 
 	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; console.log('polling', DA.pollCounter);
+	if (valf(DA.sendmax,1000)>=DA.pollCounter) return; 
 
 	send_or_sim({ friendly: Z.friendly, uname: Z.uplayer, auto: true }, 'table');
 }

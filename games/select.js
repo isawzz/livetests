@@ -7,19 +7,10 @@ function add_transaction(cmd) {
 function start_transaction() {
 	if (DA.simulate) return;
 	DA.simulate = true;
-	DA.snapshot = { fen: jsCopy(Z.fen), stage: Z.stage, round: Z.round, phase: Z.phase, turn: Z.turn };
+	DA.snapshot = { fen: jsCopy(Z.fen), stage: Z.stage, round: Z.round, phase: Z.phase, turn: Z.turn }; //brauch ich eigentlich nicht
 	if (nundef(DA.transactionlist)) DA.transactionlist = [];
 }
 function clear_transaction() { DA.simulate = false; DA.transactionlist = []; }
-function rollback() {
-	if (isdef(DA.snapshot)) {
-		Z.fen = DA.snapshot.fen;
-		Z.stage = DA.snapshot.stage;
-		Z.round = DA.snapshot.round;
-		Z.phase = DA.snapshot.phase;
-		Z.turn = DA.snapshot.turn;
-	}
-}
 function phpPostSimulate(o, cmd) {
 	console.log('!!!!!!!!!!!!simulate', o, cmd);
 	FORCE_REDRAW = true;

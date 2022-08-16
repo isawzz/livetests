@@ -25,6 +25,7 @@ function start_tests() {
 	ltest82_ferro(); //ltest_aristo_simple(); //ltest110_fritz(); //ltest108_animate_coin(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 }
 
+//#region TESTING tests
 function ltest110_fritz() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
@@ -746,54 +747,11 @@ function ltest33_ferro_sequence() {
 	startgame('ferro', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
 }
 function ltest32_select_error() {
-
-	let di = {
-		'3': 'one set of 3',
-		'33': 'two sets of 3',
-		'4': 'one set of 4',
-		'44': 'two sets of 4',
-		'5': 'one set of 5',
-		'55': 'two sets of 5',
-		'7R': 'a sequence of 7',
-	};
-
-
-
 	DA.magnify_on_select = true; // *** NEW! ***
 	TESTING = true; DA.testing = true; DA.test = { mods: [small_hands, give_other_jolly_group, o => o.round = 4], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => ferro_transaction_error(['44', '5', '55', '7R'], ['jolly', 'anlegen'], 'take_turn_single');
-	// DA.test.end = () => {
-
-	// 	let goals = DA.min_goals = ['44', '5', '55', '7R'];
-
-	// 	let alternatives =[];
-	// 	let singles = goals.filter(x=>x.length == 1).sort();
-	// 	let doubles = goals.filter(x=>x!='7R' && x.length == 2).sort();
-	// 	let s7 = goals.filter(x=>x == '7R');
-
-	// 	if (!isEmpty(singles)) alternatives.push(di[singles[0]]);
-	// 	if (!isEmpty(doubles) && (isEmpty(singles) || Number(singles[0][0]) > Number(doubles[0][0]))) alternatives.push(di[doubles[0]]);
-	// 	if (!isEmpty(s7)) alternatives.push(di[s7[0]]);
-
-	// 	// let min_els = find_minimum_by_func(DA.min_goals,x=>x[0]);
-	// 	// let min_numsets = (min_els.length == 2)?find_minimum_by_func(DA.min_goals,x=>length[x]):1;
-	// 	// let can_do_7R = DA.min_goals.includes('7R');
-
-	// 	//lowestNumber = DA.min_goals.find(x=>)
-	// 	let msg_min_req = `You need to fulfill the minimum requirement of ${alternatives.join(' or ')}!`;
-	// 	let l = ['jolly']; // DA.transactionlist;
-	// 	let [jolly, auflegen, anlegen] = [l.includes('jolly'), l.includes('auflegen'), l.includes('anlegen')];
-	// 	let msg_action = anlegen ? 'Anlegen requires auflegen von minimum first!' :
-	// 		'jolly' ? 'To exchange a jolly you need to be able to auflegen!' :
-	// 			'Your sets are not good enough!';
-
-	// 	dError.innerHTML = `<h2>Impossible Transaction!</h2><p>${msg_min_req}</p><p>${msg_action}</p><div style="text-align:center">...performing rollback...</div>`;
-	// 	dError.innerHTML += '<div style="text-align:center"><button class="donebutton" onclick="continue_after_error()">CLICK TO CONTINUE</button></div>';
-
-	// }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
 	startgame('ferro', [{ name: U.name, playmode: 'human' }, { name: 'amanda', playmode: 'human' }], { mode: 'hotseat' });
-
 }
 function ltest31_ferro_rollback() {
 	DA.magnify_on_select = true; // *** NEW! ***
@@ -1005,8 +963,19 @@ function ltest2_card() {
 }
 function ltest1_card() { let c = cLandscape(dTable, { margin: 12 }); }
 function ltest0_card() { let c = ari_get_card('QSn'); mAppend(dTable, iDiv(c)); }
+//#endregion
 
-//#region fen tests
+//#region fen (=local) tests
+function fentest8_ferro_transation_error(){
+	let [game, A, fen, uplayer] = [Z.game, Z.A, Z.fen, 'mimi']; //Z.uplayer];
+
+	let pl = fen.players[uplayer];
+	pl.goals['3'] = true;
+	pl.hand.push('3Hn','3Hn','3Hn');
+	Z.turn=['mimi'];
+	take_turn_fen();
+
+}
 function fentest7_gameover() {
 	let [game, A, fen, uplayer] = [Z.game, Z.A, Z.fen, Z.uplayer];
 	if (game == 'aristo') fentest6_endgame();

@@ -72,7 +72,7 @@ function onclick_by_suit() {
 	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
 function onclick_cancelmenu() { hide('dMenu'); }
-function onclick_game_menu_item(ev) {
+function _onclick_game_menu_item(ev) {
 	let gamename = ev_to_gname(ev);
 	stopgame();
 	show('dMenu'); mClear('dMenu');
@@ -145,7 +145,7 @@ function onclick_random() {
 function onclick_reload_after_switching() { DA.pollCounter = 0; DA.reloadColor = rColor(); onclick_reload(); }
 
 function onclick_reload() {
-	console.log('WAS?')
+	//console.log('onclick_reload')
 	if (isdef(Z)) {
 		// bei einem timed game mit schachuhr, muss ich die zeit abziehen!!!
 		if (Z.game == 'fritz' && nundef(Z.fen.winners)) {
@@ -221,6 +221,9 @@ function onclick_restart() {
 	//console.log('playernames',playernames,'playmodes',playmodes)
 	fen = Z.fen = Z.func.setup(playernames, Z.options);
 	[Z.plorder, Z.stage, Z.turn, Z.round, Z.step, Z.phase] = [fen.plorder, fen.stage, fen.turn, 1, 1, fen.phase];
+
+	if (DA.TESTSTART1) Z.turn = fen.turn = Z.host;
+
 	let i = 0; playernames.map(x => { let pl = fen.players[x]; pl.name = x; pl.strategy = strategies[i]; pl.playmode = playmodes[i++]; });
 	// let i = 0; let players = playernames.map(x => ({ name: x, strategy: strategies[i], playmode: playmodes[i++] }));
 	// let i = 0; playernames.map(x => fen.players[x].playmode = playmodes[i++]); //restore playmode

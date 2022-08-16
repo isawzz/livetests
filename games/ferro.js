@@ -16,7 +16,7 @@ function ferro() {
 		let deck = fen.deck = create_fen_deck('n', num_decks, 4 * num_decks);
 		let deck_discard = fen.deck_discard = [];
 		shuffle(deck);
-		if (DA.TEST0 != true) shuffle(fen.plorder);
+		if (DA.TEST != true) shuffle(fen.plorder);
 		let starter = fen.plorder[0];
 		//console.log('options', options);
 		let handsize = valf(Number(options.handsize), 11);
@@ -121,7 +121,7 @@ function ferro_present(dParent) {
 		//if (Z.role == 'active') { Z.role = 'waiting'; staticTitle('waiting for ' + pl_not_done.join(', ')); }
 	}
 
-	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname,{bottom:-2});
+	show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname, { bottom: -2 });
 	new_cards_animation();
 
 
@@ -458,7 +458,7 @@ function fp_card_selection() {
 		let item = selitems[0];
 		if (!item.path.includes(`${uplayer}.hand`)) { select_error('select a hand card to discard!', () => { ari_make_unselected(item); A.selected = []; }); return; }
 
-		//here I have to check for transaction and commit or rollback
+		//here I have to check for transaction and commit or _rollback
 		//if transactionlist is non-empty, check if player's minimum req has been fullfilled
 		//console.log('discard', DA.transactionlist);
 		assertion(DA.transactionlist.length == 0 || DA.simulate, '!!!!!!!!!!!!!!!!transactionlist is not empty!');
@@ -471,9 +471,7 @@ function fp_card_selection() {
 				ferro_process_discard(); //discard selected card
 				//take_turn_single();
 			} else {
-				rollback();
-				ferro_transaction_error(DA.min_goals, DA.transactionlist, 'take_turn_single');
-
+				ferro_transaction_error();
 			}
 		} else {
 			//console.log('should process discard!!!')
@@ -691,45 +689,13 @@ function ferro_process_jolly(key, j) {
 	ari_history_list([`${uplayer} replaces for jolly`], 'jolly');
 	Z.stage = 'card_selection';
 }
-function ferro_transaction_error(goals, transactions, callbackname) {
-	let di = {
-		'3': 'one set of 3',
-		'33': 'two sets of 3',
-		'4': 'one set of 4',
-		'44': 'two sets of 4',
-		'5': 'one set of 5',
-		'55': 'two sets of 5',
-		'7R': 'a sequence of 7',
-	};
-
-	//let goals = ['44', '5', '55', '7R'];
-
-	let alternatives = [];
-	let singles = goals.filter(x => x.length == 1).sort();
-	let doubles = goals.filter(x => x != '7R' && x.length == 2).sort();
-	let s7 = goals.filter(x => x == '7R');
-
-	if (!isEmpty(singles)) alternatives.push(di[singles[0]]);
-	if (!isEmpty(doubles) && (isEmpty(singles) || Number(singles[0][0]) > Number(doubles[0][0]))) alternatives.push(di[doubles[0]]);
-	if (!isEmpty(s7)) alternatives.push(di[s7[0]]);
-
-	// let min_els = find_minimum_by_func(DA.min_goals,x=>x[0]);
-	// let min_numsets = (min_els.length == 2)?find_minimum_by_func(DA.min_goals,x=>length[x]):1;
-	// let can_do_7R = DA.min_goals.includes('7R');
-
-	//lowestNumber = DA.min_goals.find(x=>)
-	let msg_min_req = `You need to fulfill the minimum requirement of ${alternatives.join(' or ')}!`;
-	let l = transactions; //['jolly']; // DA.transactionlist;
-	let [jolly, auflegen, anlegen] = [l.includes('jolly'), l.includes('auflegen'), l.includes('anlegen')];
-	let msg_action = anlegen ? 'Anlegen requires auflegen von minimum first!' :
-		'jolly' ? 'To exchange a jolly you need to be able to auflegen!' :
-			'Your sets are not good enough!';
-
-	let dError = mBy('dError');
-	dError.innerHTML = `<h2>Impossible Transaction!</h2><p>${msg_min_req}</p><p>${msg_action}</p><div style="text-align:center">...performing rollback...</div>`;
-	dError.innerHTML += `<div style="text-align:center"><button class="donebutton" onclick="${callbackname}()">CLICK TO CONTINUE</button></div>`;
-
+function ferro_transaction_error() {
+	let d = mDiv(dError, { padding: 10, align: 'center' }, null, `Inconsistency during your turn - transaction cannot be completed!!!<br>press reload and try again!<br>`);
+	mButton('RELOAD', onclick_reload, d, { margin: 10 });
+	clear_transaction();
+	//onclick_reload();
 }
+
 function find_players_with_max_score() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	let maxscore = -Infinity;

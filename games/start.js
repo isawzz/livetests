@@ -1,5 +1,6 @@
 onload = start; var FirstLoad = true;//document.onBlur = stopPolling;//onblur = stopPolling;//onfocus = onclick_reload_after_switching;
 
+DA.SIMSIM = true;DA.exclusive = true;DA.sendmax=3;DA.TESTSTART1 = true;
 //DA.TEST0 = true; 
 //DA.TEST1 = true; DA.TEST1Counter = 0;
 function start() { let uname = localStorage.getItem('uname'); if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
@@ -45,7 +46,7 @@ function startgame(game, players, options = {}) {
 	if (nundef(fen.phase)) fen.phase = '';
 	if (nundef(fen.stage)) fen.stage = 0;
 	if (nundef(fen.step)) fen.step = 0;
-	if (nundef(fen.turn)) fen.turn = [fen.plorder[0]];
+	if (nundef(fen.turn)) fen.turn = [fen.plorder[0]]; else if (DA.TESTSTART1 && fen.turn.length == 1) fen.turn = playernames[0];
 
 	//ensure playmode and strategy for each player in fen.players (players abandoned here!!!)
 	players.map(x => { let pl = fen.players[x.name]; pl.playmode = valf(x.playmode, 'human'); pl.strategy = valf(x.strategy, valf(options.strategy, 'random')); });
@@ -338,7 +339,7 @@ function take_turn(write_fen = true, write_player = false, clear_players = false
 	prep_move();
 	let o = { uname: Z.uplayer, friendly: Z.friendly };
 	if (isdef(Z.fen)) o.fen = Z.fen;
-	if (write_fen) { assertion(isdef(Z.fen), 'write_fen without fen!!!!'); o.write_fen = true; }
+	if (write_fen) { assertion(isdef(Z.fen) && isdef(Z.fen.turn), 'write_fen without fen!!!!'); o.write_fen = true; }
 	if (write_player) { o.write_player = true; o.state = Z.state; } //console.log('writing playerstate for', Z.uplayer, Z.state); }
 	if (clear_players) o.clear_players = true;
 	o.player_status = player_status;

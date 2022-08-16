@@ -193,16 +193,19 @@ function fritz_activate_ui() {
 function fritz_stats(dParent) {
 	let player_stat_items = UI.player_stat_items = ui_player_info(dParent);
 	let fen = Z.fen;
-	for (const uname in fen.players) {
-		let pl = fen.players[uname];
-		let item = player_stat_items[uname];
+	//vorsicht wenn ein player ausfaellt! was ist da los????
+	console.log('players',get_keys(fen.players));
+	for (const plname in fen.players) {
+		let pl = fen.players[plname];
+		console.log('uname',plname);
+		let item = player_stat_items[plname];
 		let d = iDiv(item); mCenterFlex(d); mLinebreak(d);
 
 		player_stat_count('hand with fingers splayed', calc_hand_value(pl.hand.concat(pl.loosecards), fritz_get_card), d);
 		player_stat_count('star', pl.score, d);
 
-		if (fen.turn.includes(uname)) { show_hourglass(uname, d, 30, { left: -3, top: 0 }); }
-		else if (!fen.plorder.includes(uname)) mStyle(d, { opacity: 0.5 });
+		if (fen.turn.includes(plname)) { show_hourglass(plname, d, 30, { left: -3, top: 0 }); }
+		else if (!fen.plorder.includes(plname)) mStyle(d, { opacity: 0.5 });
 	}
 }
 function fritz_state_info(dParent) {

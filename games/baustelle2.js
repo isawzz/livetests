@@ -109,7 +109,7 @@ function post_comm_setup_stage() {
 		ari_history_list([`commission trading ends`], 'commissions');
 
 		if (exp_rumors && plorder.length > 2) {
-			[Z.stage, Z.turn] = [24, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
+			[Z.stage, Z.turn] = [24, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder]; 
 			ari_history_list([`gossiping starts`], 'rumors');
 
 		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
