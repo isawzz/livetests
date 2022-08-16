@@ -90,11 +90,16 @@ function phpPost(data, cmd) {
 	o.cmd = cmd;
 	o = JSON.stringify(o);
 
-	if (DA.SIMSIM === true && ['table','startgame'].includes(cmd)) { 
-		sendSIMSIM(o, DA.exclusive); 
-		if (DA.exclusive) return; 
+	console.log('DA', DA);
+	if (DA.SIMSIM === true) {
+		if (TESTING) {
+			console.log('')
+		} else if (['table', 'startgame'].includes(cmd)) {
+			sendSIMSIM(o, DA.exclusive);
+		}
+		if (DA.exclusive) return;
 	}
-	
+
 	var xml = new XMLHttpRequest();
 	loader_on();
 	xml.onload = function () {
@@ -173,7 +178,7 @@ function unpack_table(table) {
 	for (const k of ['players', 'fen', 'options', 'scoring']) {
 		let val = table[k];
 		//console.log('k',k, 'val',val, table[k]);
-		if (isdef(table[k])) table[k] = if_stringified(val); if (nundef(table[k])) table[k]={}; //JSON.parse(table[k]); else table[k] = {};
+		if (isdef(table[k])) table[k] = if_stringified(val); if (nundef(table[k])) table[k] = {}; //JSON.parse(table[k]); else table[k] = {};
 	}
 	if (isdef(table.modified)) { table.timestamp = new Date(Number(table.modified)); table.stime = stringBeforeLast(table.timestamp.toString(), 'G').trim(); }
 
@@ -228,7 +233,7 @@ function update_table() {
 	//set playmode and strategy
 	let pl = Z.pl;
 	Z.playmode = pl.playmode; //could be human | ai | hybrid (that's for later!!!)
-	Z.strategy = uname == pl.name?valf(Clientdata.strategy,pl.strategy):pl.strategy; //humans are really hybrids: they have default strategy 'random'
+	Z.strategy = uname == pl.name ? valf(Clientdata.strategy, pl.strategy) : pl.strategy; //humans are really hybrids: they have default strategy 'random'
 	//if (Z.playmode != 'human') Z.strategy = pl.strategy;
 
 	//determine wheather have to present game state!
@@ -282,7 +287,7 @@ function _poll() {
 	show_polling_signal();
 
 	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; console.log('polling', DA.pollCounter);
-	if (valf(DA.sendmax,1000)>=DA.pollCounter) return; 
+	if (valf(DA.sendmax, 1000) >= DA.pollCounter) return;
 
 	send_or_sim({ friendly: Z.friendly, uname: Z.uplayer, auto: true }, 'table');
 }

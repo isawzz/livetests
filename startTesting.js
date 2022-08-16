@@ -18,9 +18,12 @@ async function start() {
 
 	start_with_assets();
 }
-function start_with_assets() { start_tests(); }
+function start_with_assets() { 
+	
+	start_tests(); 
+}
 
-function phpPost(o, cmd) {
+function _phpPost(o, cmd) {
 	//console.log('..????????????????????????.phpPost', arguments);
 	//console.log('..phpPost', o, cmd);
 

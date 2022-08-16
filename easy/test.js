@@ -1,5 +1,12 @@
 
 function start_tests() {
+
+	//console.log(`browser name: ${navigator.appName}, or ${navigator.userAgent}`);
+	DA.isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1; if (DA.isFirefox) console.log('using Firefox!')
+	show_home_logo();
+	if (nundef(U)) { show_users(); return; } show_username();
+	if (DA.TEST0) show('dTestButtons');
+
 	//#region old tests
 	//dTable = mBy('dTable'); mCenterFlex(dTable); mStyle(dTable, { hmin: 500 }); mClass(dTable, 'wood')
 	//ltest6_bluff_skin();	//ltest11_ferro_discard(); //ltest10_ferro_sim();  //ltest5_jokerhtml(); 	//ltest4_sheriff(); 	//ltest0_card();
@@ -20,10 +27,10 @@ function start_tests() {
 	//ltest70_aristo_church(); //ltest57_aristo();
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	//#endregion
-	ltest89_aristo_journey();
+	//ltest89_aristo_journey();
 
 }
-function landing(){
+function landing() {
 
 	if (!TESTING) return;
 	//console.log('dHistory',UI.dHistory)
@@ -35,9 +42,9 @@ function ltest89_aristo_journey() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
-	let playernames = [U.name, 'felix','amanda','lauren'];
+	let playernames = [U.name, 'felix', 'amanda', 'lauren'];
 
-	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat',commission:'no',rumors:'no' });
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat', commission: 'no', rumors: 'no' });
 }
 function ltest88_aristo_market() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_players_stalls], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -56,7 +63,7 @@ function ltest87_aristo() {
 	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
 }
 function ltest86_ferro() {
-	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_two_ferro_sets,make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
+	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_two_ferro_sets, make_long_history], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];
 	let playernames = ['mimi', 'felix', 'gul'];//, 'amanda', 'lauren', 'valerie', 'guest', 'nimble', 'sheeba', 'sarah']; //, 'gul', 'amanda', 'lauren'];
@@ -67,9 +74,9 @@ function ltest85_card_short_text() {
 
 	// let [d,ckey,sz]=[mDiv(dTable,{},null,`hallo das ist ein <span style='color:green;font-size:20px'>&spadesuit;</span>K`),'KSn',25];
 	let ckey = 'KCn';
-	let sz=20;
+	let sz = 20;
 	//let d=mDiv(dTable,{},null,`hallo das ist ein ${mSuit(ckey,sz)}K`);
-	let d=mDiv(dTable,{},null,`hallo das ist ein ${mCardText(ckey)}.`);
+	let d = mDiv(dTable, {}, null, `hallo das ist ein ${mCardText(ckey)}.`);
 	return;
 	//let card = cBlank(dTable); let d = iDiv(card); let sz = card.h / 6;
 	// let [d,ckey,sz]=[mDiv(dTable,{},null,'hallo das ist ein '),'KSn',25];
@@ -1303,11 +1310,11 @@ function give_player_group(o) {
 	pl.journeys = [['2Hn', '2Sn', '2Hn']];
 
 }
-function give_player_one_ferro_set(o){
-	o.fen.players[o.fen.turn[0]].hand=['*Hn','KHn','KCn'];
+function give_player_one_ferro_set(o) {
+	o.fen.players[o.fen.turn[0]].hand = ['*Hn', 'KHn', 'KCn'];
 }
-function give_player_two_ferro_sets(o){
-	o.fen.players[o.fen.turn[0]].hand=['*Hn','KHn','KCn','QHn','QCn','QDn'];
+function give_player_two_ferro_sets(o) {
+	o.fen.players[o.fen.turn[0]].hand = ['*Hn', 'KHn', 'KCn', 'QHn', 'QCn', 'QDn'];
 }
 function give_player_7R(o) {
 	let [fen, uplayer] = [o.fen, o.fen.turn[0]];
@@ -1470,7 +1477,7 @@ function make_long_history(o) {
 		let title = 'discard';
 		//let html = beautify_history(lines, title, fen, uplayer);
 		//fen.history.push(html);
-		fen.history.push({title:title,lines:lines});
+		fen.history.push({ title: title, lines: lines });
 	}
 }
 function make_deck_empty(o) {

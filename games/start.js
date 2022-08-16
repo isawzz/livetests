@@ -1,6 +1,6 @@
 onload = start; var FirstLoad = true;//document.onBlur = stopPolling;//onblur = stopPolling;//onfocus = onclick_reload_after_switching;
 
-DA.SIMSIM = true;DA.exclusive = true;DA.sendmax=3;DA.TESTSTART1 = true;
+DA.SIMSIM = true; DA.exclusive = true; DA.sendmax = 3; DA.TESTSTART1 = true;
 //DA.TEST0 = true; 
 //DA.TEST1 = true; DA.TEST1Counter = 0;
 function start() { let uname = localStorage.getItem('uname'); if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
@@ -159,7 +159,7 @@ function exchange_by_index(arr1, i1, arr2, i2) {
 }
 function if_plural(n) { return n == 1 ? '' : 's'; }
 function if_stringified(obj) { return is_stringified(obj) ? JSON.parse(obj) : obj; }
-function is_stringified(obj) { 
+function is_stringified(obj) {
 	if (isString(obj)) {
 		//console.log('is a string',obj,obj[0],obj[1],'"\'{[('.includes(obj[0]));
 		return '"\'{[('.includes(obj[0]);
