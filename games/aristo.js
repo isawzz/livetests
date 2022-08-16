@@ -97,13 +97,13 @@ function anipulse(d, ms = 3000, callback) {
 	return a;
 
 }
-function remove_ui_items(items){
+function remove_ui_items(items) {
 	//UI muss NICHT consistent bleiben!!!! das wird nur bevor take turn gemacht!!!
 	console.log('remove_ui_items', items);
-	for (const item of items) { 
-		let card=item.o;
+	for (const item of items) {
+		let card = item.o;
 		make_card_unselectable(item);
-		iDiv(item.o).remove(); 
+		iDiv(item.o).remove();
 	}
 }
 
@@ -163,7 +163,7 @@ function aristo() {
 
 		return fen;
 	}
-	function activate_ui() {	ari_activate_ui(); } 
+	function activate_ui() { ari_activate_ui(); }
 	function check_gameover(z) { return isdef(z.fen.winners) ? z.fen.winners : false; }
 	function present(dParent) { ari_present(dParent); }
 	function stats(dParent) { ari_stats(dParent); }
@@ -204,7 +204,7 @@ function ari_pre_action() {
 			}
 			break;
 		case 'pick_schwein': select_add_items(ui_get_schweine_candidates(A.uibuilding), post_inspect, 'must select the new schwein', 1, 1); break;
-		case 'comm_weitergeben': select_add_items(ui_get_all_commission_items(uplayer), process_comm_setup, `must select ${fen.comm_setup_num} card${fen.comm_setup_num > 1 ? 's' : ''} to discard`, fen.comm_setup_num, fen.comm_setup_num); break;
+		case 'comm_weitergeben': if (!is_playerdata_set(uplayer)) select_add_items(ui_get_all_commission_items(uplayer), process_comm_setup, `must select ${fen.comm_setup_num} card${fen.comm_setup_num > 1 ? 's' : ''} to discard`, fen.comm_setup_num, fen.comm_setup_num); break;
 		case 'rumors_weitergeben':
 			let rumitems = ui_get_rumors_and_players_items(uplayer);
 			if (isEmpty(rumitems)) {
@@ -295,67 +295,6 @@ function ari_pre_action() {
 }
 
 //main
-function ari_present(dParent){
-	let [fen, ui, uplayer, stage, pl] = [Z.fen, UI, Z.uplayer, Z.stage, Z.pl];
-	let [dOben, dOpenTable, dMiddle, dRechts] = tableLayoutMR(dParent); 
-	if (fen.num_actions>0 && (Z.role == 'active' || Z.mode == 'hotseat')) {
-		//console.log('hmin wird gemacht!')
-		mStyle(dOben, { hmin: 110 })
-	}
-
-	ari_stats(dRechts);
-
-	show_history(fen, dRechts);
-
-	//let h=ARI.hcontainer;
-	let deck = ui.deck = ui_type_deck(fen.deck, dOpenTable, { maleft: 12 }, 'deck', 'deck', ari_get_card);
-	let market = ui.market = ui_type_market(fen.market, dOpenTable, { maleft: 12 }, 'market', 'market', ari_get_card, true);
-	let open_discard = ui.open_discard = ui_type_market(fen.open_discard, dOpenTable, { maleft: 12 }, 'open_discard', 'discard', ari_get_card);
-	let deck_discard = ui.deck_discard = ui_type_deck(fen.deck_discard, dOpenTable, { maleft: 12 }, 'deck_discard', '', ari_get_card);
-
-	if (exp_commissions(Z.options)) {
-		let open_commissions = ui.open_commissions = ui_type_market(fen.open_commissions, dOpenTable, { maleft: 12 }, 'open_commissions', 'bank', ari_get_card);
-		mMagnifyOnHoverControlPopup(ui.open_commissions.cardcontainer);
-		let deck_commission = ui.deck_commission = ui_type_deck(fen.deck_commission, dOpenTable, { maleft: 4 }, 'deck_commission', '', ari_get_card);
-		// let commissioned = ui.commissioned = ui_type_list(fen.commissioned, ['rank','count'], dOpenTable, {h:130}, 'commissioned', 'commissioned');
-		let comm = ui.commissioned = ui_type_rank_count(fen.commissioned, dOpenTable, {}, 'commissioned', 'sentiment', ari_get_card);
-		if (comm.items.length > 0) { let isent = arrLast(comm.items); let dsent = iDiv(isent); set_card_border(dsent, 15, 'green'); }
-	}
-
-	if (exp_church(Z.options)) {
-		let church = ui.church = ui_type_church(fen.church, dOpenTable, { maleft: 28 }, 'church', 'church', ari_get_card);
-		//mMagnifyOnHoverControlPopup(ui.church.cardcontainer);
-	}
-
-	if (exp_rumors(Z.options)) {
-		let deck_rumors = ui.deck_rumors = ui_type_deck(fen.deck_rumors, dOpenTable, { maleft: 25 }, 'deck_rumors', 'rumors', ari_get_card);
-	}
-
-
-	let uname_plays = fen.plorder.includes(Z.uname);
-	let show_first = uname_plays && Z.mode == 'multi' ? Z.uname : uplayer;
-	let order = get_present_order();
-	for (const plname of order) {
-		let pl = fen.players[plname];
-
-		let playerstyles = { w: '100%', bg: '#ffffff80', fg: 'black', padding: 4, margin: 4, rounding: 9, border: `2px ${get_user_color(plname)} solid` };
-		let d = mDiv(dMiddle, playerstyles, null, get_user_pic_html(plname, 25));
-
-		mFlexWrap(d);
-		mLinebreak(d, 9);
-		//R.add_ui_node(d, getUID('u'), uplayer);
-
-		let hidden = compute_hidden(plname);
-
-		ari_present_player(plname, d, hidden);
-	}
-
-	ari_show_handsorting_buttons_for(Z.mode == 'hotseat' ? Z.uplayer : Z.uname); delete Clientdata.handsorting;
-	show_view_buildings_button(uplayer);
-
-	if (isdef(fen.winners)) ari_reveal_all_buildings(fen);
-
-}
 function ari_present_player(plname, d, ishidden = false) {
 	let fen = Z.fen;
 	let pl = fen.players[plname];
@@ -398,7 +337,7 @@ function ari_present_player(plname, d, ishidden = false) {
 		ui.journeys.push(jui);
 	}
 
-	mLinebreak(d,8);
+	mLinebreak(d, 8);
 
 	ui.buildinglist = [];
 	ui.indexOfFirstBuilding = arrChildren(d).length;
@@ -424,8 +363,8 @@ function ari_present_player(plname, d, ishidden = false) {
 
 
 }
-function ari_activate_ui(){	ari_pre_action();	}
-function ari_state(dParent){
+function ari_activate_ui() { ari_pre_action(); }
+function ari_state(dParent) {
 	function get_phase_html() {
 		if (isEmpty(Z.phase) || Z.phase == 'over') return null; //capitalize(Z.friendly);
 		let rank = Z.phase[0].toUpperCase();
@@ -474,7 +413,7 @@ function ari_state(dParent){
 	// if (phase_html) dParent.innerHTML = `${Z.phase}:&nbsp;${phase_html},&nbsp;&nbsp;stage: ${Z.stage}`;
 
 }
-function ari_stats(dParent){
+function ari_stats(dParent) {
 
 	let player_stat_items = UI.player_stat_items = ui_player_info(dParent); //fen.plorder.map(x => fen.players[x]));
 	let fen = Z.fen;
@@ -973,7 +912,7 @@ function post_build() {
 		select_error('select 4, 5, or 6 cards to build!');
 		return;
 	}
-	let building_items = A.selected.map(x => A.items[x]); 
+	let building_items = A.selected.map(x => A.items[x]);
 	let building_type = building_items.length == 4 ? 'farm' : building_items.length == '5' ? 'estate' : 'chateau';
 
 	//add the building to the fen
@@ -1001,27 +940,27 @@ function post_build() {
 	//find index of new building in fen.players[uplayer].buildings[building_type]
 	//make a list of all fen buildings
 	let pl = fen.players[uplayer];
-	let nfarms=pl.buildings.farm.length;
-	let nestates=pl.buildings.estate.length;
-	let nchateaus=pl.buildings.chateau.length;
-	let index=building_type == 'farm' ? nfarms-1 : building_type == 'estate' ? nfarms+nestates-1 : nfarms+nestates+nchateaus-1;
+	let nfarms = pl.buildings.farm.length;
+	let nestates = pl.buildings.estate.length;
+	let nchateaus = pl.buildings.chateau.length;
+	let index = building_type == 'farm' ? nfarms - 1 : building_type == 'estate' ? nfarms + nestates - 1 : nfarms + nestates + nchateaus - 1;
 
 	console.log('index of new building is', index);
-	let ifinal = UI.players[uplayer].indexOfFirstBuilding+index;
+	let ifinal = UI.players[uplayer].indexOfFirstBuilding + index;
 
 	console.log('ifinal', ifinal);
 
 	let dpl = iDiv(UI.players[uplayer]);
 	let akku = [];
-	while(dpl.children.length > ifinal) {akku.push(dpl.lastChild); dpl.removeChild(dpl.lastChild);}
+	while (dpl.children.length > ifinal) { akku.push(dpl.lastChild); dpl.removeChild(dpl.lastChild); }
 
 	let fenbuilding = arrLast(fen.players[uplayer].buildings[building_type]);
 	// let d=iDiv(UI.players[uplayer]);
 	//ui_type_building(b, d, { maleft: 8 }, `players.${plname}.buildings.${k}.${i}`, type, ari_get_card, true, ishidden);
-	let newbuilding = ui_type_building(fenbuilding,dpl,{maleft:8},`players.${uplayer}.buildings.${building_type}.${index}`,building_type,ari_get_card,true,false);
-	animbuilding(newbuilding,ms,ari_next_action);
+	let newbuilding = ui_type_building(fenbuilding, dpl, { maleft: 8 }, `players.${uplayer}.buildings.${building_type}.${index}`, building_type, ari_get_card, true, false);
+	animbuilding(newbuilding, ms, ari_next_action);
 
-	akku.map(x=>mAppend(dpl,x));
+	akku.map(x => mAppend(dpl, x));
 
 }
 //#endregion
@@ -1347,90 +1286,6 @@ function ui_get_church_items(uplayer) {
 //#endregion
 
 //#region commission
-function process_comm_setup() {
-
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	assertion(fen.keeppolling == true, "keeppolling must be true for process_comm_setup!!!");
-	//console.log('OK 1');
-
-	//get keys of selected cards
-	let items = A.selected.map(x => A.items[x]);
-	let next = get_next_player(Z, uplayer);
-	let receiver = next;
-	let giver = uplayer;
-	let keys = items.map(x => x.key);
-
-	//must write to pldata (=Z.state) {giver, receiver, keys}
-	Z.state = { giver, receiver, keys };
-
-	assertion(isdef(Z.playerdata), "Z.playerdata must be defined for process_comm_setup!!!");
-	let data = firstCond(Z.playerdata, x => x.name == uplayer);
-	assertion(isdef(data), `MISSING: playerdata for ${uplayer}`);
-	data.state = Z.state;
-
-	//console.log('OK 2');
-
-	//check if playerdata set for all players
-	let can_resolve = true;
-	for (const plname of plorder) {
-		let data1 = firstCond(Z.playerdata, x => x.name == plname && !isEmpty(x.state));
-		if (nundef(data1)) { can_resolve = false; break; }
-	}
-	if (can_resolve) {
-		Z.turn = [Z.host];
-		Z.stage = 104; //'next_comm_setup_stage';
-		take_turn_fen_write();
-	} else {
-		if (Z.mode == 'hotseat') { Z.turn = [get_next_player(Z, uplayer)]; take_turn_fen_write(); }
-		else take_turn_multi();
-	}
-
-
-
-}
-function post_comm_setup_stage() {
-	//console.log('OK 3');
-
-	//erst uebertrage alle cards from pldata.state.keys to pldata.state.receiver
-	let [fen, A, uplayer, plorder] = [Z.fen, Z.A, Z.uplayer, Z.plorder];
-	for (const data of Z.playerdata) {
-		let state = data.state;
-		//console.log('state', state)
-		let giver = state.giver;
-		let receiver = state.receiver;
-		let keys = state.keys;
-		//console.log('giver', giver, 'receiver', receiver, 'keys', keys);
-
-		keys.map(x => elem_from_to(x, fen.players[giver].commissions, fen.players[receiver].commissions));
-		//fen.players[giver].commissions = arrMinus(fen.players[giver].commissions, keys);
-		//fen.players[receiver].commissions = fen.players[receiver].commissions.concat(keys); //arrPlus(fen.players[receiver].commissions, keys);
-		//fen.players[receiver].commissions = arrPlus(fen.players[receiver].commissions, keys);
-	}
-
-	fen.comm_setup_num -= 1;
-
-	if (fen.comm_setup_num == 0) {
-		delete fen.comm_setup_di;
-		delete fen.comm_setup_num;
-		delete fen.keeppolling;
-		ari_history_list([`commission trading ends`], 'commissions');
-
-		if (exp_rumors && plorder.length > 2) {
-			[Z.stage, Z.turn] = [24, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder]; //fen.keeppolling = true; //[plorder[0]]];
-			ari_history_list([`gossiping starts`], 'rumors');
-
-		} else { [Z.stage, Z.turn] = set_journey_or_stall_stage(fen, Z.options, fen.phase); }
-	} else {
-
-		//muss auf jeden fen clear aufrufen!
-		//mach dasselbe wie beim ersten mal!
-		[Z.stage, Z.turn] = [23, Z.options.mode == 'hotseat' ? [fen.plorder[0]] : fen.plorder];
-	}
-
-	//if fen.comm_setup_num is 1, then go to next stage 
-	//console.log('fen', fen);
-	take_turn_fen_clear();
-}
 
 function process_commission_stall() {
 	let [fen, A, uplayer] = [Z.fen, Z.A, Z.uplayer];

@@ -26,6 +26,8 @@ function phpPost(o, cmd) {
 
 	clear_transaction();
 
+	//console.log('in phpPost (startTesting)',o,cmd);
+
 	if (TESTING && cmd == 'startgame') {
 		for (const func of DA.test.mods) func(o);
 	}
@@ -46,7 +48,11 @@ function phpPost(o, cmd) {
 	}
 	if (isdef(Z)) {
 		o.playerdata = Z.playerdata;
-		if (isdef(Z.state)) firstCond(o.playerdata, x => x.name == Z.uplayer).state = Z.state;
+		//console.log('playerdata', o.playerdata);
+		if (isdef(o.state)) {
+			//console.log('writing state', o.state, 'for',o.uname);
+			firstCond(o.playerdata, x => x.name == o.uname).state = o.state;
+		}
 		if (isdef(Z.player_status)) firstCond(o.playerdata, x => x.name == Z.uplayer).player_status = Z.player_status;
 		Z.playerdata = o.playerdata;
 		//console.log('o.playerdata', o.playerdata);
@@ -58,6 +64,14 @@ function phpPost(o, cmd) {
 				o.playerdata.push({ name: plname, state: null, player_status: null });
 			}
 		}
+	}
+	if (o.clear_players){
+		//console.log('playerdata',jsCopy(Z.playerdata));
+
+		Z.playerdata.map(x=>x.state = null);
+
+		//console.log('playerdata',jsCopy(Z.playerdata));
+		o.playerdata = Z.playerdata;
 	}
 
 	switch (cmd) {

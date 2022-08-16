@@ -156,7 +156,14 @@ function exchange_by_index(arr1, i1, arr2, i2) {
 }
 function if_plural(n) { return n == 1 ? '' : 's'; }
 function if_stringified(obj) { return is_stringified(obj) ? JSON.parse(obj) : obj; }
-function is_stringified(obj) { return typeof obj == 'string' && ['"', '{'].includes(obj[0]); }
+function is_stringified(obj) { 
+	if (isString(obj)) {
+		//console.log('is a string',obj,obj[0],obj[1],'"\'{[('.includes(obj[0]));
+		return '"\'{[('.includes(obj[0]);
+	}
+	return false;
+	//return typeof obj == 'string' && ['"', '{', '['].includes(obj[0]); 
+}
 function intersection(arr1, arr2) {
 	//each el in result will be unique
 	let res = [];
@@ -328,7 +335,7 @@ function take_turn(write_fen = true, write_player = false, clear_players = false
 	let o = { uname: Z.uplayer, friendly: Z.friendly };
 	if (isdef(Z.fen)) o.fen = Z.fen;
 	if (write_fen) { assertion(isdef(Z.fen), 'write_fen without fen!!!!'); o.write_fen = true; }
-	if (write_player) { o.write_player = true; o.state = Z.state; }
+	if (write_player) { o.write_player = true; o.state = Z.state; } //console.log('writing playerstate for', Z.uplayer, Z.state); }
 	if (clear_players) o.clear_players = true;
 	o.player_status = player_status;
 	let cmd = 'table';
@@ -342,7 +349,9 @@ function prep_move() {
 	clear_timeouts();
 }
 function send_or_sim(o, cmd) {
-	Counter.server += 1;
+
+	Counter.server += 1; //console.log('send_or_sim '+Counter.server);
+	//if (Counter.server > 10) return;
 	//if (nundef(Z) || is_multi_stage()) o.read_players = true; das wird jetzt IMMER gemacht!!!
 	if (DA.simulate) phpPostSimulate(o, cmd); else phpPost(o, cmd);
 }

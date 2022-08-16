@@ -106,6 +106,8 @@ function processServerdata(obj, cmd) {
 
 	if (isdef(obj.playerdata)) {
 
+		//console.log('processServerdata', obj.playerdata);
+
 		let old_playerdata = valf(Serverdata.playerdata, []);
 		let di = list2dict(old_playerdata, 'name');
 
