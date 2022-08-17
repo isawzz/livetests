@@ -764,6 +764,7 @@ function show_username() {
 	if (is_advanced_user()) { show('dAdvanced1'); } else { hide('dAdvanced'); hide('dAdvanced1'); }
 	//if (TESTING) show('dAdvanced');
 
+	//console.log('Z',Z);
 	phpPost({ app: 'easy' }, 'tables');
 }
 function show_users(ms = 300) {

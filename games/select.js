@@ -23,7 +23,6 @@ function phpPostSimulate(o, cmd) {
 	}
 	switch (cmd) {
 		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;
-		case "move":
 		case "table":
 		case "startgame":
 			let result = pack_table(o);
@@ -113,7 +112,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 	} else if (is_ai_player()) {
 		//console.log('ist ein BOT!!!');
 		ai_move();
-	} else if (TESTING) {
+	} else if (TESTING && isdef(DA.test)) {
 		if (DA.test.iter >= DA.auto_moves.length) {
 			//console.log('test end');
 			if (isdef(DA.test.end)) DA.test.end();

@@ -72,22 +72,27 @@ function onclick_by_suit() {
 	//let sorted = items.sort((a, b) => a.o.rank - b.o.rank);
 }
 function onclick_cancelmenu() { hide('dMenu'); }
-function _onclick_game_menu_item(ev) {
+function onclick_game_menu_item(ev) {
 	let gamename = ev_to_gname(ev);
 	stopgame();
 	show('dMenu'); mClear('dMenu');
-	let html = `
-	<form id="fMenuInput" style="text-align: center" action="javascript:void(0);">
-		<div id="dMenuInput">hallo</div>
-		<div style="width: 100%">
-			<input type="submit" class="button" value="start" />
-			<input type="button" onclick="onclick_cancelmenu()" class="button" value="cancel" />
-		</div>
-	</form>
-	`;
-	let form = mCreateFrom(html); //mBy('fMenuInput');
-	mAppend('dMenu', form);
-	let d = form.children[0]; mClear(d); mCenterFlex(d);
+	let dMenu = mBy('dMenu');
+
+	let dForm = mDiv(dMenu, { align: 'center' }, 'fMenuInput');
+	let dInputs = mDiv(dForm, {}, 'dMenuInput');
+	let dButtons = mDiv(dForm, {}, 'dMenuButtons');
+	let bstart = mButton('start', () => {
+		let players = DA.playerlist.map(x => ({ name: x.uname, playmode: x.playmode }));
+		//console.log('players are', players);
+		let game = gamename;
+		let options = collect_game_specific_options(game);
+		for (const pl of players) { if (isEmpty(pl.strategy)) pl.strategy = valf(options.strategy, 'random'); }
+		//console.log('options nach collect',options)
+		startgame(game, players, options); hide('dMenu');
+	}, dButtons, {}, 'button');
+	let bcancel = mButton('dcancel', () => { hide('dMenu'); }, dButtons, {}, 'button');
+
+	let d = dInputs; mClear(d); mCenterFlex(d);
 	let dParent = mDiv(d, { gap: 6 });
 	mCenterFlex(dParent);
 	DA.playerlist = [];
@@ -113,17 +118,7 @@ function _onclick_game_menu_item(ev) {
 	mLinebreak(d, 10);
 	show_game_options(d, gamename);
 
-	form.onsubmit = () => {
-		let players = DA.playerlist.map(x => ({ name: x.uname, playmode: x.playmode }));
-		//console.log('players are', players);
-		let game = gamename;
-		let options = collect_game_specific_options(game);
-		for (const pl of players) { if (isEmpty(pl.strategy)) pl.strategy = valf(options.strategy, 'random'); }
-		//console.log('options nach collect',options)
-		startgame(game, players, options); hide('dMenu');
-	};
-
-	mFall('dMenu')
+	mFall('dMenu');
 }
 function onclick_home() { stopgame(); start_with_assets(); }
 function onclick_logout() {
@@ -137,9 +132,9 @@ function onclick_logout() {
 function onclick_random() {
 	//console.log('====>onclick_random');
 	if (uiActivated && !DA.ai_is_moving) ai_move(300);
-	else if (!uiActivated) console.log('ui not activated...');
-	else if (DA.ai_is_moving) console.log('ai is moving...');
-	else console.log('unknown...');
+	else if (!uiActivated) console.log('NOP: ui not activated...');
+	else if (DA.ai_is_moving) console.log('NOP: ai is (or was already) moving...');
+	else console.log('NOP: unknown...');
 }
 //function onclick_random() { bluff_ai();}
 function onclick_reload_after_switching() { DA.pollCounter = 0; DA.reloadColor = rColor(); onclick_reload(); }

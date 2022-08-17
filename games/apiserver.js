@@ -90,13 +90,12 @@ function phpPost(data, cmd) {
 	o.cmd = cmd;
 	o = JSON.stringify(o);
 
-	console.log('DA', DA);
-	if (DA.SIMSIM === true) {
-		if (TESTING) {
-			console.log('')
-		} else if (['table', 'startgame'].includes(cmd)) {
-			sendSIMSIM(o, DA.exclusive);
-		}
+	//console.log('DA', DA);
+	if (DA.SIMSIM && (DA.exclusive || ['table', 'startgame', 'gameover', 'tables'].includes(cmd))) {
+		sendSIMSIM(o, DA.exclusive);
+		if (DA.exclusive) return;
+	}else if (DA.simulate){
+		sendSIMSIM(o, DA.exclusive, true);
 		if (DA.exclusive) return;
 	}
 

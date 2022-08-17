@@ -21,11 +21,18 @@ function start_tests() {
 	//ltest82_ferro(); //ltest85_card_short_text(); //ltest83_svg();
 	//ltest89_aristo_journey();
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
+	//ltest82_ferro(); //ltest_aristo_simple(); //ltest110_fritz(); //ltest108_animate_coin(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 	//#endregion
-	ltest82_ferro(); //ltest_aristo_simple(); //ltest110_fritz(); //ltest108_animate_coin(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
+	ltest111_start();
 }
 
 //#region TESTING tests
+function ltest111_start(){
+	show_home_logo();
+	if (nundef(U)) { show_users(); return; } show_username();
+	if (DA.TEST0) show('dTestButtons');
+
+}
 function ltest110_fritz() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}

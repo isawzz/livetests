@@ -1,3 +1,58 @@
+
+function _onclick_game_menu_item(ev) {
+	let gamename = ev_to_gname(ev);
+	stopgame();
+	show('dMenu'); mClear('dMenu');
+	let html = `
+	<form id="fMenuInput" style="text-align: center" action="javascript:void(0);">
+		<div id="dMenuInput">hallo</div>
+		<div style="width: 100%">
+			<input type="submit" class="button" value="start" />
+			<input type="button" onclick="onclick_cancelmenu()" class="button" value="cancel" />
+		</div>
+	</form>
+	`;
+	let form = mCreateFrom(html); //mBy('fMenuInput');
+	mAppend('dMenu', form);
+	let d = form.children[0]; mClear(d); mCenterFlex(d);
+	let dParent = mDiv(d, { gap: 6 });
+	mCenterFlex(dParent);
+	DA.playerlist = [];
+
+	//show players
+	DA.playerlist = [];
+	let params = [gamename, DA.playerlist];
+	let funcs = [style_not_playing, style_playing_as_human, style_playing_as_bot];
+	for (const u of Serverdata.users) {
+		if (['ally', 'bob', 'leo'].includes(u.name)) continue; //lass die aus!!!!
+		let d = get_user_pic_and_name(u.name, dParent, 40); mStyle(d, { w: 60 })
+		let item = { uname: u.name, div: d, state: 0, strategy: '', inlist: false, isSelected: false };
+
+		//host spielt als human mit per default
+		if (isdef(U) && u.name == U.name) { toggle_select(item, funcs, gamename, DA.playerlist); }
+
+		//katzen sind bots per default! (select twice!)
+		// if (['nimble', 'guest', 'minnow', 'buddy'].includes(u.name)) { toggle_select(item, funcs, gamename, DA.playerlist); toggle_select(item, funcs, gamename, DA.playerlist); }
+
+		d.onclick = () => toggle_select(item, funcs, gamename, DA.playerlist);
+		mStyle(d, { cursor: 'pointer' });
+	}
+	mLinebreak(d, 10);
+	show_game_options(d, gamename);
+
+	form.onsubmit = () => {
+		let players = DA.playerlist.map(x => ({ name: x.uname, playmode: x.playmode }));
+		//console.log('players are', players);
+		let game = gamename;
+		let options = collect_game_specific_options(game);
+		for (const pl of players) { if (isEmpty(pl.strategy)) pl.strategy = valf(options.strategy, 'random'); }
+		//console.log('options nach collect',options)
+		startgame(game, players, options); hide('dMenu');
+	};
+
+	mFall('dMenu')
+}
+
 function ari_pre_action() {
 	let [stage, A, fen, phase, uplayer, deck, market] = [Z.stage, Z.A, Z.fen, Z.phase, Z.uplayer, Z.deck, Z.market];
 

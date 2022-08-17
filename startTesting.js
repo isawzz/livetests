@@ -1,18 +1,17 @@
 onload = start; var FirstLoad = true;
 async function start() {
-
-	//DB = await route_path_yaml_dict('./base/DB.yaml');	console.log('DB',DB);	return;
-
+	//DB = await route_path_yaml_dict('./base/DB.yaml');	console.log('DB',DB);	return; //OK!
 	Serverdata = await load_assets_fetch('./base/', './games/'); //war vorher './easy/' !!!!!!!!!!!!!!!!!!!!!!!! 
-	//console.log('Serverdata',Serverdata);
+	//console.log('Serverdata',Serverdata); return; //OK!
 	let uname = localStorage.getItem('uname');
-	//console.log('uname',uname);
+	//console.log('uname',uname); return; //ja, loads mimi 
+
 	if (isdef(uname)) {
 		U = firstCond(Serverdata.users, x => x.name == uname);
 		if (!U) U = rChoose(Serverdata.users);
 	}
-	//console.log('U',U);
-	show_home_logo();
+	// console.log('U',U); return;
+	show_home_logo(); 
 	TESTING = true;
 	if (nundef(U)) { show_users(); } else { show_username(); }
 
@@ -105,5 +104,5 @@ function _phpPost(o, cmd) {
 function get_texture(name) { return `url(/./base/assets/images/textures/${name}.png)`; }
 function _poll() { return; }
 //function clear_screen() { } //console.log('...clear_screen'); }
-function stopgame() { console.log('...stopgame'); }
+function stopgame() { console.log('...stopgame',getFunctionsNameThatCalledThisFunction()); }
 
