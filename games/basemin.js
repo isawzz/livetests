@@ -3220,8 +3220,6 @@ function getFunctionsNameThatCalledThisFunction() {
 //#region keys.js
 //prep key sets at start of prog
 function getKeySets() {
-	//let ks = localStorage.getItem('KeySets');
-
 	makeCategories();	//console.log('Categories',Categories)
 
 	//console.log('hallo'); return [];

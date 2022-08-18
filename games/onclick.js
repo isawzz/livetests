@@ -90,7 +90,7 @@ function onclick_game_menu_item(ev) {
 		//console.log('options nach collect',options)
 		startgame(game, players, options); hide('dMenu');
 	}, dButtons, {}, 'button');
-	let bcancel = mButton('dcancel', () => { hide('dMenu'); }, dButtons, {}, 'button');
+	let bcancel = mButton('cancel', () => { hide('dMenu'); }, dButtons, {}, 'button');
 
 	let d = dInputs; mClear(d); mCenterFlex(d);
 	let dParent = mDiv(d, { gap: 6 });
@@ -140,7 +140,7 @@ function onclick_random() {
 function onclick_reload_after_switching() { DA.pollCounter = 0; DA.reloadColor = rColor(); onclick_reload(); }
 
 function onclick_reload() {
-	//console.log('onclick_reload')
+	console.log('onclick_reload')
 	if (isdef(Z)) {
 		// bei einem timed game mit schachuhr, muss ich die zeit abziehen!!!
 		if (Z.game == 'fritz' && nundef(Z.fen.winners)) {
@@ -278,6 +278,7 @@ function onclick_user(uname) {
 	//console.log('onclick_user',uname);
 	U = firstCond(Serverdata.users, x => x.name == uname);
 	localStorage.setItem('uname', U.name);
+	DA.secretuser = U.name;
 	let elem = firstCond(arrChildren('dUsers'), x => x.getAttribute('username') == uname);
 	let img = elem.children[0];
 

@@ -23,11 +23,11 @@ function start_tests() {
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//ltest82_ferro(); //ltest_aristo_simple(); //ltest110_fritz(); //ltest108_animate_coin(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 	//#endregion
-	ltest111_start();
+	ltest107_aristo_build(); //ltest111_start();
 }
 
 //#region TESTING tests
-function ltest111_start(){
+function ltest111_start() {
 	show_home_logo();
 	if (nundef(U)) { show_users(); return; } show_username();
 	if (DA.TEST0) show('dTestButtons');
@@ -43,20 +43,20 @@ function ltest110_fritz() {
 }
 function ltest109_spotit() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
-	DA.test.end = () => { }; 
+	DA.test.end = () => { };
 	DA.auto_moves = [];
 	let playernames = [U.name, 'felix'];
-	startgame('spotit', playernames.map(x => ({ name: x, playmode: 'human' })), {  });
+	startgame('spotit', playernames.map(x => ({ name: x, playmode: 'human' })), {});
 }
 function ltest108_animate_coin() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_king_phase, give_players_schweine_variety], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
-	DA.test.end = () => { }; 
+	DA.test.end = () => { };
 	DA.auto_moves = [];
 	let playernames = [U.name, 'felix'];
 
 	DA.landing = () => {
 		// let d = iDiv(UI.player_stat_items[Z.uplayer]); //.dCoin;
-		d=UI.player_stat_items[Z.uplayer].dCoin;
+		d = UI.player_stat_items[Z.uplayer].dCoin;
 		anim1(d);
 		// let els = document.getElementsByTagName('div');
 		// //animate all els
@@ -79,7 +79,7 @@ function ltest107_aristo_build() {
 	DA.auto_moves = [];//[['random']];
 	let playernames = [U.name, 'felix'];
 
-	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })));
 }
 function ltest110_auction() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [set_auction_phase], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
@@ -973,13 +973,48 @@ function ltest0_card() { let c = ari_get_card('QSn'); mAppend(dTable, iDiv(c)); 
 //#endregion
 
 //#region fen (=local) tests
-function fentest8_ferro_transation_error(){
+function fentest10_ferro_end_of_round_goals() {
+	let [game, A, fen, uplayer, plorder] = [Z.game, Z.A, Z.fen, Z.uplayer, Z.plorder];
+
+	let pl = fen.players[plorder[0]];
+	pl.hand = ['3Hn','3Hn', '3Hn', '3Hn'];
+
+	pl = fen.players[plorder[1]];
+	pl.journeys = [['3Cn','3Hn', '3Hn', '3Hn']];
+	pl.goals['4'] = true;
+	pl.hand = ['3Hn','KSn'];
+
+	take_turn_fen();
+
+}
+function fentest9_ferro_transation_error() {
 	let [game, A, fen, uplayer] = [Z.game, Z.A, Z.fen, 'mimi']; //Z.uplayer];
 
 	let pl = fen.players[uplayer];
 	pl.goals['3'] = true;
-	pl.hand.push('3Hn','3Hn','3Hn');
-	Z.turn=['mimi'];
+	pl.goals['4'] = true;
+	pl.goals['5'] = true;
+	pl.hand = ['3Hn', '3Hn', '3Hn', '2Cn', '2Cn', '2Cn', '*Cn', 'ACn', '*Cn'];
+	Z.turn = ['mimi'];
+
+	let other = firstCond(Z.playerlist, x => x != uplayer);
+
+
+	//console.log('other', other);
+	pl = fen.players[other];
+	pl.goals['4'] = true;
+	pl.journeys = [['3Hn', '3Hn', '3Hn'], ['AHn', 'ACn', 'ACn', '*Cn']];
+
+	take_turn_fen();
+
+}
+function fentest8_ferro_transation_error() {
+	let [game, A, fen, uplayer] = [Z.game, Z.A, Z.fen, 'mimi']; //Z.uplayer];
+
+	let pl = fen.players[uplayer];
+	pl.goals['3'] = true;
+	pl.hand.push('3Hn', '3Hn', '3Hn');
+	Z.turn = ['mimi'];
 	take_turn_fen();
 
 }
@@ -1073,6 +1108,14 @@ function fentest0_min_items() {
 //#endregion
 
 //#region misc tests
+function test_ferro_goal_sorting() {
+	let av = ['7R', '3', '5', '33'];
+	av = ['33', '3', '5', '4'];
+	av.sort((a, b) => Z.fen.allGoals.indexOf(a) - Z.fen.allGoals.indexOf(b));
+	//console.log('ergebnis:',av);
+	return av;
+
+}
 function test100_partial_sequences() {
 	let hand = ['AHn', '2Hn', '3Hn', '4Hn', '5Hn', '6Hn', '7Hn', '8Hn']; //jollies needed=0
 	hand = ['AHn', '2Hn', '3Hn', '4Hn', '5Hn', '7Hn', '8Hn'];//jollies needed=1
@@ -1399,7 +1442,7 @@ function test7_add_hand_card() {
 }
 function test4_direct_login_onclick_user() {
 	show_users();
-	let uplayer = localStorage.getItem('uplayer');
+	let uplayer = localStorage.getItem('uname');
 	if (isdef(uplayer)) onclick_user(uplayer);
 
 }

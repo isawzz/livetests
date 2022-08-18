@@ -1,4 +1,49 @@
+function activate_ui() {
 
+	if (uiActivated) { DA.ai_is_moving = false; return; }
+	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
+
+	// if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
+	// 	FirstLoad = false;
+	// 	Clientdata.snapshot = jsCopy(Z.fen);
+	// 	show('bRestartMove');
+	// } else if (Clientdata.this_turn.length != 1) {
+	// 	delete Clientdata.snapshot;
+	// 	hide('bRestartMove');
+	// }
+
+	uiActivated = true; DA.ai_is_moving = false;
+}
+//#region uname switching!!!!!!!!!!!!
+function activate_playerstats(items) {
+	//das ist manually!
+	//console.log('activate_playerstats');
+	//console.log('items', items); //return;
+	let fen = Z.fen;
+	for (const plname in fen.players) {
+		let ui = items[plname];
+		let d = iDiv(ui);
+		d.onclick = () => { switch_uname(plname); onclick_reload(); }
+	}
+}
+function if_hotseat_autoswitch(result){
+	if (isdef(result.table) && isdef(Z) && Z.mode == 'hotseat'){ //!DA.AUTOSWITCH) {
+		//DA.AUTOSWITCH = true;
+		//hier sollte der automatische switch von uname passieren!!!
+		let turn = lookup(result, ['table', 'fen', 'turn']);
+		assertion(isdef(turn), 'turn is NOT defined (_sendSIMSIM) !!!!');
+		//console.log('turn', turn, 'res', result)
+		let uname = turn.length == 1 ? turn[0] : get_next_in_list(U.name, turn);
+		//console.log('uname', uname);
+		if (uname != U.name) switch_uname(uname);
+	}
+}
+function switch_uname(plname) {
+	set_user(plname);
+	show_username();
+	//DA.AUTOSWITCH = false;
+}
+//#endregion
 function animate_card_exchange(i0, i1, callback) {
 	ari_make_unselectable(i0);
 	ari_make_unselectable(i1);
@@ -34,22 +79,6 @@ function animate_card_transfer(card, goal, callback) {
 	let cgoal = { x: rgoal.x + rgoal.w / 2, y: rgoal.y + rgoal.h / 2 };
 	let v = { x: cgoal.x - c.x, y: cgoal.y - c.y };
 	mTranslateBy(d, v.x, v.y, 700, callback);
-}
-function activate_ui() {
-
-	if (uiActivated) { DA.ai_is_moving = false; return; }
-	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
-
-	// if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
-	// 	FirstLoad = false;
-	// 	Clientdata.snapshot = jsCopy(Z.fen);
-	// 	show('bRestartMove');
-	// } else if (Clientdata.this_turn.length != 1) {
-	// 	delete Clientdata.snapshot;
-	// 	hide('bRestartMove');
-	// }
-
-	uiActivated = true; DA.ai_is_moving = false;
 }
 function animate_title() {
 	var rev = "fwd";
@@ -292,9 +321,10 @@ function i_am_host() { return U.name == Z.host; }
 function i_am_acting_host() { return U.name == Z.fen.acting_host; }
 function i_am_trigger() { return is_multi_trigger(U.name); }
 function is_advanced_user() {
-	let advancedUsers = ['mimi', 'bob', 'buddy', 'minnow', 'nimble', 'leo', 'guest', 'felix'];
-	//console.log('U',isdef(U)?U.name:'undefined!!!');
-	return isdef(U) && advancedUsers.includes(U.name);
+	let advancedUsers = ['mimi', 'bob', 'buddy', 'minnow', 'nimble', 'leo']; //, 'guest', 'felix'];
+	//console.log('U', isdef(U) ? U.name : 'undefined!!!', 'secret:', DA.secretuser);
+	return isdef(U) && ((advancedUsers.includes(DA.secretuser) || advancedUsers.includes(U.name)));
+
 }
 function is_collect_mode() { return Z.turn.length > 1; }
 function is_just_my_turn() {
@@ -374,14 +404,18 @@ function remove_player(fen, uname) {
 }
 function remove_hourglass(uname) { let d = mBy(`dh_${uname}`); if (isdef(d)) mRemove(d); }
 function set_user(name) {
-	if (isdef(U) && U.name != name) {
+	if (isdef(Z) && isdef(U) && U.name != name) {
 		Z.prev.u = U;
 		Z.prev.uname = U.name;
 	}
-	U = Z.u = firstCond(Serverdata.users, x => x.name == name);
+	U = firstCond(Serverdata.users, x => x.name == name);
 	//console.log('set_user', name, U);
-	Z.uname = name;
-	//console.log('Z.uname', Z.uname);
+	if (isdef(Z)){
+		Z.u = U;
+		Z.uname = Z.uplayer = name;
+		//console.log('Z.uname', Z.uname);
+	
+	}
 }
 function set_player(name, fen) {
 	if (isdef(PL) && PL.name != name) { Z.prev.pl = PL; Z.prev.uplayer = PL.name; }
@@ -476,12 +510,12 @@ function show_handsorting_buttons_for(plname, styles = {}) {
 	let pl = fen.players[plname];
 	if (pl.hand.length <= 1) return;
 
-	let d = UI.players[plname].hand.container; mStyle(d, { position: 'relative' }); //,bg:'green' });
-	addKeys({ position: 'absolute', left: 58, bottom: -8, height: 25 }, styles); 
+	let d = UI.players[plname].hand.container; mStyle(d, { position: 'relative', wmin: 155 }); //,bg:'green' });
+	addKeys({ position: 'absolute', left: 58, bottom: -8, height: 25 }, styles);
 	let dHandButtons = mDiv(d, styles, 'dHandButtons');
 
-	show_player_button('by rank', dHandButtons, onclick_by_rank);
-	show_player_button('by suit', dHandButtons, onclick_by_suit);
+	show_player_button('rank', dHandButtons, onclick_by_rank);
+	show_player_button('suit', dHandButtons, onclick_by_suit);
 }
 function ari_show_handsorting_buttons_for(plname) {
 	if (Z.role == 'spectator' || isdef(mBy('dHandButtons'))) return;
@@ -565,7 +599,7 @@ function show_home_logo() {
 	d.onclick = onclick_home;
 	let version = 'v0.0.1';
 	let html = `version ${version}`
-	mText(html,dParent,{fz:12});
+	mText(html, dParent, { fz: 12 });
 }
 function show_hourglass(uname, d, sz, stylesPos = {}) {
 	let html = get_waiting_html(sz);
@@ -764,8 +798,9 @@ function show_username() {
 	if (is_advanced_user()) { show('dAdvanced1'); } else { hide('dAdvanced'); hide('dAdvanced1'); }
 	//if (TESTING) show('dAdvanced');
 
-	//console.log('Z',Z);
-	phpPost({ app: 'easy' }, 'tables');
+	//console.log('DA.running',DA.running); //'Z',Z,'dTable',dTable,mBy('dTable'),isVisible('dTable'));
+
+	if (!TESTING && !DA.running) phpPost({ app: 'easy' }, 'tables'); //else console.log('no tables cmd! DA.running', DA.running);
 }
 function show_users(ms = 300) {
 	let dParent = mBy('dUsers');
@@ -918,6 +953,8 @@ function ui_player_info(dParent, outerStyles = { dir: 'column' }, innerStyles = 
 
 		items[uname] = item;
 	}
+	if (DA.SIMSIM || is_advanced_user()) activate_playerstats(items)
+
 	return items;
 }
 

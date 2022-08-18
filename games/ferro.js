@@ -6,7 +6,12 @@ function ferro() {
 		options.jokers_per_group = 1;
 		fen.allGoals = ['7R', '55', '5', '44', '4', '33', '3'];
 		fen.availableGoals = options.maxrounds == 1 ? [rChoose(fen.allGoals)] : options.maxrounds < 7 ? rChoose(fen.allGoals, options.maxrounds) : fen.allGoals;
-		fen.roundGoals = arrReverse(fen.availableGoals);
+		//available goals muessen nach schwierigkeit sortiert werden!!!!! 
+		fen.availableGoals.sort((a, b) => fen.allGoals.indexOf(a) - fen.allGoals.indexOf(b)); //sorted most difficult first
+
+		//test if availableGoals richtig sortiert!
+
+		fen.roundGoals = arrReverse(fen.availableGoals); //sorted easiest first!
 		//console.log('availableGoals', fen.availableGoals);
 
 		//calc how many decks are needed (basically 1 suit per person, plus 1 for the deck)
@@ -24,6 +29,7 @@ function ferro() {
 			let pl = fen.players[plname] = {
 				hand: deck_deal(deck, plname == starter ? handsize + 1 : handsize),
 				journeys: [],
+				roundgoal: false,
 				coins: options.coins, //0, //10,
 				vps: 0,
 				score: 0,
@@ -45,7 +51,19 @@ function ferro() {
 	function check_gameover() { return isdef(Z.fen.winners) ? Z.fen.winners : false; }
 	function clear_ack() {
 		if (Z.stage == 'round_end') { start_new_round_ferro(); take_turn_fen(); }
-		else if (Z.stage != 'card_selection') { Z.stage = 'can_resolve'; ferro_change_to_card_selection(); }
+		else if (Z.stage != 'card_selection') {
+			//gib jedem spieler der nicht playerdata hat false
+			//console.log('clear_ack', Z.stage, jsCopy(Z.fen));
+			for (const plname of Z.fen.canbuy) {
+				let pldata = firstCond(Z.playerdata, x => x.name == plname);
+				if (isdef(pldata) && lookup(pldata, ['state', 'buy']) == true) {
+					Z.fen.buyer = plname;
+					break;
+				}
+			}
+			Z.stage = 'can_resolve';
+			ferro_change_to_card_selection();
+		}
 	}
 	function present(dParent) { ferro_present(dParent); }
 	function stats(dParent) { ferro_stats(dParent); }
@@ -403,10 +421,18 @@ function deck_deal_safe_ferro(fen, plname, n) {
 }
 function end_of_round_ferro() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-	let pl = fen.players[uplayer];
 	//score all players
 	calc_ferro_score(uplayer);
-	if (Z.options.phase_order == 'anti') { for (const pl of plorder) { fen.players[pl].goals[get_round_goal()] = true; } }
+	if (Z.options.phase_order == 'anti') {
+		for (const plname of plorder) {
+			let pl = fen.players[plname];
+			if (!pl.roundgoal) pl.goals[get_round_goal()] = true;
+			// let number_of_goals_achieved = 0;
+			// for (const g in pl.goals) { if (pl.goals[g] == true) { number_of_goals_achieved++; } } //console.log('g',g,pl.goals); }}
+			// //console.log(plname + ': ' + number_of_goals_achieved);
+			// if (number_of_goals_achieved < Z.round) pl.goals[get_round_goal()] = true;
+		}
+	}
 	ari_history_list([`${uplayer} wins the round`], 'round');
 	fen.round_winner = uplayer;
 
@@ -414,33 +440,120 @@ function end_of_round_ferro() {
 	take_turn_fen();
 
 }
-function start_new_round_ferro() {
+function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = true) {
+	//let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
+
+	if (cards.length < 3) return false;
+	let num_jollies_in_cards = cards.filter(x => is_joker(x)).length;
+	if (num_jollies_in_cards > max_jollies_allowed) return false;
+
+	cards = sortCardItemsByRank(cards.map(x => x), rankstr = '23456789TJQKA*');
+
+	let rank = cards[0].rank;
+	let isgroup = cards.every(x => x.rank == rank || is_joker(x));
+
+	//check if all cards have either different suit or are jolly
+	//check for duplicate suits in cards
+	let suits = cards.filter(x => !is_joker(x)).map(x => x.suit);
+	let num_duplicate_suits = suits.filter(x => suits.filter(y => y == x).length > 1).length;
+	if (isgroup && !group_same_suit_allowed && num_duplicate_suits > 0) return false;
+	else if (isgroup) return cards.map(x => x.key);
+
+	let suit = cards[0].suit;
+	if (!cards.every(x => is_jolly(x.key) || x.suit == suit)) return false;
+
+	//if duplicate keys in cards, then it's not a set
+	let keys = cards.map(x => x.key);
+	if (keys.length != new Set(keys).size) return false;
+
+	//console.log('checking for sequence!!!!!!!!!!!!!!!!!!!!!')
+	let at_most_jollies = Math.min(num_jollies_in_cards, max_jollies_allowed);
+	let num_jolly = sortCardItemsToSequence(cards, rankstr = '23456789TJQKA', at_most_jollies);
+	//console.log('num_jolly', num_jolly);
+	let cond1 = num_jolly <= at_most_jollies; //this sequence does not need more jollies than it should
+	let cond2 = cards.length >= seqlen; //console.log('cond2', cond2);
+	//console.log('cards', cards);
+	if (cond1 && cond2) return cards.map(x => x.key); else return false;
+}
+function ferro_process_discard() {
 	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	let pl = fen.players[uplayer];
+
+	//discard is imminent! check if _roundgoal has changed!
+	if (!isEmpty(pl.journeys) && !pl.roundgoal) {
+		//not fixed: calculate highest available goal and set it true
+		//_roundgoal has been reached!
+		let goal = is_fixed_goal() ? get_round_goal() : calc_ferro_highest_goal_achieved(pl);
+		pl.roundgoal = goal;
+		pl.goals[goal] = true;
+		ari_history_list([`${pl.name} achieved goal ${pl.roundgoal}`], 'achieve');
+	}
+
+	let c = A.selectedCards[0].key;
+	elem_from_to_top(c, fen.players[uplayer].hand, fen.deck_discard);
+	ari_history_list([`${uplayer} discards ${c}`], 'discard');
+
+	if (fen.players[uplayer].hand.length == 0) { end_of_round_ferro(); } else ferro_change_to_buy_pass(); //ferro_change_to_ack_round();
+
+}
+function ferro_process_set(keys) {
+	//console.log('ferro_process_set', keys);
+	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
+	//console.log('group', jsCopy(keys)); //schon falsch!!!
+
+
+	if (is_group(keys)) {
+		//console.log('group', keys);
+		keys = sort_cards(keys, true, 'CDSH', true, '23456789TJQKA*');
+	}
+	let j = [];
+	keys.map(x => elem_from_to(x, fen.players[uplayer].hand, j));
+	fen.players[uplayer].journeys.push(j);
+
+	//console.log('journey is finally', j)
+
+	ari_history_list([`${uplayer} reveals ${j.join(', ')}`], 'auflegen');
 	Z.stage = 'card_selection';
-	fen.plorder = arrCycle(plorder, 1);
-	let starter = fen.plorder[0];
-	Z.turn = fen.turn = [starter];
-	let deck = fen.deck = create_fen_deck('n', fen.num_decks, fen.num_decks * 4);
-	let deck_discard = fen.deck_discard = [];
-	shuffle(deck);
-	shuffle(fen.plorder);
-	let handsize = valf(Number(Z.options.handsize), 11);
-	for (const plname of fen.plorder) {
+
+}
+function ferro_process_jolly(key, j) {
+	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
+	//console.log('jolly', jsCopy(j));
+	let a = key;
+	let b = j.find(x => x[0] == '*');
+	//console.log(`${a} replaced by ${b}`);
+	arrReplace1(fen.players[uplayer].hand, a, b);
+	replace_jolly(key, j);
+	ari_history_list([`${uplayer} replaces for jolly`], 'jolly');
+	Z.stage = 'card_selection';
+}
+function ferro_transaction_error() {
+	let d = mDiv(dError, { padding: 10, align: 'center' }, null, `Illegal turn sequence - transaction cannot be completed!!!<br>press reload and try again!<br>`);
+	mButton('RELOAD', onclick_reload, d, { margin: 10 });
+	clear_transaction();
+	//onclick_reload();
+}
+function find_players_with_max_score() {
+	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
+	let maxscore = -Infinity;
+	let maxscorepls = [];
+	for (const plname of plorder) {
 		let pl = fen.players[plname];
-		pl.hand = deck_deal(deck, plname == starter ? handsize + 1 : handsize);
-		pl.journeys = [];
-		pl.roundgoal = false;
-		pl.roundchange = true;
-		delete pl.handsorting;
+		if (pl.score > maxscore) { maxscore = pl.score; maxscorepls = [plname]; }
+		else if (pl.score == maxscore) maxscorepls.push(plname);
 	}
-	Z.round += 1;
-	//console.log('starter',starter,'turn',Z.turn,'round',Z.round);
-	if (Z.round > Z.options.maxrounds) {
-		ari_history_list([`game over`], 'game');
-		Z.stage = 'game_over';
-		fen.winners = find_players_with_min_score();
+	return maxscorepls;
+}
+function find_players_with_min_score() {
+	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
+	let minscore = Infinity;
+	let minscorepls = [];
+	for (const plname of plorder) {
+		let pl = fen.players[plname];
+		if (pl.score < minscore) { minscore = pl.score; minscorepls = [plname]; }
+		else if (pl.score == minscore) minscorepls.push(plname);
 	}
+	return minscorepls;
 
 }
 function fp_card_selection() {
@@ -458,12 +571,9 @@ function fp_card_selection() {
 		let item = selitems[0];
 		if (!item.path.includes(`${uplayer}.hand`)) { select_error('select a hand card to discard!', () => { ari_make_unselected(item); A.selected = []; }); return; }
 
-		//here I have to check for transaction and commit or _rollback
-		//if transactionlist is non-empty, check if player's minimum req has been fullfilled
-		//console.log('discard', DA.transactionlist);
 		assertion(DA.transactionlist.length == 0 || DA.simulate, '!!!!!!!!!!!!!!!!transactionlist is not empty!');
 		if (DA.transactionlist.length > 0) {
-			//console.log('VERIFYING TRANSACTION............')
+			console.log('VERIFYING TRANSACTION............')
 			//console.log('DA.transactionlist', jsCopy(DA.transactionlist));
 			let legal = verify_min_req();
 			clear_transaction();
@@ -475,6 +585,8 @@ function fp_card_selection() {
 			}
 		} else {
 			//console.log('should process discard!!!')
+			//let legal = verify_min_req();
+
 			ferro_process_discard(); //discard selected card
 			//take_turn_single();
 		}
@@ -544,6 +656,7 @@ function fp_card_selection() {
 				for (const h of handcards) {
 					elem_from_to(h.key, fen.players[uplayer].hand, j);
 				}
+				if (pl.journeys.length == 0) { add_transaction(cmd); }
 				take_turn_fen();
 				return;
 			} else {
@@ -582,6 +695,7 @@ function fp_card_selection() {
 				j.length = 0;
 				j.push(...seq);
 				for (const k of handkeys) { removeInPlace(fen.players[uplayer].hand, k); }
+				if (pl.journeys.length == 0) { add_transaction(cmd); }
 				take_turn_fen();
 				//console.log('YES!');
 
@@ -592,132 +706,6 @@ function fp_card_selection() {
 			}
 		}
 	}
-}
-function ferro_is_set(cards, max_jollies_allowed = 1, seqlen = 7, group_same_suit_allowed = true) {
-	//let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-
-	if (cards.length < 3) return false;
-	let num_jollies_in_cards = cards.filter(x => is_joker(x)).length;
-	if (num_jollies_in_cards > max_jollies_allowed) return false;
-
-	cards = sortCardItemsByRank(cards.map(x => x), rankstr = '23456789TJQKA*');
-
-	let rank = cards[0].rank;
-	let isgroup = cards.every(x => x.rank == rank || is_joker(x));
-
-	//check if all cards have either different suit or are jolly
-	//check for duplicate suits in cards
-	let suits = cards.filter(x => !is_joker(x)).map(x => x.suit);
-	let num_duplicate_suits = suits.filter(x => suits.filter(y => y == x).length > 1).length;
-	if (isgroup && !group_same_suit_allowed && num_duplicate_suits > 0) return false;
-	else if (isgroup) return cards.map(x => x.key);
-
-	let suit = cards[0].suit;
-	if (!cards.every(x => is_jolly(x.key) || x.suit == suit)) return false;
-
-	//if duplicate keys in cards, then it's not a set
-	let keys = cards.map(x => x.key);
-	if (keys.length != new Set(keys).size) return false;
-
-	//console.log('checking for sequence!!!!!!!!!!!!!!!!!!!!!')
-	let at_most_jollies = Math.min(num_jollies_in_cards, max_jollies_allowed);
-	let num_jolly = sortCardItemsToSequence(cards, rankstr = '23456789TJQKA', at_most_jollies);
-	//console.log('num_jolly', num_jolly);
-	let cond1 = num_jolly <= at_most_jollies; //this sequence does not need more jollies than it should
-	let cond2 = cards.length >= seqlen; //console.log('cond2', cond2);
-	//console.log('cards', cards);
-	if (cond1 && cond2) return cards.map(x => x.key); else return false;
-}
-function ferro_process_discard() {
-	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-	let pl = fen.players[uplayer];
-
-	//discard is imminent! check if roundgoal has changed!
-	if (!isEmpty(pl.journeys) && !pl.roundgoal) {
-		//calculate highest available goal and set it true
-		//roundgoal has been reached!
-		if (is_fixed_goal()) {
-			let goal = get_round_goal();
-			pl.roundgoal = goal;
-			pl.goals[goal] = true;
-		} else {
-			//calc highest goal achieved by this player OUT OF AVAILABLE goals!!
-			let goal = calc_ferro_highest_goal_achieved(pl);
-			pl.roundgoal = goal;
-			pl.goals[goal] = true;
-			ari_history_list([`${pl.name} achieved goal ${goal}`], 'achieve');
-			//da muss ich zu verify_goals machen!
-
-		}
-	}
-
-	let c = A.selectedCards[0].key;
-	elem_from_to_top(c, fen.players[uplayer].hand, fen.deck_discard);
-	ari_history_list([`${uplayer} discards ${c}`], 'discard');
-
-	if (fen.players[uplayer].hand.length == 0) { end_of_round_ferro(); } else ferro_change_to_buy_pass(); //ferro_change_to_ack_round();
-
-}
-function ferro_process_set(keys) {
-	//console.log('ferro_process_set', keys);
-	let [plorder, stage, A, fen, uplayer, pl] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer, Z.fen.players[Z.uplayer]];
-	//console.log('group', jsCopy(keys)); //schon falsch!!!
-
-
-	if (is_group(keys)) {
-		//console.log('group', keys);
-		keys = sort_cards(keys, true, 'CDSH', true, '23456789TJQKA*');
-	}
-	let j = [];
-	keys.map(x => elem_from_to(x, fen.players[uplayer].hand, j));
-	fen.players[uplayer].journeys.push(j);
-
-	//console.log('journey is finally', j)
-
-	ari_history_list([`${uplayer} reveals ${j.join(', ')}`], 'auflegen');
-	Z.stage = 'card_selection';
-
-}
-function ferro_process_jolly(key, j) {
-	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-	//console.log('jolly', jsCopy(j));
-	let a = key;
-	let b = j.find(x => x[0] == '*');
-	//console.log(`${a} replaced by ${b}`);
-	arrReplace1(fen.players[uplayer].hand, a, b);
-	replace_jolly(key, j);
-	ari_history_list([`${uplayer} replaces for jolly`], 'jolly');
-	Z.stage = 'card_selection';
-}
-function ferro_transaction_error() {
-	let d = mDiv(dError, { padding: 10, align: 'center' }, null, `Inconsistency during your turn - transaction cannot be completed!!!<br>press reload and try again!<br>`);
-	mButton('RELOAD', onclick_reload, d, { margin: 10 });
-	clear_transaction();
-	//onclick_reload();
-}
-
-function find_players_with_max_score() {
-	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-	let maxscore = -Infinity;
-	let maxscorepls = [];
-	for (const plname of plorder) {
-		let pl = fen.players[plname];
-		if (pl.score > maxscore) { maxscore = pl.score; maxscorepls = [plname]; }
-		else if (pl.score == maxscore) maxscorepls.push(plname);
-	}
-	return maxscorepls;
-}
-function find_players_with_min_score() {
-	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
-	let minscore = Infinity;
-	let minscorepls = [];
-	for (const plname of plorder) {
-		let pl = fen.players[plname];
-		if (pl.score < minscore) { minscore = pl.score; minscorepls = [plname]; }
-		else if (pl.score == minscore) minscorepls.push(plname);
-	}
-	return minscorepls;
-
 }
 function get_available_goals(plname) {
 	//return ['3', '33', '4', '44', '5', '55', '7R'].filter(x => !Z.fen.players[plname].goals[x]);
@@ -736,7 +724,7 @@ function is_correct_group_illegal(cards) {
 	//assumes that if this is a sequence, the sequence is correct!
 	//this just tests whether the player is allowed to put down a 7sequence at this time
 
-	//console.log('is_correct_group_illegal', cards);
+	//console.log('_is_correct_group_illegal', cards);
 
 	let keys = cards.map(x => x.key);
 	let isgroup = is_group(keys);
@@ -752,33 +740,41 @@ function is_correct_group_illegal(cards) {
 
 	if (pl.journeys.find(x => is_sequence(x))) return `you can only have one sequence of 7!`;
 
+	if (pl.roundgoal) return `row of 7 NOT allowed except if it is the round goal!`;
+
 	return false;
 
 }
-function is_legal_if_7R(cards) {
-	//assumes that if this is a sequence, the sequence is legal,
-	//this just tests whether the layer is allowed to put down a 7sequence at this time
-
-	//console.log('is_legal_if_7R', cards);
-
-	let keys = cards.map(x => x.key);
-	let isgroup = is_group(keys);
-	if (isgroup) return true;
-	if (is_fixed_goal() && get_round_goal() != '7R') {
-		//console.log('DESHALB!!!')
-		return false;
-	}
-	let [fen, uplayer] = [Z.fen, Z.uplayer];
+function onclick_clear_selection_ferro() { clear_selection(); }
+function start_new_round_ferro() {
+	let [plorder, stage, A, fen, uplayer] = [Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	let pl = fen.players[uplayer];
-	if (!is_fixed_goal() && pl.goals['7R'] == true) return false;
-
-	if (pl.journeys.find(x => is_sequence(x))) return false;
-
-	return true;
+	Z.stage = 'card_selection';
+	fen.plorder = arrCycle(plorder, 1);
+	let starter = fen.plorder[0];
+	Z.turn = fen.turn = [starter];
+	let deck = fen.deck = create_fen_deck('n', fen.num_decks, fen.num_decks * 4);
+	let deck_discard = fen.deck_discard = [];
+	shuffle(deck);
+	
+	let handsize = valf(Number(Z.options.handsize), 11);
+	for (const plname of fen.plorder) {
+		let pl = fen.players[plname];
+		pl.hand = deck_deal(deck, plname == starter ? handsize + 1 : handsize);
+		pl.journeys = [];
+		pl.roundgoal = false;
+		pl.roundchange = true;
+		delete pl.handsorting;
+	}
+	Z.round += 1;
+	//console.log('starter',starter,'turn',Z.turn,'round',Z.round);
+	if (Z.round > Z.options.maxrounds) {
+		ari_history_list([`game over`], 'game');
+		Z.stage = 'game_over';
+		fen.winners = find_players_with_min_score();
+	}
 
 }
-function onclick_clear_selection_ferro() { clear_selection(); }
-
 function ui_get_buy_or_pass_items() {
 	//console.log('uplayer',uplayer,_UI.players[uplayer])
 	let items = [], i = 0;
@@ -834,41 +830,32 @@ function ui_get_submit_items(commands) {
 	return items;
 }
 function verify_min_req() {
-	//verifies existence of groups but not correctness of each group, which is done when auflegen!
 	let [fen, uplayer] = [Z.fen, Z.uplayer];
 	let pl = fen.players[uplayer];
-
+	let jsorted = jsCopy(pl.journeys).sort((a, b) => b.length - a.length);
 	let di = {
-		'3': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3,
-		'33': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 3
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 3,
-		'4': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4,
-		'44': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 4
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 4,
-		'5': pl.journeys.length > 0 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5,
-		'55': pl.journeys.length > 1 && is_group(pl.journeys[0]) && pl.journeys[0].length >= 5
-			&& is_group(pl.journeys[1]) && pl.journeys[1].length >= 5,
-		'7R': pl.journeys.length > 0 && is_sequence(pl.journeys[0]) && pl.journeys[0].length >= 7,
+		'3': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 3,
+		'33': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 3
+			&& is_group(jsorted[1]) && jsorted[1].length >= 3,
+		'4': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 4,
+		'44': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 4
+			&& is_group(jsorted[1]) && jsorted[1].length >= 4,
+		'5': jsorted.length > 0 && is_group(jsorted[0]) && jsorted[0].length >= 5,
+		'55': jsorted.length > 1 && is_group(jsorted[0]) && jsorted[0].length >= 5
+			&& is_group(jsorted[1]) && jsorted[1].length >= 5,
+		'7R': jsorted.length > 0 && is_sequence(jsorted[0]) && jsorted[0].length >= 7,
 	};
 
 	let goals = is_fixed_goal() ? [get_round_goal()] : get_available_goals(uplayer);
-	//console.log('goals', goals, 'di', di, 'pl.journeys', pl.journeys);
-
+	//console.log('open and available',goals);
 	for (const g of goals) {
-		if (di[g] == true) return true;
+		if (di[g] == true) { return true; } //console.log('achieved',g);
 	}
-	DA.min_goals = goals;
+	//console.log('none achieved',goals);
 	return false;
+
 }
 
-
-//#region NOT USED
-function ferro_round_end_ack_player() {
-	//let [z, A, fen, stage, uplayer, ui] = [Z, Z.A, Z.fen, Z.stage, Z.uplayer, UI];
-	Clientdata.acked = true;
-	mBy('dSelections0').innerHTML = 'waiting for next round to start...'; //.remove();
-}
-//#endregion
 
 
 

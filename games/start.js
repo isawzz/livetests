@@ -1,16 +1,18 @@
 onload = start; var FirstLoad = true;//document.onBlur = stopPolling;//onblur = stopPolling;//onfocus = onclick_reload_after_switching;
 
-DA.SIMSIM = true; DA.exclusive = true; DA.TESTSTART1 = true; //DA.sendmax = 3; 
+//DA.SIMSIM = true; //DA.exclusive = true; DA.TESTSTART1 = true; //DA.sendmax = 3; 
 //DA.TEST0 = true; 
 //DA.TEST1 = true; DA.TEST1Counter = 0;
-function start() { let uname = localStorage.getItem('uname'); if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
+function start() { let uname = DA.secretuser = localStorage.getItem('uname'); if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
 //function start() { let uname = null; if (isdef(uname)) U = { name: uname }; phpPost({ app: 'simple' }, 'assets'); }
 function start_with_assets() {
 
 	//console.log(`browser name: ${navigator.appName}, or ${navigator.userAgent}`);
 	DA.isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1; if (DA.isFirefox) console.log('using Firefox!')
 	show_home_logo();
-	if (nundef(U)) { show_users(); return; } show_username();
+	if (nundef(U)) { show_users(); return; } 
+	
+	show_username();
 	if (DA.TEST0) show('dTestButtons');
 
 	//startgame('ferro'); 
@@ -108,10 +110,10 @@ function gamestep() {
 
 		//let doNOTpoll = Z.options.zen_mode == 'yes' || Z.mode == 'hotseat' || ;
 		//functioniert das folgende?
-		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') autopoll();
+		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') {autopoll();} //console.log('gamestep autopoll'); 
+
 	}
 	if (TESTING == true) landing();
-	if (DA.SIMSIM) activate_playerstats()
 }
 
 //#region basemin NEW HELPERS!!!!!
@@ -358,7 +360,10 @@ function send_or_sim(o, cmd) {
 	Counter.server += 1; //console.log('send_or_sim '+Counter.server);
 	//if (Counter.server > 10) return;
 	//if (nundef(Z) || is_multi_stage()) o.read_players = true; das wird jetzt IMMER gemacht!!!
-	if (DA.simulate) phpPostSimulate(o, cmd); else phpPost(o, cmd);
+	
+	
+	//if (DA.simulate) phpPostSimulate(o, cmd); else phpPost(o, cmd);
+	phpPost(o, cmd);
 }
 
 

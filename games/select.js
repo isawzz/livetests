@@ -1,14 +1,15 @@
 //#region transaction
 function add_transaction(cmd) {
 	if (!DA.simulate) start_transaction();
-	let t = { cmd: cmd, fen: jsCopy(Z.fen), stage: Z.stage, round: Z.round, phase: Z.phase, turn: Z.turn };
+	//let t = { cmd: cmd, fen: jsCopy(Z.fen), stage: Z.stage, round: Z.round, phase: Z.phase, turn: Z.turn };
 	DA.transactionlist.push(cmd);
+	//console.log('added transaction', cmd, DA);
 }
 function start_transaction() {
 	if (DA.simulate) return;
 	DA.simulate = true;
 	DA.snapshot = { fen: jsCopy(Z.fen), stage: Z.stage, round: Z.round, phase: Z.phase, turn: Z.turn }; //brauch ich eigentlich nicht
-	if (nundef(DA.transactionlist)) DA.transactionlist = [];
+	DA.transactionlist = [];
 }
 function clear_transaction() { DA.simulate = false; DA.transactionlist = []; }
 function phpPostSimulate(o, cmd) {

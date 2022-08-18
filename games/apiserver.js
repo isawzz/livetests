@@ -81,8 +81,6 @@ function phpPost(data, cmd) {
 
 	if (DA.TEST1 === true && cmd == 'table') { cmd = 'table1'; }
 
-	clear_transaction();
-
 	pollStop();
 
 	var o = {};
@@ -93,11 +91,16 @@ function phpPost(data, cmd) {
 	//console.log('DA', DA);
 	if (DA.SIMSIM && (DA.exclusive || ['table', 'startgame', 'gameover', 'tables'].includes(cmd))) {
 		sendSIMSIM(o, DA.exclusive);
+		FORCE_REDRAW = true;
 		if (DA.exclusive) return;
 	}else if (DA.simulate){
-		sendSIMSIM(o, DA.exclusive, true);
-		if (DA.exclusive) return;
+		sendSIMSIM(o, true, true);
+		FORCE_REDRAW = true;
+		return;
 	}
+
+	//if (nundef(data.auto)) console.log('zum server - clear!', cmd);
+	clear_transaction();
 
 	var xml = new XMLHttpRequest();
 	loader_on();
@@ -179,7 +182,7 @@ function unpack_table(table) {
 		//console.log('k',k, 'val',val, table[k]);
 		if (isdef(table[k])) table[k] = if_stringified(val); if (nundef(table[k])) table[k] = {}; //JSON.parse(table[k]); else table[k] = {};
 	}
-	if (isdef(table.modified)) { table.timestamp = new Date(Number(table.modified)); table.stime = stringBeforeLast(table.timestamp.toString(), 'G').trim(); }
+	if (isdef(table.modified)) { table.modified = Number(table.modified); table.timestamp = new Date(table.modified); table.stime = stringBeforeLast(table.timestamp.toString(), 'G').trim(); }
 
 	//console.log('table as processed', jsCopy(table));
 
@@ -245,12 +248,12 @@ function update_table() {
 	//console.log()
 	Z.uplayer_data = firstCond(Z.playerdata, x => x.name == Z.uplayer);
 
-	// Z.skip_presentation = isEmpty(Z.playerdata_changed_for) && !FORCE_REDRAW && friendly == Z.prev.friendly && modified <= Z.prev.modified && uplayer == Z.prev.uplayer;
+	// _Z.skip_presentation = isEmpty(Z.playerdata_changed_for) && !FORCE_REDRAW && friendly == Z.prev.friendly && modified <= Z.prev.modified && uplayer == Z.prev.uplayer;
 	let sametable = !FORCE_REDRAW && friendly == Z.prev.friendly && modified <= Z.prev.modified && uplayer == Z.prev.uplayer;
 	let sameplayerdata = isEmpty(Z.playerdata_changed_for);
 	let myplayerdatachanged = Z.playerdata_changed_for.includes(Z.uplayer);
 
-	//if uplayer is neither host nor trigger nor acting_host, can skip unless own playerdata changed??? =>will still do autopoll!
+	//if uplayer is neither host nor trigger nor acting_host, can skip unless own playerdata changed??? =>will still do _autopoll!
 	let specialcase = !i_am_host() && !i_am_acting_host() && !i_am_trigger() && !myplayerdatachanged;
 
 	Z.skip_presentation = sametable && (sameplayerdata || specialcase);
@@ -269,7 +272,7 @@ function update_table() {
 	FORCE_REDRAW = false;
 	//console.log('!!!!!!!!!!!!!!!!!Z.skip_presentation', Z.skip_presentation);
 
-	//if (Z.skip_presentation) { autopoll(); } else { clear_timeouts(); }
+	//if (Z.skip_presentation) { _autopoll(); } else { clear_timeouts(); }
 
 }
 
@@ -285,9 +288,11 @@ function _poll() {
 	//console.log('polling...');
 	show_polling_signal();
 
-	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; console.log('polling', DA.pollCounter);
-	if (valf(DA.sendmax, 1000) >= DA.pollCounter) return;
+	if (nundef(DA.pollCounter)) DA.pollCounter = 0; DA.pollCounter++; //console.log('polling', DA.pollCounter);
+	//console.log('DA',DA)
+	//if (DA.pollCounter >= valf(DA.sendmax, 1000)) return;
 
+	
 	send_or_sim({ friendly: Z.friendly, uname: Z.uplayer, auto: true }, 'table');
 }
 function sss() { show_playerdatastate(); }

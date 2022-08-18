@@ -1,24 +1,21 @@
 onload = start; var FirstLoad = true;
+DA.SIMSIM = true; DA.exclusive = true; DA.TESTSTART1 = true; //DA.sendmax = 3; 
+
 async function start() {
 	//DB = await route_path_yaml_dict('./base/DB.yaml');	console.log('DB',DB);	return; //OK!
 	Serverdata = await load_assets_fetch('./base/', './games/'); //war vorher './easy/' !!!!!!!!!!!!!!!!!!!!!!!! 
 	//console.log('Serverdata',Serverdata); return; //OK!
-	let uname = localStorage.getItem('uname');
-	//console.log('uname',uname); return; //ja, loads mimi 
+	let uname = DA.secretuser = 'mimi'; //localStorage.getItem('uname');
+	U = firstCond(Serverdata.users, x => x.name == uname);
+	assertion(isdef(U), 'user not found');
 
-	if (isdef(uname)) {
-		U = firstCond(Serverdata.users, x => x.name == uname);
-		if (!U) U = rChoose(Serverdata.users);
-	}
-	// console.log('U',U); return;
 	show_home_logo(); 
-	TESTING = true;
-	if (nundef(U)) { show_users(); } else { show_username(); }
+	TESTING = true; //DA.AUTOSWITCH = true;
+	show_username(); 
 
 	start_with_assets();
 }
 function start_with_assets() { 
-	
 	start_tests(); 
 }
 
