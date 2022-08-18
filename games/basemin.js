@@ -3595,7 +3595,7 @@ function stringBetweenLast(sFull, sStart, sEnd) {
 }
 function toLetters(s) { return [...s]; }
 function toWords(s) {
-	let arr = s.split(/(?:,|\s)+/);
+	let arr = s.split(/(?:,|\s|!)+/);
 	return arr.filter(x => !isEmpty(x));
 }
 

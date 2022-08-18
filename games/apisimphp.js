@@ -116,9 +116,7 @@ function sendSIMSIM(o, exclusive = false, saveFromZ = false) {
 
 	let result = apiphp(o, saveFromZ); //console.log('result', result); //this is server send!!! 
 
-	if (TESTING && o.cmd == 'startgame') {
-		for (const func of DA.test.mods) func(result.table);
-	}
+	if (TESTING && o.cmd == 'startgame') { for (const func of DA.test.mods) func(result.table); }
 
 	let res = JSON.stringify(result);
 	if (exclusive) { if_hotseat_autoswitch(result); handle_result(res, o.cmd); } else { console.log('sendSIMSIM testresult', result); }

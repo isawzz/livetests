@@ -125,6 +125,7 @@ function beautify_history(lines, title, fen, uplayer) {
 	let html = `<div class="history"><span style="color:red;font-weight:bold;">${title}: </span>`;
 	for (const l of lines) {
 		let words = toWords(l);
+		//console.log('words', words);
 		for (const w1 of words) {
 			if (is_card_key(w1)) {
 				//html += ` ${ari_get_card(w1).friendly} `; 
@@ -545,7 +546,8 @@ function show_view_buildings_button(plname) {
 	//let dPlayerButtons = mDiv(d, { position: 'absolute', top: 8, left: 52, height: 25, width: 200, bg:'green' }, 'dPlayerButtons');
 	show_player_button('view buildings', d2, onclick_view_buildings);
 
-} function show_history(fen, dParent) {
+} 
+function show_history(fen, dParent) {
 	if (!isEmpty(fen.history)) {
 		let html = '';
 		for (const o of jsCopy(fen.history).reverse()) {

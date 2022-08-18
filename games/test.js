@@ -23,7 +23,7 @@ function start_tests() {
 	//ltest93_bluff(); //ltest90_bluff(); //ltest90_bluff_ueberbiete();
 	//ltest82_ferro(); //ltest_aristo_simple(); //ltest110_fritz(); //ltest108_animate_coin(); //ltest38_ferro_end_of_round(); //ltest109_spotit(); //ltest93_bluff(); //ltest110_auction(); //ltest102_luxurycard(); //ltest101_commission(); //ltest100_auction();//ltest97_find_sequences(); //ltest96_aristo_visit(); //ltest95_aristo_rumor_action();
 	//#endregion
-	ltest107_aristo_build(); //ltest111_start();
+	ltest_aristo_simple(); //ltest105_aristo_church(); //ltest107_aristo_build(); //ltest111_start();
 }
 
 //#region TESTING tests
@@ -138,9 +138,9 @@ function ltest_aristo_simple() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
 	DA.test.end = () => { }; //console.log('discard:',Z.fen.deck_discard);}
 	DA.auto_moves = [];//[['random']];
-	let playernames = [U.name, 'felix'];
+	let playernames = [U.name, 'felix', 'gul', 'amanda', 'lauren']; //, 'gul', 'amanda', 'lauren'];
 
-	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { mode: 'hotseat' });
+	startgame('aristo', playernames.map(x => ({ name: x, playmode: 'human' })), { commission: 'no' });
 }
 function ltest103_aristo_journey() {
 	TESTING = true; DA.testing = true; DA.test = { mods: [give_player_luxury_cards], iter: 0, maxiter: 200, running: false, step: true, suiteRunning: false, number: 0, list: [0] };
