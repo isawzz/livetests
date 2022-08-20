@@ -21,7 +21,7 @@ function ferro() {
 		let deck = fen.deck = create_fen_deck('n', num_decks, 4 * num_decks);
 		let deck_discard = fen.deck_discard = [];
 		shuffle(deck);
-		if (DA.TEST != true) shuffle(fen.plorder);
+		if (DA.TESTING != true) { shuffle(fen.plorder);shuffle(fen.plorder); } //shuffletest(fen.plorder);		}
 		let starter = fen.plorder[0];
 		//console.log('options', options);
 		let handsize = valf(Number(options.handsize), 11);
@@ -41,7 +41,7 @@ function ferro() {
 
 			//console.log('pl.goals',plname, pl.goals);
 
-			if (DA.TEST0 == true && plname == starter) { pl.hand = ['AHn', 'AHn', 'AHn', 'AHn']; }
+			//if (DA.TEST0 == true && plname == starter) { pl.hand = ['AHn', 'AHn', 'AHn', 'AHn']; }
 		}
 		fen.phase = ''; //TODO: king !!!!!!!
 		[fen.stage, fen.turn] = ['card_selection', [starter]];
@@ -756,7 +756,7 @@ function start_new_round_ferro() {
 	let deck = fen.deck = create_fen_deck('n', fen.num_decks, fen.num_decks * 4);
 	let deck_discard = fen.deck_discard = [];
 	shuffle(deck);
-	
+
 	let handsize = valf(Number(Z.options.handsize), 11);
 	for (const plname of fen.plorder) {
 		let pl = fen.players[plname];

@@ -295,12 +295,6 @@ function _poll() {
 	
 	send_or_sim({ friendly: Z.friendly, uname: Z.uplayer, auto: true }, 'table');
 }
-function sss() { show_playerdatastate(); }
-function show_playerdatastate() {
-	for (const pldata of Z.playerdata) {
-		console.log('player', pldata.name, `status=${isEmpty(pldata.player_status) ? 'none' : pldata.player_status}`, pldata.state);
-	}
-}
 
 
 

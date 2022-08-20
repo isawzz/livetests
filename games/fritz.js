@@ -63,7 +63,7 @@ function fritz_present(dParent) {
 
 
 	let ddarea = UI.ddarea = mDiv(dOpenTable, { border: 'dashed 1px black', bg: '#eeeeee80', box: true, hmin: 162, wmin: 245, padding: '5px 50px 5px 5px', margin: 5 });
-	mDroppable(ddarea, drop_card_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
+	mDroppable(ddarea, drop_card_fritz, dragover_fritz); ddarea.id = 'dOpenTable'; Items[ddarea.id] = ddarea;
 	mFlexWrap(ddarea)
 
 	fritz_stats(dRechts);
@@ -102,7 +102,7 @@ function fritz_present(dParent) {
 		let ch = arrChildren(iDiv(group));
 		let cards = ch.map(x => Items[x.id]);
 		//console.log('cards', cards);
-		cards.map(x => mDroppable(x, drop_card_fritz));
+		cards.map(x => mDroppable(x, drop_card_fritz, dragover_fritz));
 	}
 
 	//if ddarea is empty, write drag and drop hint
@@ -224,7 +224,7 @@ function add_card_to_group(card, oldgroup, oldindex, targetcard, targetgroup) {
 	}
 
 	card.source = 'group';
-	mDroppable(iDiv(card), drop_card_fritz);
+	mDroppable(iDiv(card), drop_card_fritz, dragover_fritz);
 
 	if (nundef(targetcard)) { //} || targetcard.id == arrLast(targetgroup.ids)) {
 		targetgroup.ids.push(card.id);
@@ -258,7 +258,6 @@ function add_card_to_group(card, oldgroup, oldindex, targetcard, targetgroup) {
 
 	resplay_container(targetgroup);
 }
-function allowDrop(ev) { ev.preventDefault(); }
 function calc_fritz_score() {
 	let [round, plorder, stage, A, fen, uplayer] = [Z.round, Z.plorder, Z.stage, Z.A, Z.fen, Z.uplayer];
 	for (const plname of fen.roundorder) {
@@ -294,7 +293,7 @@ function drag(ev) { clear_quick_buttons(); ev.dataTransfer.setData("text", ev.ta
 function drop_card_fritz(ev) {
 	ev.preventDefault();
 	evNoBubble(ev);
-	if (isdef(mBy('ddhint'))) mRemove(mBy('ddhint'));
+	if (isdef(mBy('ddhint'))) mRemove(mBy('ddhint')); //removes the text saying 'drag and drop cards here'
 	var data = ev.dataTransfer.getData("text");
 	//console.log('data',data);
 	let card = Items[data];

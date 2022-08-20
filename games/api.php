@@ -46,6 +46,21 @@ if ($cmd == 'table'){
 		$table = db_read($qr)[0]; 
 		$result->table = $table;
 	}
+}else if ($cmd == 'join'){ 
+	$friendly = $data->friendly;
+	$uname = $data->uname;
+	$qr = "SELECT * FROM indiv WHERE `friendly` = '$friendly' and `name` = '$uname'"; 
+	$playerdata = db_read($qr);
+	if (count($playerdata) == 0){
+		$modified = get_now();
+		$qw = "INSERT INTO indiv (`friendly`,`name`,`state`,`player_status`,`checked`) VALUES ('$friendly','$uname','','',$modified)";
+		$qr = "SELECT * FROM indiv WHERE `friendly` = '$friendly'"; 
+		$res=db_write_read_all($qw,$qr);
+		$result->playerdata = $res;
+	}else{
+		$result->playerdata = $playerdata;
+	}
+	$result->status = "joined";
 }else if ($cmd == "assets") {
 	$path = '../base/assets/';
 	$c52 = file_get_contents($path . 'c52.yaml');

@@ -539,19 +539,14 @@ function mDraggable(item) {
 	d.ondragstart = drag;
 }
 function mDroppable(item, handler, dragoverhandler) {
+	function allowDrop(ev) { ev.preventDefault(); }
+
 	let d = iDiv(item);
 	//console.log('item', item);
 	d.ondragover = isdef(dragoverhandler) ? dragoverhandler : allowDrop;
 	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
 	d.ondrop = handler;
 }
-// function mDroppableGroup(item,handler,dragoverhandler) {
-// 	let d = iDiv(item);
-// 	console.log('item', item, 'group',group);
-// 	d.ondragover = isdef(dragoverhandler)?()=>dragoverhandler(item):allowDrop;
-// 	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
-// 	d.ondrop = handler;
-// }
 function mFlexEvenly(d) {
 	let styles = { display: 'flex' };
 	styles['justify-content'] = 'space-evenly';

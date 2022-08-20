@@ -113,7 +113,8 @@ function gamestep() {
 		if (Z.options.zen_mode != 'yes' && Z.mode != 'hotseat' && Z.fen.keeppolling && Z.uplayer_data.player_status != 'stop') {autopoll();} //console.log('gamestep autopoll'); 
 
 	}
-	if (TESTING == true) landing();
+	
+	if (TESTING == true) landing();	//DA.max=100;DA.runs=valf(DA.runs+1,0);if (DA.runs<DA.max) onclick_restart();
 }
 
 //#region basemin NEW HELPERS!!!!!
@@ -334,8 +335,8 @@ function take_turn_multi() { if (isdef(Z.state)) take_turn(false, true); else ta
 function take_turn_write() { take_turn_multi(); }
 
 //next 2 can be eliminated: stay on client during partial playerdata writes!
-function take_turn_write_partial() { if (isdef(Z.state)) take_turn(false, true, false, 'stop'); else take_turn(false, false, false, 'stop'); }
-function take_turn_write_complete() { take_turn(false, true, false, null); } //if (isdef(Z.state)) else take_turn(false, true, false, null); }
+// function take_turn_write_partial() { if (isdef(Z.state)) take_turn(false, true, false, 'stop'); else take_turn(false, false, false, 'stop'); }
+// function take_turn_write_complete() { take_turn(false, true, false, null); } //if (isdef(Z.state)) else take_turn(false, true, false, null); }
 
 function take_turn(write_fen = true, write_player = false, clear_players = false, player_status = null) {
 	prep_move();

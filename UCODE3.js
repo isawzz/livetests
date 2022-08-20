@@ -1,4 +1,112 @@
 
+function mDroppableGroup(item,handler,dragoverhandler) {
+	let d = iDiv(item);
+	console.log('item', item, 'group',group);
+	d.ondragover = isdef(dragoverhandler)?()=>dragoverhandler(item):allowDrop;
+	//if (isdef(dragEnterHandler)) d.ondragenter = dragEnterHandler;
+	d.ondrop = handler;
+}
+
+function phpPostSimulate(o, cmd) {
+	console.log('!!!!!!!!!!!!simulate', o, cmd);
+	FORCE_REDRAW = true;
+
+	if (nundef(o.options) && isdef(Z)) {
+		//console.log('_____________', cmd, o, Z, '\nturn', o.turn, Z.turn);
+		o.turn = Z.turn;
+		o.game = Z.game;
+		o.options = Z.options;
+	}
+	switch (cmd) {
+		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;
+		case "table":
+		case "startgame":
+			let result = pack_table(o);
+			//console.log('t', t);
+
+			handle_result(result, cmd); break;
+		default: break; //console.log('unknown command', cmd); break;
+	}
+
+}
+
+function _phpPost(o, cmd) {
+	//console.log('..????????????????????????.phpPost', arguments);
+	//console.log('..phpPost', o, cmd);
+
+	clear_transaction();
+
+	//console.log('in phpPost (startTesting)',o,cmd);
+
+	if (TESTING && cmd == 'startgame') {
+		for (const func of DA.test.mods) func(o);
+	}
+	if (nundef(o.options) && isdef(Z)) {
+		//console.log('_____________no options!!!', cmd, o, Z, '\nturn', 'o', o.turn, 'Z', Z.turn, 'fen', Z.fen.turn);
+		o.turn = Z.turn;
+
+		//bei games:
+		// let fen = o.fen;
+		//let expected = {}; fen.turn.map(x => expected[x] = { stage: fen.stage, step: Z.step });
+		//o.expected = expected; //Z.expected;
+		//o.fen = Z.fen;
+		//console.log('fen', o.fen);
+
+		o.options = Z.options;
+		o.game = Z.game;
+
+	}
+	if (isdef(Z)) {
+		o.playerdata = Z.playerdata;
+		//console.log('playerdata', o.playerdata);
+		if (isdef(o.state)) {
+			//console.log('writing state', o.state, 'for',o.uname);
+			firstCond(o.playerdata, x => x.name == o.uname).state = o.state;
+		}
+		if (isdef(Z.player_status)) firstCond(o.playerdata, x => x.name == Z.uplayer).player_status = Z.player_status;
+		Z.playerdata = o.playerdata;
+		//console.log('o.playerdata', o.playerdata);
+	} else if (isdef(o.friendly)) {
+		//console.log('o',o)
+		if (nundef(o.playerdata)) {
+			o.playerdata = [];
+			for (const plname of o.fen.plorder) {
+				o.playerdata.push({ name: plname, state: null, player_status: null });
+			}
+		}
+	}
+	if (o.clear_players){
+		//console.log('playerdata',jsCopy(Z.playerdata));
+
+		Z.playerdata.map(x=>x.state = null);
+
+		//console.log('playerdata',jsCopy(Z.playerdata));
+		o.playerdata = Z.playerdata;
+	}
+
+	switch (cmd) {
+		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;
+		case "move":
+		case "table":
+		case "startgame":
+			let t = pack_table(o);
+			//console.log('t', t);
+
+			// let t1 = jsCopy(JSON.parse(t));
+			// //console.log('t1', t1); //, 't1.fen.turn', t1.fen.turn);
+			// if (isdef(t1.table.fen)) {
+			// 	let fen = JSON.parse(t1.table.fen);
+			// 	if (isdef(fen)) console.log('.......................\nfen.turn vor handle_result ist:', fen.turn);
+			// 	else console.log('WTF!!!.......................\nfen.turn vor handle_result ist:', fen);
+
+			// }else console.log('WTF2aaaaa!!!.......................\nfen.turn vor handle_result ist:', t1.fen);
+
+			//console.log('t', t);
+			handle_result(t, cmd); break;
+		default: break; //console.log('unknown command', cmd); break;
+	}
+}
+
 function process_rumors_setup() {
 
 	let [fen, A, uplayer, plorder, data] = [Z.fen, Z.A, Z.uplayer, Z.plorder, Z.uplayer_data];

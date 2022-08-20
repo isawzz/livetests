@@ -1,19 +1,82 @@
-function activate_ui() {
 
-	if (uiActivated) { DA.ai_is_moving = false; return; }
-	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
-
-	// if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
-	// 	FirstLoad = false;
-	// 	Clientdata.snapshot = jsCopy(Z.fen);
-	// 	show('bRestartMove');
-	// } else if (Clientdata.this_turn.length != 1) {
-	// 	delete Clientdata.snapshot;
-	// 	hide('bRestartMove');
-	// }
-
-	uiActivated = true; DA.ai_is_moving = false;
+//#region history layouts
+function PRHLayout() {
+	let drr = UI.DRR = mDiv(dTable);
+	mAppend(drr, UI.dHistory);
+	Clientdata.historyLayout = 'prh';
 }
+function HRPLayout() {
+	let dr = UI.dRechts;
+	dr.remove();
+	let drr = UI.DRR = mDiv(dTable);
+	mAppend(drr, UI.dHistory);
+	mAppend(dTable, dr);
+	Clientdata.historyLayout = 'hrp';
+}
+function PHLayout() {
+	if (isdef(UI.DRR)) UI.DRR.remove();
+	mAppend(UI.dRechts, UI.dHistory);
+	Clientdata.historyLayout = 'ph';
+}
+function HPLayout() {
+	if (isdef(UI.DRR)) UI.DRR.remove();
+	mInsert(UI.dRechts, UI.dHistory);
+	Clientdata.historyLayout = 'hp';
+}
+//#endregion
+
+//#region misc output helpers
+function sss() { show_playerdatastate(); }
+function sss1() {
+	let [fen, A, uplayer, plorder, data] = [Z.fen, Z.A, Z.uplayer, Z.plorder, Z.uplayer_data];
+	let s = 'no data for player ' + uplayer;
+	if (isDict(data.state)) {
+		s = `${uplayer} passes `;
+		for (const k in data.state.di) {
+			s += `${k} ${data.state.di[k]}, `;
+		}
+	}
+	console.log(s);
+}
+function show_playerdatastate() {
+	for (const pldata of Z.playerdata) {
+		console.log('player', pldata.name, `status=${isEmpty(pldata.player_status) ? 'none' : pldata.player_status}`, pldata.state);
+	}
+}
+function shuffletest(list){
+	for(let i=0; i<100; i++){
+		shuffle(list);
+		console.log('shuffle: ' + jsCopy(list));
+	}
+}
+
+//#endregion
+
+//#region title of page (in tab)
+var WhichCorner = 0;
+const CORNERS0 = ['♠', '♡']; //, '♣', '♢'];
+const CORNERS = ['◢', '◣', '◤', '◥'];
+const CORNERS2 = ['⬔', '⬕'];
+const CORNERS3 = ['⮜', '⮝', '⮞', '⮟'];
+const CORNERS4 = ['⭐', '⭑']; //, '⭒', '⭓'];
+const CORNERS5 = ['⬛', '⬜']; //, '⭒', '⭓'];
+
+function animatedTitle(msg = 'DU BIST DRAN!!!!!') {
+	TO.titleInterval = setInterval(() => {
+		let corner = CORNERS[WhichCorner++ % CORNERS.length];
+		document.title = `${corner} ${msg}`; //'⌞&amp;21543;    U+231E \0xE2Fo\u0027o Bar';
+	}, 1000);
+}
+function staticTitle() {
+	clearInterval(TO.titleInterval);
+	let url = window.location.href;
+	let loc = url.includes('telecave') ? 'telecave' : 'local';
+	// let game = isdef(Z) ? Config.games[Z.game].friendly : '♠ GAMES ♠'
+	let game = isdef(Z) ? stringAfter(Z.friendly, 'of ') : '♠ GAMES ♠';
+	document.title = `(${loc}) ${game}`; // DA.TEST0 == true? `poll: ${DA.pollCounter}` : `(${loc}) ${game}`; // ${DA.TEST0 == true ? DA.pollCounter : ''}`;
+}
+//#endregion title (tab)
+
 //#region uname switching!!!!!!!!!!!!
 function activate_playerstats(items) {
 	//das ist manually!
@@ -44,6 +107,23 @@ function switch_uname(plname) {
 	//DA.AUTOSWITCH = false;
 }
 //#endregion
+
+function activate_ui() {
+
+	if (uiActivated) { DA.ai_is_moving = false; return; }
+	//console.log('______ activate_ui','\nprevturn',Clientdata.last_turn,'\n=>turn',Clientdata.this_turn,'\nprevstage',Clientdata.last_stage,'\n=>stage',Clientdata.this_stage);
+
+	// if ((Clientdata.this_stage != Clientdata.last_stage || FirstLoad) && Clientdata.this_stage == 'card_selection') {
+	// 	FirstLoad = false;
+	// 	Clientdata.snapshot = jsCopy(Z.fen);
+	// 	show('bRestartMove');
+	// } else if (Clientdata.this_turn.length != 1) {
+	// 	delete Clientdata.snapshot;
+	// 	hide('bRestartMove');
+	// }
+
+	uiActivated = true; DA.ai_is_moving = false;
+}
 function animate_card_exchange(i0, i1, callback) {
 	ari_make_unselectable(i0);
 	ari_make_unselectable(i1);
@@ -385,7 +465,6 @@ function new_cards_animation(n = 2) {
 		// setTimeout(ferro_pre_action,1000);
 	}
 }
-
 function round_change_animation(n = 2) {
 	let [stage, A, fen, plorder, uplayer, deck] = [Z.stage, Z.A, Z.fen, Z.plorder, Z.uplayer, Z.deck];
 	let pl = fen.players[uplayer];
@@ -866,56 +945,6 @@ function tableLayoutMR(dParent, m = 7, r = 1) {
 	let dOpenTable = ui.dOpenTable = mDiv(dMiddle, { w: '100%', padding: 10 }); mFlexWrap(dOpenTable);// mLinebreak(d_table);
 	return [dOben, dOpenTable, dMiddle, dRechts];
 }
-
-
-//#region title of page (in tab)
-var WhichCorner = 0;
-const CORNERS0 = ['♠', '♡']; //, '♣', '♢'];
-const CORNERS = ['◢', '◣', '◤', '◥'];
-const CORNERS2 = ['⬔', '⬕'];
-const CORNERS3 = ['⮜', '⮝', '⮞', '⮟'];
-const CORNERS4 = ['⭐', '⭑']; //, '⭒', '⭓'];
-const CORNERS5 = ['⬛', '⬜']; //, '⭒', '⭓'];
-
-function animatedTitle(msg = 'DU BIST DRAN!!!!!') {
-	TO.titleInterval = setInterval(() => {
-		let corner = CORNERS[WhichCorner++ % CORNERS.length];
-		document.title = `${corner} ${msg}`; //'⌞&amp;21543;    U+231E \0xE2Fo\u0027o Bar';
-	}, 1000);
-}
-function staticTitle() {
-	clearInterval(TO.titleInterval);
-	let url = window.location.href;
-	let loc = url.includes('telecave') ? 'telecave' : 'local';
-	// let game = isdef(Z) ? Config.games[Z.game].friendly : '♠ GAMES ♠'
-	let game = isdef(Z) ? stringAfter(Z.friendly, 'of ') : '♠ GAMES ♠';
-	document.title = `(${loc}) ${game}`; // DA.TEST0 == true? `poll: ${DA.pollCounter}` : `(${loc}) ${game}`; // ${DA.TEST0 == true ? DA.pollCounter : ''}`;
-}
-//#endregion title (tab)
-
-function PRHLayout() {
-	let drr = UI.DRR = mDiv(dTable);
-	mAppend(drr, UI.dHistory);
-	Clientdata.historyLayout = 'prh';
-}
-function HRPLayout() {
-	let dr = UI.dRechts;
-	dr.remove();
-	let drr = UI.DRR = mDiv(dTable);
-	mAppend(drr, UI.dHistory);
-	mAppend(dTable, dr);
-	Clientdata.historyLayout = 'hrp';
-}
-function PHLayout() {
-	if (isdef(UI.DRR)) UI.DRR.remove();
-	mAppend(UI.dRechts, UI.dHistory);
-	Clientdata.historyLayout = 'ph';
-}
-function HPLayout() {
-	if (isdef(UI.DRR)) UI.DRR.remove();
-	mInsert(UI.dRechts, UI.dHistory);
-	Clientdata.historyLayout = 'hp';
-}
 function ui_player_info(dParent, outerStyles = { dir: 'column' }, innerStyles = {}) {
 	let fen = Z.fen;
 	// let players = dict2list(fen.players, 'name');
@@ -959,18 +988,6 @@ function ui_player_info(dParent, outerStyles = { dir: 'column' }, innerStyles = 
 
 	return items;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

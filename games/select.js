@@ -12,28 +12,6 @@ function start_transaction() {
 	DA.transactionlist = [];
 }
 function clear_transaction() { DA.simulate = false; DA.transactionlist = []; }
-function phpPostSimulate(o, cmd) {
-	console.log('!!!!!!!!!!!!simulate', o, cmd);
-	FORCE_REDRAW = true;
-
-	if (nundef(o.options) && isdef(Z)) {
-		//console.log('_____________', cmd, o, Z, '\nturn', o.turn, Z.turn);
-		o.turn = Z.turn;
-		o.game = Z.game;
-		o.options = Z.options;
-	}
-	switch (cmd) {
-		case "gameover": //copyKeys(Z,o,{},['turn']);//show_tables(); break;
-		case "table":
-		case "startgame":
-			let result = pack_table(o);
-			//console.log('t', t);
-
-			handle_result(result, cmd); break;
-		default: break; //console.log('unknown command', cmd); break;
-	}
-
-}
 function pack_table(o) {
 	for (const k of ['players', 'fen', 'state', 'player_status', 'options', 'scoring', 'notes', 'turn']) {
 		let val = o[k];
@@ -57,7 +35,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 	let A = Z.A;
 	select_clear_previous_level();
 	A.level++; A.items = items; A.callback = callback; A.selected = []; A.minselected = min; A.maxselected = max;
-
+	console.log('A.level', A.level)
 	show_stage();
 	let dInstruction = mBy('dSelections0');
 	mClass(dInstruction, 'instruction');
@@ -70,6 +48,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 	//console.log('haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaA.items',items,A.items); //return;
 
 	let has_submit_items = false;
+	let buttonstyle = { maleft: 10, vmargin: 2, rounding: 6, padding: '4px 12px 5px 12px', border: '0px solid transparent', outline: 'none' }
 	for (const item of A.items) {
 		let type = item.itemtype = is_card(item) ? 'card' : isdef(item.o) ? 'container' : 'string'; // nundef(item.submit_on_click) ? 'string' : 'submit';
 		if (isdef(item.submit_on_click)) { has_submit_items = true; }
@@ -77,7 +56,7 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 		let id = item.id = lookup(item, ['o', 'id']) ? item.o.id : getUID(); A.di[id] = item;
 		if (type == 'string') { //make button for this item!
 			let handler = ev => select_last(item, isdef(item.submit_on_click) ? callback : select_toggle, ev);
-			item.div = mButton(item.a, handler, dInstruction, { maleft: 10, mabottom: 4, rounding: 6, padding: '4px 12px 5px 12px', border: '0px solid transparent', outline: 'none' }, null, id);
+			item.div = mButton(item.a, handler, dInstruction, buttonstyle, null, id);
 		} else {
 			let ui = item.div = iDiv(item.o);
 			ui.onclick = ev => select_last(item, select_toggle, ev); // show_submit_button ? _select_toggle : select_finalize;
@@ -85,12 +64,12 @@ function select_add_items(items, callback = null, instruction = null, min = 0, m
 		}
 	}
 
-	//show_submit_button = show_submit_button && A.minselected != A.maxselected || !A.autosubmit;
+	//show_submit_button = show_submit_button && A.minselected != A.maxselected || !A.autosubmit; { bg: 'red', fg: 'white', maleft: 10 }
 	let show_submit_button = !has_submit_items && (A.minselected != A.maxselected || !A.autosubmit);
-	if (show_submit_button) { mButton('submit', callback, dInstruction, { bg: 'red', fg: 'white', maleft: 10 }, null, 'bSubmit'); }
+	if (show_submit_button) { mButton('submit', callback, dInstruction, buttonstyle, 'selectable_button', 'bSubmit'); }
 
-	let show_restart_button = show_submit_button && A.level > 1;
-	if (show_restart_button) { mButton('restart', onclick_reload, dInstruction, { bg: 'red', fg: 'white', maleft: 10 }, null, 'bReload'); }
+	let show_restart_button = A.level > 1; //show_submit_button && A.level > 1;
+	if (show_restart_button) { mButton('restart', onclick_reload, dInstruction, buttonstyle, 'selectable_button', 'bReload'); }
 
 	//now, mark all items for selection
 	let dParent = window[`dActions${A.level}`];
@@ -353,7 +332,7 @@ function ari_make_unselected(item) {
 
 }
 // card
-function make_card_selectable(item) { let d = iDiv(item.o); mClass(d, 'selectable'); if (Z.game != 'aristo') {spread_hand(item.path, .3); } mClass(d.parentNode, 'selectable_parent'); }
+function make_card_selectable(item) { let d = iDiv(item.o); mClass(d, 'selectable'); if (Z.game != 'aristo') { spread_hand(item.path, .3); } mClass(d.parentNode, 'selectable_parent'); }
 
 function make_card_unselectable(item) { let d = iDiv(item.o); d.onclick = null; mClassRemove(d, 'selectable'); mClassRemove(d.parentNode, 'selectable_parent'); spread_hand(item.path); }
 function make_card_selected(item) {
