@@ -1287,7 +1287,7 @@ function mYaml(d, js) {
 }
 //#endregion
 
-//#region m prefix anim
+//#region m prefix anim, a prefix
 function mTableTransition(d, ms = 800) {
 	toElem(d).animate([{ opacity: .25 }, { opacity: 1 },], { fill: 'both', duration: ms, easing: 'ease' });
 }
@@ -1342,6 +1342,51 @@ function mShrinkTranslate(child, scale, newParent, ms = 800, callback) {
 	mAnimate(child, 'transform', [`translateX(${dx}px) translateY(${dy}px) scale(${scale})`], callback, ms, 'ease');
 }
 
+var MyEasing = 'cubic-bezier(1,-0.03,.86,.68)';
+function animateProperty(elem, prop, start, middle, end, msDuration, forwards) {
+	let kflist = [];
+	for (const v of [start, middle, end]) {
+		let o = {};
+		o[prop] = isString(v) || prop == 'opacity' ? v : '' + v + 'px';
+		kflist.push(o);
+	}
+	let opts = { duration: msDuration };
+	if (isdef(forwards)) opts.fill = forwards;
+	elem.animate(kflist, opts); // {duration:msDuration}); //,fill:'forwards'});
+}
+function animatePropertyX(elem, prop, start_middle_end, msDuration, forwards, easing, delay) {
+	let kflist = [];
+	for (const perc in start_middle_end) {
+		let o = {};
+		let val = start_middle_end[perc];
+		o[prop] = isString(val) || prop == 'opacity' ? val : '' + val + 'px';
+		kflist.push(o);
+	}
+	let opts = { duration: msDuration, fill: valf(forwards, 'none'), easing: valf(easing, 'ease-it-out'), delay: valf(delay, 0) };
+	elem.animate(kflist, opts); // {duration:msDuration}); //,fill:'forwards'});
+}
+function aMove(d, dSource, dTarget, callback, offset, ms, easing, fade) {
+	let b1 = getRect(dSource);
+	let b2 = getRect(dTarget);
+	if (nundef(offset)) offset = { x: 0, y: 0 };
+	let dist = { x: b2.x - b1.x + offset.x, y: b2.y - b1.y + offset.y };
+	d.style.zIndex = 100;
+	// var MyEasing = 'cubic-bezier(1,-0.03,.86,.68)';
+	let a = d.animate({ opacity: valf(fade, 1), transform: `translate(${dist.x}px,${dist.y}px)` }, { easing: valf(easing, 'EASE'), duration: ms });
+	// let a = aTranslateFadeBy(d.div, dist.x, dist.y, 500);
+	a.onfinish = () => { d.style.zIndex = iZMax(); if (isdef(callback)) callback(); };
+}
+function aTranslateFadeBy(d, x, y, ms) { return d.animate({ opacity: .5, transform: `translate(${x}px,${y}px)` }, { easing: MyEasing, duration: ms }); }
+function aTranslateBy(d, x, y, ms) { return d.animate({ transform: `translate(${x}px,${y}px)` }, ms); }// {easing:'cubic-bezier(1,-0.03,.27,1)',duration:ms}); }
+function aTranslateByEase(d, x, y, ms, easing = 'cubic-bezier(1,-0.03,.27,1)') {
+	return d.animate({ transform: `translate(${x}px,${y}px)` }, { easing: easing, duration: ms });
+}
+function aRotate(d, ms = 2000) { return d.animate({ transform: `rotate(360deg)` }, ms); }
+function aRotateAccel(d, ms) { return d.animate({ transform: `rotate(1200deg)` }, { easing: 'cubic-bezier(.72, 0, 1, 1)', duration: ms }); }
+function aFlip(d, ms = 300, x = 0, y = 1, easing = 'cubic-bezier(1,-0.03,.27,1)') {
+	// return d.animate({ 'transform-origin': '50% 50%',transform: `scale(${x}px,${y}px)` }, {easing:easing,duration:ms}); 
+	return d.animate({ transform: `scale(${2}px,${y}px)` }, { easing: easing, duration: ms });
+}
 
 //#endregion
 
@@ -4009,6 +4054,15 @@ async function load_assets_fetch(basepath, baseminpath) {
 	KeySets = getKeySets();
 	console.assert(isdef(Config), 'NO Config!!!!!!!!!!!!!!!!!!!!!!!!');
 	return { users: dict2list(DB.users, 'name'), games: dict2list(Config.games, 'name'), tables: [] };
+}
+async function load_syms(path){
+	//sollten in base/assets/allSyms.yaml sein!
+	if (nundef(path)) path = './base/assets/';
+	Syms = await route_path_yaml_dict(path + 'allSyms.yaml');
+	SymKeys = Object.keys(Syms);
+	ByGroupSubgroup = await route_path_yaml_dict(path + 'symGSG.yaml');
+	KeySets = getKeySets();
+
 }
 function loader_on() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_on'; }
 function loader_off() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_off'; }

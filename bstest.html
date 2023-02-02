@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<link
+			rel="stylesheet"
+			href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+			integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+			crossorigin="anonymous"
+		/>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+	</head>
+	<body>
+		<div class="tab-pane" id="notification">
+			<h6>NOTIFICATION SETTINGS</h6>
+			<hr />
+			<form>
+				<div class="form-group">
+					<label class="d-block mb-0">Security Alerts</label>
+					<div class="small text-muted mb-3">Receive security alert notifications via email</div>
+					<div class="custom-control custom-checkbox">
+						<input type="checkbox" class="custom-control-input" id="customCheck1" checked="" />
+						<label class="custom-control-label" for="customCheck1">Email each time a vulnerability is found</label>
+					</div>
+					<div class="custom-control custom-checkbox">
+						<input type="checkbox" class="custom-control-input" id="customCheck2" checked="" />
+						<label class="custom-control-label" for="customCheck2">Email a digest summary of vulnerability</label>
+					</div>
+				</div>
+				<div class="form-group mb-0">
+					<label class="d-block">SMS Notifications</label>
+					<ul class="list-group list-group-sm">
+						<li class="list-group-item has-icon">
+							Comments
+							<div class="custom-control custom-control-nolabel custom-switch ml-auto">
+								<input type="checkbox" class="custom-control-input" id="customSwitch1" checked="" />
+								<label class="custom-control-label" for="customSwitch1"></label>
+							</div>
+						</li>
+						<li class="list-group-item has-icon">
+							Updates From People
+							<div class="custom-control custom-control-nolabel custom-switch ml-auto">
+								<input type="checkbox" class="custom-control-input" id="customSwitch2" />
+								<label class="custom-control-label" for="customSwitch2"></label>
+							</div>
+						</li>
+						<li class="list-group-item has-icon">
+							Reminders
+							<div class="custom-control custom-control-nolabel custom-switch ml-auto">
+								<input type="checkbox" class="custom-control-input" id="customSwitch3" checked="" />
+								<label class="custom-control-label" for="customSwitch3"></label>
+							</div>
+						</li>
+						<li class="list-group-item has-icon">
+							Events
+							<div class="custom-control custom-control-nolabel custom-switch ml-auto">
+								<input type="checkbox" class="custom-control-input" id="customSwitch4" checked="" />
+								<label class="custom-control-label" for="customSwitch4"></label>
+							</div>
+						</li>
+						<li class="list-group-item has-icon">
+							Pages You Follow
+							<div class="custom-control custom-control-nolabel custom-switch ml-auto">
+								<input type="checkbox" class="custom-control-input" id="customSwitch5" />
+								<label class="custom-control-label" for="customSwitch5"></label>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</form>
+		</div>
+
+		<br />
+		<hr />
+		<br />
+		<br />
+		<hr />
+		<br />
+		<div class="tab-pane" id="account">
+			<h6>ACCOUNT SETTINGS</h6>
+			<hr />
+			<form>
+				<div class="form-group">
+					<label for="username">Username</label>
+					<input type="text" class="form-control" id="username" aria-describedby="usernameHelp" placeholder="Enter your username" value="kennethvaldez" />
+					<small id="usernameHelp" class="form-text text-muted">
+						After changing your username, your old username becomes available for anyone else to claim.
+					</small>
+				</div>
+				<hr />
+				<div class="form-group">
+					<label class="d-block text-danger">Delete Account</label>
+					<p class="text-muted font-size-sm">Once you delete your account, there is no going back. Please be certain.</p>
+				</div>
+				<button class="btn btn-danger" type="button">Delete Account</button>
+			</form>
+		</div>
+
+		<br />
+		<hr />
+		<br />
+		<br />
+		<hr />
+		<br />
+
+		<div class="col-xl-9 col-lg-9 col-md-12 col-sm-12 col-12">
+			<div class="card h-100">
+				<div class="card-body">
+					<div class="row gutters">
+						<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+							<h6 class="mb-3 text-primary">Personal Details</h6>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="fullName">Full Name</label>
+								<input type="text" class="form-control" id="fullName" placeholder="Enter full name" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="eMail">Email</label>
+								<input type="email" class="form-control" id="eMail" placeholder="Enter email ID" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="phone">Phone</label>
+								<input type="text" class="form-control" id="phone" placeholder="Enter phone number" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="website">Website URL</label>
+								<input type="url" class="form-control" id="website" placeholder="Website url" />
+							</div>
+						</div>
+					</div>
+					<div class="row gutters">
+						<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+							<h6 class="mb-3 text-primary">Address</h6>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="Street">Street</label>
+								<input type="name" class="form-control" id="Street" placeholder="Enter Street" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="ciTy">City</label>
+								<input type="name" class="form-control" id="ciTy" placeholder="Enter City" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="sTate">State</label>
+								<input type="text" class="form-control" id="sTate" placeholder="Enter State" />
+							</div>
+						</div>
+						<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+							<div class="form-group">
+								<label for="zIp">Zip Code</label>
+								<input type="text" class="form-control" id="zIp" placeholder="Zip Code" />
+							</div>
+						</div>
+					</div>
+					<div class="row gutters">
+						<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+							<div class="text-right">
+								<button type="button" id="submit" name="submit" class="btn btn-secondary">Cancel</button>
+								<button type="button" id="submit" name="submit" class="btn btn-primary">Update</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

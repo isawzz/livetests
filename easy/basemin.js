@@ -3943,10 +3943,10 @@ function lastDescendantOfType(type, parent) {
 	}
 	return null;
 }
-async function load_assets_fetch(basepath, baseminpath) {
-	let path = basepath + 'assets/';
+async function load_assets_fetch(assetspath, baseminpath) {
+	let path = assetspath + 'assets/';
 	Config = await route_path_yaml_dict(baseminpath + 'config.yaml');
-	DB = await route_path_yaml_dict(basepath + 'DB.yaml');
+	DB = await route_path_yaml_dict(assetspath + 'DB.yaml');
 	Syms = await route_path_yaml_dict(path + 'allSyms.yaml');
 	SymKeys = Object.keys(Syms);
 	ByGroupSubgroup = await route_path_yaml_dict(path + 'symGSG.yaml');
@@ -3957,6 +3957,15 @@ async function load_assets_fetch(basepath, baseminpath) {
 	KeySets = getKeySets();
 	console.assert(isdef(Config), 'NO Config!!!!!!!!!!!!!!!!!!!!!!!!');
 	return { users: dict2list(DB.users, 'name'), games: dict2list(Config.games, 'name'), tables: [] };
+}
+async function load_syms(path){
+	//sollten in base/assets/allSyms.yaml sein!
+	if (nundef(path)) path = './base/assets/';
+	Syms = await route_path_yaml_dict(path + 'allSyms.yaml');
+	SymKeys = Object.keys(Syms);
+	ByGroupSubgroup = await route_path_yaml_dict(path + 'symGSG.yaml');
+	KeySets = getKeySets();
+
 }
 function loader_on() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_on'; }
 function loader_off() { let d = mBy('loader_holder'); if (isdef(d)) d.className = 'loader_off'; }
